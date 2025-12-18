@@ -1,16 +1,15 @@
 import torch
 import random
 import numpy as np
-from collections import deque # Dátová štruktúra pre pamäť (Fronta)
+from collections import deque
 from snake_game_ai import SnakeGameAI, Direction, Point
 
-# Tieto dve veci vytvoríme v ďalšom kroku, zatiaľ to bude svietiť načerveno
 from model import Linear_QNet, QTrainer 
 from helper import plot
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
-LR = 0.001 # Learning Rate (Rýchlosť učenia)
+LR = 0.001 # Learning Rate
 
 class Agent:
 
