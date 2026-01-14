@@ -153,7 +153,9 @@ html, body{
   .media-grid{
     grid-template-columns: 1fr 1fr;
   }
-  .video-grid{
-    grid-template-columns: 1fr 1fr;
-  }
+  .video-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+    }
 }
