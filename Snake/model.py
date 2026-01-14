@@ -5,22 +5,52 @@ import torch.nn.functional as F
 import os
 
 class Linear_QNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size: int, hidden_size: int, output_size: int) -> None:
+        """
+        Inicializuje architektúru lineárnej Q-siete (Deep Q-Network).
+        
+        Model pozostáva z dvoch plne prepojených (dense) vrstiev. Prvá vrstva slúži na 
+        extrakciu príznakov zo stavového priestoru, druhá vrstva mapuje tieto príznaky 
+        na Q-hodnoty pre jednotlivé akcie.
+
+        Parametre:
+            input_size (int): Dimenzia vstupného vektora (veľkosť stavového priestoru).
+            hidden_size (int): Počet neurónov v skrytej vrstve (šírka siete).
+            output_size (int): Dimenzia výstupného vektora (počet možných akcií agenta).
+        """
         super().__init__()
-        # 1. Vrstva: Vstup -> Skrytá vrstva
         self.linear1 = nn.Linear(input_size, hidden_size)
-        # 2. Vrstva: Skrytá vrstva -> Výstup
         self.linear2 = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x):
-        # Dáta prejdú prvou vrstvou a aplikuje sa funkcia ReLU (odstráni záporné čísla)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Realizuje dopredné šírenie (forward propagation) vstupného tenzora cez sieť.
+
+        Na výstup prvej lineárnej vrstvy je aplikovaná nelineárna aktivačná funkcia 
+        ReLU (Rectified Linear Unit), ktorá umožňuje modelu aproximovať nelineárne vzťahy. 
+        Výstupná vrstva vracia surové hodnoty (logits), ktoré reprezentujú predikované 
+        Q-hodnoty pre daný stav.
+
+        Parametre:
+            x (torch.Tensor): Vstupný tenzor reprezentujúci stav prostredia.
+
+        Návratová hodnota:
+            torch.Tensor: Výstupný tenzor obsahujúci predikované Q-hodnoty pre každú akciu.
+        """
         x = F.relu(self.linear1(x))
-        # Dáta prejdú druhou vrstvou na výstup
         x = self.linear2(x)
         return x
 
-    def save(self, file_name='model.pth'):
-        # Funkcia na uloženie natrénovaného modelu do súboru
+    def save(self, file_name: str = 'model.pth') -> None:
+        """
+        Serializuje a ukladá stavový slovník (state_dict) modelu do súboru.
+        
+        Metóda zabezpečuje perzistenciu natrénovaných parametrov (váh a biasov). 
+        Ak cieľový adresár neexistuje, metóda ho automaticky vytvorí.
+
+        Parametre:
+            file_name (str, optional): Názov cieľového súboru. Predvolená hodnota je 'model.pth'.
+        """
         model_folder_path = './model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
@@ -28,47 +58,92 @@ class Linear_QNet(nn.Module):
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
 
+    def load(self, file_name: str = 'smartSnake.pth') -> None:
+        """
+        Načíta uložené váhy modelu zo súboru.
+        Ak súbor neexistuje, vypíše informáciu a pokračuje s náhodným modelom.
+        
+        Parametre:
+            file_name (str): Názov súboru.
+        """
+        model_folder_path = './model'
+        file_name = os.path.join(model_folder_path, file_name)
+
+        if os.path.isfile(file_name):
+            self.load_state_dict(torch.load(file_name))
+            self.eval() # Prepne do módu evaluácie (pre istotu)
+            print(f" > Úspešne načítaný model: {file_name}")
+        else:
+            print(f" > Model {file_name} nebol nájdený. Začínam od nuly.")
 
 class QTrainer:
-    def __init__(self, model, lr, gamma):
+    def __init__(self, model: nn.Module, lr: float, gamma: float) -> None:
+        """
+        Inicializuje inštanciu triedy QTrainer, ktorá zapuzdruje logiku optimalizačného procesu.
+
+        Táto metóda nastavuje kľúčové hyperparametre učenia, inicializuje optimalizačný 
+        algoritmus Adam pre aktualizáciu váh neurónovej siete a definuje stratovú funkciu 
+        (Mean Squared Error - MSE) pre výpočet chyby predikcie.
+
+        Parametre:
+            model (nn.Module): Inštancia neurónovej siete (Deep Q-Network), ktorá je predmetom trénovania.
+            lr (float): Rýchlosť učenia (learning rate), ktorá determinuje veľkosť kroku pri aktualizácii 
+                        parametrov modelu počas optimalizácie.
+            gamma (float): Diskontný faktor (discount factor) v intervale <0, 1>, ktorý určuje váhu 
+                           budúcich odmien v Bellmanovej rovnici (miara preferencie dlhodobého zisku).
+        """
         self.lr = lr
         self.gamma = gamma
         self.model = model
-        # Optimizer
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
-        # Loss function (MSE)
         self.criterion = nn.MSELoss()
 
-    def train_step(self, state, action, reward, next_state, done):
-        # Konverzia na Tensor (formát, ktorému rozumie PyTorch)
-        state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
+    def train_step(self, states: list, actions: list, rewards: list, next_states: list, dones: list) -> None:
+        """
+        Vykonáva optimalizačný krok trénovacieho procesu pomocou algoritmu Q-učenia.
 
-        # Ak trénujeme len jeden krok, musíme pridať dimenziu (batch size = 1)
-        if len(state.shape) == 1:
-            state = torch.unsqueeze(state, 0)
-            next_state = torch.unsqueeze(next_state, 0)
-            action = torch.unsqueeze(action, 0)
-            reward = torch.unsqueeze(reward, 0)
-            done = (done, )
+        Metóda implementuje nasledujúce kroky:
+        1. Dopredný chod (Forward pass): Získanie predikovaných Q-hodnôt pre aktuálne stavy.
+        2. Výpočet cieľových hodnôt (Target values): Aplikácia Bellmanovej rovnice optimality 
+           (Q_new = Reward + gamma * max(Q_next)).
+        3. Výpočet straty (Loss computation): Kvantifikácia chyby pomocou Mean Squared Error (MSE).
+        4. Spätná propagácia (Backpropagation): Výpočet gradientov a aktualizácia váh siete 
+           pomocou optimalizátora Adam.
 
-        # 1. Predikcia Q hodnôt pre aktuálny stav
-        pred = self.model(state)
+        Metóda spracováva vstupy vo forme dávok (batches) pre trénovanie z pamäte (Experience Replay), 
+        alebo ako jednotlivé vzorky pre online trénovanie.
 
+        Parametre:
+            states (list): Kolekcia aktuálnych stavov prostredia.
+            actions (list): Kolekcia vykonaných akcií (reprezentovaných ako one-hot vektory).
+            rewards (list): Kolekcia získaných odmien za vykonané akcie.
+            next_states (list): Kolekcia nasledujúcich stavov prostredia po vykonaní akcie.
+            dones (list): Kolekcia booleovských hodnôt indikujúcich terminálny stav epizódy.
+        """
+        states = torch.tensor(states, dtype=torch.float)
+        next_states = torch.tensor(next_states, dtype=torch.float)
+        actions = torch.tensor(actions, dtype=torch.long)
+        rewards = torch.tensor(rewards, dtype=torch.float)
+
+        if len(states.shape) == 1:
+            states = torch.unsqueeze(states, 0)
+            next_states = torch.unsqueeze(next_states, 0)
+            actions = torch.unsqueeze(actions, 0)
+            rewards = torch.unsqueeze(rewards, 0)
+            dones = (dones, )
+
+        pred = self.model(states)
         target = pred.clone()
-        for idx in range(len(done)):
-            Q_new = reward[idx]
-            if not done[idx]:
-                # Bellmanova rovnica: R + gamma * max(next_predicted_Q)
-                Q_new += self.gamma * torch.max(self.model(next_state[idx]))
 
-            target[idx][torch.argmax(action[idx]).item()] = Q_new
+        for idx, (reward, done, next_state, action) in enumerate(zip(rewards, dones, next_states, actions)):
+            Q_new = reward
+            if not done:
+                Q_new = reward + self.gamma * torch.max(self.model(next_state))
+
+            target[idx][torch.argmax(action).item()] = Q_new
     
-        # 2. Backpropagation (Učenie)
-        self.optimizer.zero_grad() # Vynulovanie starých gradientov
-        loss = self.criterion(target, pred) # Výpočet chyby
-        loss.backward() # Spätný chod (zistenie, čo treba zmeniť)
+        self.optimizer.zero_grad()
+        loss = self.criterion(target, pred)
+        loss.backward()
 
-        self.optimizer.step() # Úprava váh
+        self.optimizer.step()

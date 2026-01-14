@@ -2,66 +2,91 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
+from typing import Tuple, Optional, List
 
 pygame.init()
-
-# Nastavenie písma
 font = pygame.font.SysFont('arial', 25)
 
-# Definícia smerov (aby sme v kóde nepoužívali len čísla, je to prehľadnejšie)
 class Direction(Enum):
     RIGHT = 1
     LEFT = 2
     UP = 3
     DOWN = 4
 
-# Pomocná trieda pre bod (súradnice x, y)
 Point = namedtuple('Point', 'x, y')
 
-# Farby (RGB)
+# Konštanty
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
 BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
-# Nastavenia hry
 BLOCK_SIZE = 20
-SPEED = 10 #za sekundu
+SPEED = 10
 
 class SnakeGame:
+    def __init__(self, w: int = 640, h: int = 480) -> None:
+        """
+        Inicializuje herné prostredie pre manuálne ovládanie (Human-Playable).
 
-    def __init__(self, w=640, h=480):
+        Definuje rozmery okna, inicializuje grafické rozhranie Pygame a nastavuje 
+        počiatočný stav agenta (hada) a prostredia.
+
+        Parametre:
+            w (int): Šírka herného okna v pixeloch.
+            h (int): Výška herného okna v pixeloch.
+        """
         self.w = w
         self.h = h
-        # Inicializácia okna
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Snake')
         self.clock = pygame.time.Clock()
         
-        # Zaciatok hry
         self.direction = Direction.RIGHT
         self.head = Point(self.w/2, self.h/2)
-        # Had je zoznam bodov. Na začiatku má hlavu a dve časti tela
-        self.snake = [self.head, 
-                      Point(self.head.x-BLOCK_SIZE, self.head.y),
-                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y)]
+        
+        # Premenovanie na 'snake_body' (množné číslo/kolekcia bodov)
+        self.snake_body: List[Point] = [
+            self.head, 
+            Point(self.head.x-BLOCK_SIZE, self.head.y),
+            Point(self.head.x-(2*BLOCK_SIZE), self.head.y)
+        ]
         
         self.score = 0
         self.food = None
         self._place_food()
 
-    def _place_food(self):
-        # Náhodné umiestnenie jedla
+    def _place_food(self) -> None:
+        """
+        Generuje náhodné súradnice potravy v rámci hernej mriežky.
+
+        Metóda zabezpečuje, aby sa potrava nevygenerovala na súradniciach, 
+        ktoré sú aktuálne obsadené telom hada.
+        """
         x = random.randint(0, (self.w-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE 
         y = random.randint(0, (self.h-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE
         self.food = Point(x, y)
-        # Ak sa jedlo vygeneruje v tele hada, skús znova
-        if self.food in self.snake:
+        
+        if self.food in self.snake_body:
             self._place_food()
 
-    def play_step(self):
-        # 1. Zbieranie vstupov od užívateľa (Klávesnica)
+    def play_step(self) -> Tuple[bool, int]:
+        """
+        Vykonáva jeden diskrétny krok hernej slučky.
+
+        Proces zahŕňa:
+        1. Spracovanie vstupov od užívateľa (event handling).
+        2. Aktualizáciu polohy agenta.
+        3. Detekciu kolízií (terminálny stav).
+        4. Interakciu s prostredím (konzumácia potravy).
+        5. Vykreslenie aktuálneho stavu (rendering).
+
+        Návratová hodnota:
+            Tuple[bool, int]: Dvojica hodnôt (game_over, score).
+                              game_over indikuje, či hra skončila.
+                              score reprezentuje aktuálne dosiahnuté skóre.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -76,43 +101,54 @@ class SnakeGame:
                 elif event.key == pygame.K_DOWN and self.direction != Direction.UP:
                     self.direction = Direction.DOWN
 
-        # 2. Pohyb
-        self._move(self.direction) # Posunie hlavu
-        self.snake.insert(0, self.head) # Pridá novú hlavu na začiatok zoznamu
+        self._move(self.direction)
+        self.snake_body.insert(0, self.head)
         
-        # 3. Kontrola, či hra skončila (Game Over)
         game_over = False
         if self._is_collision():
             game_over = True
             return game_over, self.score
             
-        # 4. Kontrola jedla
         if self.head == self.food:
             self.score += 1
             self._place_food()
         else:
-            # Ak nezjedol jedlo, odstránime posledný kúsok chvosta (had sa len posunul)
-            self.snake.pop()
+            self.snake_body.pop()
         
-        # 5. Vykreslenie (Update UI)
         self._update_ui()
         self.clock.tick(SPEED)
         
         return game_over, self.score
 
-    def _is_collision(self):
-        # Narazil do steny?
+    def _is_collision(self) -> bool:
+        """
+        Vyhodnocuje, či nastal kolízny stav.
+
+        Kontroluje dva typy kolízií:
+        1. Narušenie hraníc herného poľa (Boundary collision).
+        2. Kolízia hlavy s vlastným telom (Self-collision).
+
+        Návratová hodnota:
+            bool: True, ak nastala kolízia, inak False.
+        """
         if self.head.x > self.w - BLOCK_SIZE or self.head.x < 0 or self.head.y > self.h - BLOCK_SIZE or self.head.y < 0:
             return True
-        # Narazil do seba?
-        if self.head in self.snake[1:]:
+        
+        if self.head in self.snake_body[1:]:
             return True
+        
         return False
 
-    def _update_ui(self):
+    def _update_ui(self) -> None:
+        """
+        Zabezpečuje grafické vykreslenie (rendering) aktuálneho stavu hry.
+
+        Vykresľuje pozadie, segmenty tela hada, potravu a aktuálne skóre 
+        na obrazovku pomocou knižnice Pygame.
+        """
         self.display.fill(BLACK)
         
-        for pt in self.snake:
+        for pt in self.snake_body:
             pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
             pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
             
@@ -122,7 +158,13 @@ class SnakeGame:
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
-    def _move(self, direction):
+    def _move(self, direction: Direction) -> None:
+        """
+        Aktualizuje súradnice hlavy agenta na základe zvoleného smeru pohybu.
+
+        Parametre:
+            direction (Direction): Enum hodnota reprezentujúca smer pohybu.
+        """
         x = self.head.x
         y = self.head.y
         if direction == Direction.RIGHT:
@@ -136,15 +178,13 @@ class SnakeGame:
             
         self.head = Point(x, y)
 
-# Spustenie hry
 if __name__ == '__main__':
     game = SnakeGame()
     
-    # Hlavná slučka
     while True:
         game_over, score = game.play_step()
         
-        if game_over == True:
+        if game_over:
             break
             
     print('Final Score', score)
