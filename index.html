@@ -38,12 +38,10 @@
           <dd>Reinforcement learning a neurónové siete aplikované na hranie jednoduchej videohry so súťažením na Kaggle.</dd>
         </div>
         <div>
-          <dt>Špecifikácia (cieľ)</dt>
+          <dt>Špecifikácia (Cieľ)</dt>
           <dd>
-            Cieľom projektu je prakticky sa oboznámiť s neurónovými sieťami a reinforcement learningom
-            implementáciou agenta, ktorý sa dokáže samostatne učiť hrať jednoduchú videohru.
-            Projekt zahŕňa návrh herného prostredia, návrh stavového priestoru, návrh odmeňovacej funkcie,
-            implementáciu DQN architektúry v PyTorch a vizualizáciu tréningového procesu.
+            Oboznámiť sa s neurónovými sieťami (NN), preskúmať vybrané architektúry a vytvoriť NN, ktorá dokáže hrať jednoduchú videohru.
+            Implementácia beží v Pythone s knižnicou PyTorch; súčasťou je aj experimentálna RL časť a vizualizácia tréningu.
           </dd>
         </div>
       </dl>
@@ -52,68 +50,46 @@
         <span class="badge">Python</span>
         <span class="badge">PyTorch</span>
         <span class="badge">Reinforcement Learning</span>
-        <span class="badge">DQN</span>
+        <span class="badge">Kaggle</span>
       </div>
 
-      <p style="margin-top:14px; font-size:0.95rem;">
-        Kompletný návod na spustenie tréningu aj testovania (vrátane command-line príkazov)
-        je dostupný v súbore README.md:
-        <br>
-        <strong>
-          <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md" target="_blank" rel="noopener">
-            GitHub – README.md
-          </a>
-        </strong>
+      <p style="margin-top:12px; color:var(--muted); font-size:0.95rem;">
+        README s príkazmi na spustenie (trénovanie / testovanie) nájdeš na GitHub:
+        <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md" target="_blank" rel="noopener">
+          https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md
+        </a>
       </p>
     </section>
 
-    <!-- Sekcia: Detailnejší opis hry -->
+    <!-- Sekcia: Stručný opis hry -->
     <section class="card">
-      <h2>Opis hry a použitého prostredia</h2>
-
+      <h2>Krátky opis hry</h2>
       <p>
-        Projekt je založený na klasickej hre <strong>Snake</strong>, ktorá bola rozšírená a
-        upravená tak, aby bola vhodná pre tréning reinforcement learning agenta.
-        Hra prebieha na diskrétnej mriežke s pevnou veľkosťou buniek a deterministickými pravidlami pohybu.
+        Hra je variácia klasického Snake, implementovaná s dôrazom na použitie
+        reinforcement learningu. Agent ovláda pohyb hada na mriežke,
+        získava potravu, rastie a snaží sa maximalizovať skóre bez kolízie
+        so stenami alebo vlastným telom.
       </p>
-
       <p>
-        Agent ovláda hada, ktorý sa v každom kroku pohybuje presne o jednu bunku
-        v jednom zo štyroch smerov. Stav hry je reprezentovaný kombináciou:
-        smeru pohybu, bezprostredného nebezpečenstva kolízie, relatívnej polohy potravy
-        a aktuálneho tvaru tela hada.
-      </p>
-
-      <p>
-        Pre účely učenia je prostredie rozdelené na dve časti:
+        Projekt neobsahuje len „hotovú hru“, ale kompletný tréningový ekosystém:
+        definíciu stavov, akcií, odmien, neurónovú sieť, trénera,
+        ukladanie modelov a vizualizáciu učenia v reálnom čase.
       </p>
 
       <ul>
-        <li>
-          <strong>Manuálna verzia hry</strong> – slúži na vizuálne overenie pravidiel,
-          ladenie kolízií a intuitívne pochopenie hernej dynamiky.
-        </li>
-        <li>
-          <strong>RL verzia hry (SnakeGameAI)</strong> – optimalizovaná pre rýchle simulácie,
-          obsahuje presne definovaný reward systém, penalizáciu za kolízie a
-          ochranu proti zacykleniu (frame limit).
-        </li>
+        <li>manuálna verzia hry (pygame) pre ručné hranie,</li>
+        <li>optimalizované RL prostredie so zrýchleným simulovaním krokov,</li>
+        <li>DQN agent s Experience Replay a oddeleným krátkodobým a dlhodobým tréningom.</li>
       </ul>
-
-      <p>
-        Odmeňovací systém je navrhnutý tak, aby podporoval nielen prežitie,
-        ale aj aktívne hľadanie potravy. Agent získava kladnú odmenu za zjedenie potravy,
-        zápornú odmenu za kolíziu a epizóda sa ukončí pri neplatnom stave.
-      </p>
 
       <div class="media-grid">
         <figure>
-          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/1.png" alt="Hra Snake – hranie" />
-          <figcaption>Manuálna verzia hry Snake počas hrania</figcaption>
+          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/1.png" alt="Screenshot 1" />
+          <figcaption>Herné rozhranie počas behu agenta</figcaption>
         </figure>
         <figure>
-          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/2.png" alt="Snake AI prostredie" />
-          <figcaption>RL prostredie optimalizované pre tréning agenta</figcaption>
+          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/2.png" alt="Screenshot 2" />
+          <figcaption>Prostredie určené pre reinforcement learning</figcaption>
         </figure>
       </div>
     </section>
@@ -121,75 +97,102 @@
     <!-- Sekcia: Čo je hotové -->
     <section class="card">
       <h2>Čo je už hotové</h2>
-
-      <p>
-        V aktuálnej fáze projektu je implementovaná kompletná pipeline
-        od herného prostredia až po tréning a vyhodnotenie agenta.
-        Projekt nie je len koncept, ale plne funkčný experimentálny systém.
-      </p>
-
       <ul>
-        <li>Kompletná manuálna implementácia hry Snake v knižnici pygame.</li>
-        <li>Samostatné RL prostredie s definovaným stavovým priestorom a reward funkciou.</li>
-        <li>Návrh a implementácia DQN architektúry (Linear_QNet).</li>
-        <li>Tréningový modul (QTrainer) s Bellmanovou rovnicou a MSE loss.</li>
-        <li>Experience Replay pamäť pre stabilnejší tréning.</li>
-        <li>Epsilon-greedy stratégia s postupným prechodom od explorácie k exploatácii.</li>
-        <li>Automatické ukladanie najlepšieho modelu počas tréningu.</li>
-        <li>Live vizualizácia skóre a priemerného výkonu počas učenia.</li>
-        <li>Možnosť spustenia agenta v testovacom režime z uložených váh.</li>
-        <li>Videozáznamy správania agenta a porovnanie rôznych fáz tréningu.</li>
+        <li>Plne funkčná manuálna verzia hry Snake v knižnici pygame.</li>
+        <li>Samostatné RL prostredie s definovaným stavovým priestorom, akciami a reward funkciou.</li>
+        <li>Implementácia DQN neurónovej siete v PyTorch (Linear_QNet).</li>
+        <li>Tréningová logika s Experience Replay a oddeleným short/long memory tréningom.</li>
+        <li>Ukladanie a opätovné načítanie natrénovaných váh modelu.</li>
+        <li>Vizualizácia priebehu učenia – skóre a priemerné skóre v čase.</li>
+        <li>Skripty na testovanie a kontrolu uložených modelov.</li>
+        <li>Vygenerované videá porovnania agentov a timelapse tréningu.</li>
+        <li>Pripravené podklady pre rozšírenie na súťažné prostredie Kaggle.</li>
       </ul>
     </section>
 
-    <!-- Sekcia: Evidencia -->
+    <!-- Sekcia: Evidencia / výsledky -->
     <section class="card">
-  <h2>Evidencia výsledkov</h2>
-
-  <p>
-    Nasledujúce materiály dokumentujú správanie agenta a jeho progres počas učenia.
-    Videá slúžia ako dôkaz, že agent sa skutočne učí a jeho stratégia sa v čase mení.
-  </p>
-
-  <div class="video-grid">
-
-    <div class="video-card">
-      <h3>Porovnanie správania agenta (začiatok / stred / koniec tréningu)</h3>
-      <video controls playsinline width="100%" preload="metadata">
-        <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Comparison.mp4" type="video/mp4">
-        Váš prehliadač nepodporuje video.
-      </video>
-    </div>
-
-    <div class="video-card">
-      <h3>Time-lapse priebehu tréningu</h3>
-      <video controls playsinline width="100%" preload="metadata">
-        <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/TimeLapse.mp4" type="video/mp4">
-        Váš prehliadač nepodporuje video.
-      </video>
-    </div>
-
-    <div class="video-card">
-      <h3>Uložené váhy modelu</h3>
+      <h2>Evidencia a výsledky</h2>
       <p>
-        <strong>
-          <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/Snake/model/smartSnake.pth" target="_blank">
-            smartSnake.pth – GitHub
-          </a>
-        </strong>
+        Nižšie sú ukážky výsledkov tréningu. Videá demonštrujú rozdiely medzi
+        natrénovaným agentom v rôznych fázach učenia a časový priebeh tréningu.
       </p>
-      <pre>https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/Snake/model/smartSnake.pth</pre>
-    </div>
 
-  </div>
-</section>
+      <div class="video-grid">
+        <div class="video-card">
+          <h3>Porovnanie 3 úrovní hadov</h3>
+          <video controls playsinline width="100%" preload="metadata">
+            <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Comparison.mp4" type="video/mp4">
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
 
+        <div class="video-card">
+          <h3>TimeLapse tréningu</h3>
+          <video controls playsinline width="100%" preload="metadata">
+            <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/TimeLapse.mp4" type="video/mp4">
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
+
+        <div class="video-card">
+          <h3>Uložené váhy modelu</h3>
+          <p>
+            <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/Snake/model/smartSnake.pth" target="_blank" rel="noopener">
+              smartSnake.pth (GitHub)
+            </a>
+          </p>
+          <pre>https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/Snake/model/smartSnake.pth</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sekcia: Plán na druhý semester -->
+    <section class="card">
+      <h2>Plán na druhý semester – Kaggle Hungry Geese</h2>
+
+      <p>
+        Cieľom druhého semestra je zapojiť sa do súťaže
+        <strong>Kaggle – Hungry Geese</strong>, ktorá predstavuje multi-agentovú verziu hry Snake.
+        V tejto hre súťažia štyri „husi“ na jednej mriežke, zbierajú potravu a snažia sa prežiť čo najdlhšie
+        bez kolízie so stenou alebo inými hráčmi.
+      </p>
+
+      <p>
+        Hoci je súťaž oficiálne ukončená, Kaggle stále umožňuje spúšťať notebooky,
+        simulovať zápasy a porovnávať výsledky lokálne, takže projekt je možné realizovať
+        ako realistickú „offline“ súťaž.
+      </p>
+
+      <h3>Hlavná úloha</h3>
+      <p>
+        Upraviť existujúceho Snake DQN agenta tak, aby bol schopný hrať v prostredí Hungry Geese
+        (4 hráči, iná mapa, iné pravidlá pohybu a kolízií) a následne dosiahnuť merateľné
+        umiestnenie v rebríčku alebo v offline hodnotení.
+      </p>
+
+      <h3>Plánované kroky</h3>
+      <ol>
+        <li><strong>Analýza pravidiel Hungry Geese</strong></li>
+        <li><strong>Úprava herného prostredia</strong></li>
+        <li><strong>Úprava neurónovej siete a vstupov</strong></li>
+        <li><strong>Tréning v multi-agent prostredí</strong></li>
+        <li><strong>Simulácia Kaggle hodnotenia</strong></li>
+        <li><strong>Vyhodnotenie a dokumentácia</strong></li>
+      </ol>
+
+      <p>
+        Výsledkom druhého semestra bude agent schopný hrať komplexnú multi-agentovú
+        verziu hry Snake a demonštrovať praktické použitie reinforcement learningu
+        v súťažnom prostredí.
+      </p>
+    </section>
 
   </main>
 
   <footer class="site-footer">
     <div class="container">
-      <p>&copy; <span id="year"></span> Dávid Moniš &middot; Ročníkový projekt FMFI UK</p>
+      <p>&copy; <span id="year"></span> Dávid Moniš &middot; Ročníkový projekt pre FMFI UK</p>
     </div>
     <script>
       document.getElementById('year').textContent = new Date().getFullYear();

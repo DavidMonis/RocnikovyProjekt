@@ -11,14 +11,40 @@
 }
 
 *{ box-sizing: border-box; }
+
 html, body{
   margin: 0;
   padding: 0;
   background: radial-gradient(1200px 800px at 20% -10%, #182030 0%, var(--bg) 55%);
   color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+               "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+               "Segoe UI Emoji", "Segoe UI Symbol";
   line-height: 1.6;
 }
+
+/* ===================== */
+/* LINKS – FIX NA MODRÚ */
+/* ===================== */
+
+a{
+  color: inherit;                 /* zruší modrú */
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.25);
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+a:hover{
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+a:visited{
+  color: inherit;                 /* zruší fialovú */
+}
+
+/* ===================== */
 
 .container{
   width: 100%;
@@ -117,6 +143,7 @@ html, body{
 }
 
 /* Video layout */
+
 .video-grid{
   display: grid;
   grid-template-columns: 1fr;
@@ -136,6 +163,7 @@ html, body{
 }
 
 /* väčšie obrazovky */
+
 @media (min-width: 720px){
   .grid{
     grid-template-columns: 1fr 1fr;
@@ -153,9 +181,8 @@ html, body{
   .media-grid{
     grid-template-columns: 1fr 1fr;
   }
-  .video-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-    }
+  .video-grid{
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
