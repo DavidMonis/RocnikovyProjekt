@@ -59,7 +59,7 @@ model/model.pth
 
 ---
 
-### Spustenie natrénovaného agenta (testovací režim)
+### Spustenie natrénovaného agenta
 
 ```bash
 python agent.py test
@@ -88,5 +88,3 @@ python inspect_model.py
 ```
 
 Vypíše vrstvy a váhy uloženého modelu.
-
-```
