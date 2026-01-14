@@ -23,29 +23,6 @@ html, body{
   line-height: 1.6;
 }
 
-/* ===================== */
-/* LINKS – FIX NA MODRÚ */
-/* ===================== */
-
-a{
-  color: inherit;                 /* zruší modrú */
-  text-decoration: underline;
-  text-decoration-color: rgba(255,255,255,0.25);
-  text-underline-offset: 3px;
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
-}
-
-a:hover{
-  color: var(--accent);
-  text-decoration-color: var(--accent);
-}
-
-a:visited{
-  color: inherit;                 /* zruší fialovú */
-}
-
-/* ===================== */
-
 .container{
   width: 100%;
   max-width: 980px;
@@ -209,7 +186,6 @@ a:hover{
   text-decoration-color: var(--accent);
 }
 
-/* ak chceš ešte jemnejšie */
 .card a{
   font-weight: 500;
 }
