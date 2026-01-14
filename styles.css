@@ -186,3 +186,30 @@ a:visited{
     gap: 1.5rem;
   }
 }
+
+/* ABSOLÚTNY OVERRIDE LINKOV */
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus,
+a[href],
+a[href^="mailto"],
+a[href^="http"]{
+  color: var(--text) !important;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.25);
+  text-underline-offset: 3px;
+}
+
+/* jemné zvýraznenie na hover – bez zmeny farby */
+a:hover{
+  text-decoration-color: var(--accent);
+}
+
+/* ak chceš ešte jemnejšie */
+.card a{
+  font-weight: 500;
+}
