@@ -62,7 +62,7 @@ class QTrainer:
             Q_new = reward[idx]
             if not done[idx]:
                 # Bellmanova rovnica: R + gamma * max(next_predicted_Q)
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
+                Q_new += self.gamma * torch.max(self.model(next_state[idx]))
 
             target[idx][torch.argmax(action[idx]).item()] = Q_new
     

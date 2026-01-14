@@ -1,0 +1,7 @@
+[200~# Ignoruj venv kdekoľvek v projekte
+venv/
+env/
+
+# Ignoruj skompilované Python súbory kdekoľvek
+__pycache__/
+*.pyc~

@@ -116,7 +116,7 @@ def train():
     agent = Agent()
     game = SnakeGameAI()
     
-    while True:
+    while agent.n_games < 1000:
         # 1. Získaj aktuálny stav (Starý stav)
         state_old = agent.get_state(game)
 
@@ -150,8 +150,8 @@ def train():
             # Vykresľovanie grafu
             plot_scores.append(score)
             total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
+            avg_score = total_score / agent.n_games
+            plot_mean_scores.append(avg_score)
             plot(plot_scores, plot_mean_scores)
 
 if __name__ == '__main__':
