@@ -204,7 +204,7 @@ def train() -> None:
             plot(plot_scores, plot_mean_scores)
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == "test":
+    if len(sys.argv) > 1 and sys.argv[1] == "trained":
         print("--- Spúšťam TESTOVACÍ režim (z uloženého modelu) ---")
         test = True
     else:
