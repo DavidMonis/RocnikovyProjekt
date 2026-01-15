@@ -65,14 +65,14 @@ model/model.pth
 python agent.py trained
 ```
 
-Agent načíta uložený model a bude iba hrať bez ďalšieho učenia.
+Agent načíta natrénovaný uložený model
 
 ---
 
 ### Manuálne hranie (klasický Snake)
 
 ```bash
-python snake_game.py
+python game.py
 ```
 
 Ovládanie:
