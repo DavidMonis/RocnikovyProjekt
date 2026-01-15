@@ -62,7 +62,7 @@ model/model.pth
 ### Spustenie natrénovaného agenta
 
 ```bash
-python agent.py test
+python agent.py trained
 ```
 
 Agent načíta uložený model a bude iba hrať bez ďalšieho učenia.
