@@ -35,7 +35,7 @@ class SnakeGameAI:
         počiatočné parametre epizódy.
 
         Parametre:
-            w (int): Šírka herného okna (stavového priestoru) v pixeloch.
+            w (int): Šírka herného okna v pixeloch.
             h (int): Výška herného okna v pixeloch.
         """
         self.w = w
@@ -47,10 +47,10 @@ class SnakeGameAI:
 
     def reset(self) -> None:
         """
-        Resetuje prostredie do počiatočného stavu pre novú epizódu.
+        Resetuje prostredie do počiatočného stavu pre novú hru.
 
         Inicializuje pozíciu agenta (hlava, telo), smer pohybu, skóre,
-        umiestnenie potravy a počítadlo iterácií (frame iteration).
+        umiestnenie potravy a počítadlo iterácií.
         """
         self.direction = Direction.RIGHT
         self.head = Point(self.w/2, self.h/2)
@@ -68,7 +68,7 @@ class SnakeGameAI:
 
     def _place_food(self) -> None:
         """
-        Generuje náhodné súradnice potravy (cieľového stavu) v rámci mriežky.
+        Generuje náhodné súradnice potravy v rámci mriežky.
         
         Zabezpečuje, aby sa potrava nevygenerovala na súradniciach obsadených telom agenta.
         """
@@ -84,10 +84,10 @@ class SnakeGameAI:
         Vykonáva jeden krok simulácie na základe akcie zvolenej agentom.
 
         Proces zahŕňa:
-        1. Spracovanie systémových udalostí (napr. ukončenie okna).
-        2. Aplikáciu akcie (zmena smeru a posun).
-        3. Vyhodnotenie stavu (kolízia, hladovanie).
-        4. Výpočet odmeny (Reward Engineering).
+        1. Spracovanie systémových udalostí.
+        2. Aplikáciu akcie.
+        3. Vyhodnotenie stavu.
+        4. Výpočet odmeny.
         5. Aktualizáciu grafického rozhrania.
 
         Parametre:
@@ -135,8 +135,8 @@ class SnakeGameAI:
         Deteguje kolízne stavy v prostredí.
 
         Metóda overuje dva typy kolízií:
-        1. Narušenie hraníc herného poľa (Wall collision).
-        2. Kolízia s vlastným telom (Self-collision).
+        1. Narušenie hraníc herného poľa.
+        2. Kolízia s vlastným telom.
 
         Parametre:
             pt (Optional[Point]): Bod, pre ktorý sa má overiť kolízia. 
@@ -148,7 +148,7 @@ class SnakeGameAI:
         if pt is None:
             pt = self.head
             
-        # Kolízia s hranicami
+        # Kolízia s okrajom
         if pt.x > self.w - BLOCK_SIZE or pt.x < 0 or pt.y > self.h - BLOCK_SIZE or pt.y < 0:
             return True
         

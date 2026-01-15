@@ -3,7 +3,7 @@ import sys
 import random
 import numpy as np
 from collections import deque
-from typing import List, Tuple, Optional
+from typing import List
 from snake_game_ai import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer 
 from helper import plot
@@ -18,7 +18,7 @@ class Agent:
         """
         Inicializuje RL agenta pre hru Snake.
 
-        Agent využíva Deep Q-Learning (DQN) s pamäťou skúseností (Experience Replay).
+        Agent využíva Deep Q-Learning (DQN).
         Zapuzdruje neurónovú sieť (Model), trénera (Trainer) a pamäť (Memory).
         """
         self.n_games = 0
@@ -96,7 +96,7 @@ class Agent:
 
     def remember(self, state: np.ndarray, action: List[int], reward: int, next_state: np.ndarray, done: bool) -> None:
         """
-        Ukladá skúsenosť (Experience Tuple) do pamäte agenta.
+        Ukladá skúsenosť do pamäte agenta.
 
         Uložená n-tica (state, action, reward, next_state, done) sa neskôr
         použije na trénovanie pomocou metódy Experience Replay.
@@ -106,17 +106,17 @@ class Agent:
             action (List[int]): Vykonaná akcia.
             reward (int): Získaná odmena.
             next_state (np.ndarray): Nasledujúci stav.
-            done (bool): Indikátor konca epizódy.
+            done (bool): Indikátor konca hry.
         """
         self.memory.append((state, action, reward, next_state, done))
 
     def train_long_memory(self) -> None:
         """
-        Trénuje neurónovú sieť na dávke vzoriek z pamäte (Experience Replay).
+        Trénuje neurónovú sieť na dávke vzoriek z pamäte.
 
-        Táto metóda sa volá po skončení epizódy. Vyberie náhodnú vzorku (batch)
+        Táto metóda sa volá po skončení hry. Vyberie náhodnú vzorku (batch)
         z histórie a vykoná optimalizačný krok, čo pomáha stabilizovať učenie
-        a predchádzať zabudnutiu starších stratégií (Catastrophic Forgetting).
+        a predchádzať zabudnutiu starších stratégií.
         """
         if len(self.memory) > BATCH_SIZE:
             mini_samples = random.sample(self.memory, BATCH_SIZE) 
@@ -128,7 +128,7 @@ class Agent:
 
     def train_short_memory(self, state: np.ndarray, action: List[int], reward: int, next_state: np.ndarray, done: bool) -> None:
         """
-        Trénuje neurónovú sieť na práve vykonanom kroku (Online Learning).
+        Trénuje neurónovú sieť na práve vykonanom kroku.
 
         Metóda sa volá okamžite po každom kroku agenta a poskytuje modelu
         okamžitú spätnú väzbu.

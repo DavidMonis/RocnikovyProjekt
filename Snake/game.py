@@ -2,7 +2,7 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
-from typing import Tuple, Optional, List
+from typing import Tuple, List
 
 pygame.init()
 font = pygame.font.SysFont('arial', 25)
@@ -15,7 +15,6 @@ class Direction(Enum):
 
 Point = namedtuple('Point', 'x, y')
 
-# Konštanty
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
 BLUE1 = (0, 0, 255)
@@ -23,7 +22,7 @@ BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
 BLOCK_SIZE = 20
-SPEED = 10
+SPEED = 15
 
 class SnakeGame:
     def __init__(self, w: int = 640, h: int = 480) -> None:
@@ -31,7 +30,7 @@ class SnakeGame:
         Inicializuje herné prostredie pre manuálne ovládanie (Human-Playable).
 
         Definuje rozmery okna, inicializuje grafické rozhranie Pygame a nastavuje 
-        počiatočný stav agenta (hada) a prostredia.
+        počiatočný stav hada a prostredia.
 
         Parametre:
             w (int): Šírka herného okna v pixeloch.
@@ -46,7 +45,6 @@ class SnakeGame:
         self.direction = Direction.RIGHT
         self.head = Point(self.w/2, self.h/2)
         
-        # Premenovanie na 'snake_body' (množné číslo/kolekcia bodov)
         self.snake_body: List[Point] = [
             self.head, 
             Point(self.head.x-BLOCK_SIZE, self.head.y),
@@ -76,11 +74,11 @@ class SnakeGame:
         Vykonáva jeden diskrétny krok hernej slučky.
 
         Proces zahŕňa:
-        1. Spracovanie vstupov od užívateľa (event handling).
+        1. Spracovanie vstupov od užívateľa
         2. Aktualizáciu polohy agenta.
-        3. Detekciu kolízií (terminálny stav).
-        4. Interakciu s prostredím (konzumácia potravy).
-        5. Vykreslenie aktuálneho stavu (rendering).
+        3. Detekciu kolízií.
+        4. Interakciu s prostredím.
+        5. Vykreslenie aktuálneho stavu.
 
         Návratová hodnota:
             Tuple[bool, int]: Dvojica hodnôt (game_over, score).
@@ -125,8 +123,8 @@ class SnakeGame:
         Vyhodnocuje, či nastal kolízny stav.
 
         Kontroluje dva typy kolízií:
-        1. Narušenie hraníc herného poľa (Boundary collision).
-        2. Kolízia hlavy s vlastným telom (Self-collision).
+        1. Narušenie hraníc herného poľa.
+        2. Kolízia hlavy s vlastným telom.
 
         Návratová hodnota:
             bool: True, ak nastala kolízia, inak False.

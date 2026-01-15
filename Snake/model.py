@@ -7,16 +7,16 @@ import os
 class Linear_QNet(nn.Module):
     def __init__(self, input_size: int, hidden_size: int, output_size: int) -> None:
         """
-        Inicializuje architektúru lineárnej Q-siete (Deep Q-Network).
+        Inicializuje architektúru lineárnej Q-siete.
         
-        Model pozostáva z dvoch plne prepojených (dense) vrstiev. Prvá vrstva slúži na 
+        Model pozostáva z dvoch plne prepojených vrstiev. Prvá vrstva slúži na 
         extrakciu príznakov zo stavového priestoru, druhá vrstva mapuje tieto príznaky 
         na Q-hodnoty pre jednotlivé akcie.
 
         Parametre:
-            input_size (int): Dimenzia vstupného vektora (veľkosť stavového priestoru).
-            hidden_size (int): Počet neurónov v skrytej vrstve (šírka siete).
-            output_size (int): Dimenzia výstupného vektora (počet možných akcií agenta).
+            input_size (int): Dimenzia vstupného vektora.
+            hidden_size (int): Počet neurónov v skrytej vrstve.
+            output_size (int): Dimenzia výstupného vektora.
         """
         super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
@@ -24,11 +24,11 @@ class Linear_QNet(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Realizuje dopredné šírenie (forward propagation) vstupného tenzora cez sieť.
+        Realizuje forward propagation vstupného tenzora cez sieť.
 
         Na výstup prvej lineárnej vrstvy je aplikovaná nelineárna aktivačná funkcia 
         ReLU (Rectified Linear Unit), ktorá umožňuje modelu aproximovať nelineárne vzťahy. 
-        Výstupná vrstva vracia surové hodnoty (logits), ktoré reprezentujú predikované 
+        Výstupná vrstva vracia surové hodnoty, ktoré reprezentujú predikované 
         Q-hodnoty pre daný stav.
 
         Parametre:
@@ -81,7 +81,7 @@ class QTrainer:
         """
         Inicializuje inštanciu triedy QTrainer, ktorá zapuzdruje logiku optimalizačného procesu.
 
-        Táto metóda nastavuje kľúčové hyperparametre učenia, inicializuje optimalizačný 
+        Táto metóda nastavuje kľúčové parametre učenia, inicializuje optimalizačný 
         algoritmus Adam pre aktualizáciu váh neurónovej siete a definuje stratovú funkciu 
         (Mean Squared Error - MSE) pre výpočet chyby predikcie.
 
@@ -89,8 +89,8 @@ class QTrainer:
             model (nn.Module): Inštancia neurónovej siete (Deep Q-Network), ktorá je predmetom trénovania.
             lr (float): Rýchlosť učenia (learning rate), ktorá determinuje veľkosť kroku pri aktualizácii 
                         parametrov modelu počas optimalizácie.
-            gamma (float): Diskontný faktor (discount factor) v intervale <0, 1>, ktorý určuje váhu 
-                           budúcich odmien v Bellmanovej rovnici (miara preferencie dlhodobého zisku).
+            gamma (float): Diskontný faktor v intervale <0, 1>, ktorý určuje váhu 
+                           budúcich odmien v Bellmanovej rovnici.
         """
         self.lr = lr
         self.gamma = gamma
@@ -103,14 +103,14 @@ class QTrainer:
         Vykonáva optimalizačný krok trénovacieho procesu pomocou algoritmu Q-učenia.
 
         Metóda implementuje nasledujúce kroky:
-        1. Dopredný chod (Forward pass): Získanie predikovaných Q-hodnôt pre aktuálne stavy.
-        2. Výpočet cieľových hodnôt (Target values): Aplikácia Bellmanovej rovnice optimality 
+        1. Forward pass: Získanie predikovaných Q-hodnôt pre aktuálne stavy.
+        2. Target values: Aplikácia Bellmanovej rovnice optimality 
            (Q_new = Reward + gamma * max(Q_next)).
-        3. Výpočet straty (Loss computation): Kvantifikácia chyby pomocou Mean Squared Error (MSE).
-        4. Spätná propagácia (Backpropagation): Výpočet gradientov a aktualizácia váh siete 
+        3. Loss computation: Kvantifikácia chyby pomocou Mean Squared Error (MSE).
+        4. Backpropagation: Výpočet gradientov a aktualizácia váh siete 
            pomocou optimalizátora Adam.
 
-        Metóda spracováva vstupy vo forme dávok (batches) pre trénovanie z pamäte (Experience Replay), 
+        Metóda spracováva vstupy vo forme dávok (batches) pre trénovanie z pamäte, 
         alebo ako jednotlivé vzorky pre online trénovanie.
 
         Parametre:
