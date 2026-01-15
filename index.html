@@ -69,22 +69,24 @@
     <section class="card">
       <h2>Krátky opis hry</h2>
       <p>
-        Hra je variácia klasického Snake, implementovaná s dôrazom na použitie
-        reinforcement learningu. Agent ovláda pohyb hada na mriežke,
-        získava potravu, rastie a snaží sa maximalizovať skóre bez kolízie
-        so stenami alebo vlastným telom.
-      </p>
-      <p>
-        Projekt neobsahuje len „hotovú hru“, ale kompletný tréningový ekosystém:
-        definíciu stavov, akcií, odmien, neurónovú sieť, trénera,
-        ukladanie modelov a vizualizáciu učenia v reálnom čase.
+        Hra je variácia klasického Snake, navrhnutá ako prostredie pre reinforcement learning.
+        Agent sa v každom kroku rozhoduje na základe lokálnych informácií o nebezpečenstve,
+        aktuálnom smere pohybu a relatívnej polohe potravy. Jeho cieľom je efektívne navigovať
+        mriežku, vyhýbať sa kolíziám so stenami a vlastným telom a dlhodobo maximalizovať skóre.
       </p>
 
-      <ul>
-        <li>manuálna verzia hry (pygame) pre ručné hranie,</li>
-        <li>optimalizované RL prostredie so zrýchleným simulovaním krokov,</li>
-        <li>DQN agent s oddeleným krátkodobým a dlhodobým tréningom.</li>
-      </ul>
+      <p>
+        Správanie hada nie je explicitne naprogramované – agent sa učí stratégiu postupne
+        prostredníctvom skúseností, odmien a penalizácií. Pomocou Deep Q-Learningu dokáže
+        plánovať pohyb, prispôsobovať sa rastúcej dĺžke tela a zlepšovať svoje rozhodnutia
+        s narastajúcim počtom odohraných epizód.
+      </p>
+
+      <p>
+        Projekt nepredstavuje len výslednú hru, ale kompletný tréningový ekosystém zahŕňajúci
+        definíciu stavového priestoru, množinu akcií, návrh reward funkcie, neurónovú sieť,
+        tréningovú logiku, ukladanie modelov a vizualizáciu učenia v reálnom čase.
+      </p>
 
       <div class="media-grid">
         <figure>
@@ -105,7 +107,7 @@
         <li>Plne funkčná manuálna verzia hry Snake v knižnici pygame.</li>
         <li>Samostatné RL prostredie s definovaným stavovým priestorom, akciami a reward funkciou.</li>
         <li>Implementácia DQN neurónovej siete v PyTorch (Linear_QNet).</li>
-        <li>Tréningová logika s Experience Replay a oddeleným short/long memory tréningom.</li>
+        <li>Tréningová logika s oddeleným short/long memory tréningom.</li>
         <li>Ukladanie a opätovné načítanie natrénovaných váh modelu.</li>
         <li>Vizualizácia priebehu učenia – skóre a priemerné skóre v čase.</li>
         <li>Skripty na testovanie a kontrolu uložených modelov.</li>
