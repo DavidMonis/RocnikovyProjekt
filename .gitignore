@@ -1,6 +1,7 @@
 [200~# Ignoruj venv kdekoľvek v projekte
 venv/
 env/
+Kaggle\.venv
 
 # Ignoruj skompilované Python súbory kdekoľvek
 __pycache__/
