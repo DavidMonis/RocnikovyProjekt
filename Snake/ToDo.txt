@@ -1,0 +1,3 @@
+Nech sa ta krivka postupne zvysuje, aby to neskakalo
+
+V prostredi viacrych hracov - namiesto: Tréning v multi-agent prostredí (stranka Hungry geese)
