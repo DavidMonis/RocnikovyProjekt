@@ -771,7 +771,7 @@ Priemerná hodnota.
 Môže byť ako property:
 `value_sum / visit_count`
 
-### `is_expanded: bool`
+    ### `is_expanded: bool`
 
 Či uzol už bol expandovaný.
 
