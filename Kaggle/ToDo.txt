@@ -1,0 +1,1254 @@
+
+---
+
+# 1. Celková architektúra projektu
+
+Navrhujem túto štruktúru:
+
+```text
+project/
+│
+├── submission.py
+├── play_local.py
+├── config.py
+│
+├── core/
+│   ├── actions.py
+│   ├── utils.py
+│   ├── state.py
+│   ├── simulator.py
+│   ├── hard_rules.py
+│   ├── encoder.py
+│
+├── model/
+│   ├── network.py
+│   ├── losses.py
+│
+├── search/
+│   ├── node.py
+│   ├── mcts.py
+│
+├── training/
+│   ├── opponents.py
+│   ├── replay_buffer.py
+│   ├── self_play.py
+│   ├── trainer.py
+│   ├── evaluation.py
+│
+├── tests/
+│   ├── test_simulator.py
+│   ├── test_encoder.py
+│   ├── test_hard_rules.py
+│   ├── test_mcts.py
+│
+└── checkpoints/
+```
+
+---
+
+# 2. Tok dát v projekte
+
+Toto je úplne najdôležitejší mentálny obraz:
+
+```text
+Observation/config
+-> GameState
+-> hard rules mask
+-> encoder
+-> policy-value network
+-> MCTS
+-> finálna akcia
+```
+
+A pri tréningu:
+
+```text
+GameState
+-> MCTS
+-> search policy
+-> uloženie do replay bufferu
+-> po skončení hry value target
+-> tréning siete
+```
+
+---
+
+# 3. `config.py`
+
+Tento súbor bude držať všetky konštanty projektu.
+
+## Úloha
+
+Jedno miesto, kde zmeníš hyperparametre a zvyšok projektu ich len číta.
+
+## Čo tam má byť
+
+### Herné parametre
+
+* `ROWS = 7`
+* `COLS = 11`
+* `MIN_FOOD = 2`
+* `HUNGER_RATE = 40`
+* `MAX_LENGTH = 99`
+* `EPISODE_STEPS = 200`
+* `N_PLAYERS = 4`
+
+### Encoding parametre
+
+* `N_CHANNELS = 6`
+* `N_SCALARS = 13`
+
+### Network parametre
+
+* počet conv filtrov
+* kernel size
+* hidden dim dense vrstvy
+
+### MCTS parametre
+
+* `TRAIN_SIMULATIONS`
+* `EVAL_SIMULATIONS`
+* `SUBMISSION_SIMULATIONS`
+* `CUTOFF_DEPTH`
+* `C_PUCT`
+
+### Training parametre
+
+* learning rate
+* batch size
+* replay buffer size
+* number of games per epoch
+* save interval
+
+## Prečo je to dôležité
+
+Aby si nemal po projekte rozhádzané čísla typu `64`, `4`, `256`, `40`.
+
+---
+
+# 4. `core/actions.py`
+
+Tento súbor rieši iba akcie.
+
+## Úloha
+
+Dať projektu jednotný spôsob reprezentácie smerov.
+
+## Čo tam má byť
+
+### Konštanty / enum
+
+* `NORTH`
+* `SOUTH`
+* `EAST`
+* `WEST`
+
+Môžeš to mať:
+
+* ako stringy,
+* alebo ako enum,
+* alebo ako int indexy `0,1,2,3`
+
+Odporúčam mať **obe reprezentácie**:
+
+* index pre NN
+* string pre Kaggle output
+
+## Funkcie
+
+### `action_to_index(action) -> int`
+
+Napr.
+
+* `"NORTH" -> 0`
+
+### `index_to_action(idx) -> str`
+
+Napr.
+
+* `0 -> "NORTH"`
+
+### `opposite_action(action) -> action`
+
+Napr.
+
+* `NORTH -> SOUTH`
+
+### `all_actions() -> list`
+
+Vráti všetky 4 smery.
+
+### `action_delta(action) -> (dr, dc)`
+
+Napr.
+
+* `EAST -> (0, 1)`
+
+## Prečo samostatný súbor
+
+Lebo akcie sa používajú:
+
+* v simulátore,
+* v hard-rules,
+* v MCTS,
+* v submissione,
+* v network targetoch.
+
+---
+
+# 5. `core/utils.py`
+
+Tu pôjdu čisto pomocné funkcie bez stavu.
+
+## Úloha
+
+Matematické a mapové utility, ktoré sa používajú na viacerých miestach.
+
+## Funkcie
+
+### `row_col(position: int, cols: int) -> tuple[int, int]`
+
+Prevod lineárneho indexu na `(row, col)`.
+
+### `to_position(row: int, col: int, cols: int) -> int`
+
+Spätný prevod `(row, col)` na lineárny index.
+
+### `wrap_row(row, rows) -> int`
+
+Wrapne riadok na torus.
+
+### `wrap_col(col, cols) -> int`
+
+Wrapne stĺpec na torus.
+
+### `translate(position, action, rows, cols) -> int`
+
+Posunie pozíciu jedným smerom s wrapom.
+
+### `torus_distance(pos_a, pos_b, rows, cols) -> int`
+
+Vzdialenosť na torus mape.
+
+### `center_relative(target_pos, head_pos, rows, cols) -> tuple[int, int]`
+
+Pre encoder:
+prepočíta pozíciu objektu relatívne k mojej hlave.
+
+Toto je veľmi dôležitá funkcia.
+
+### `safe_softmax_mask(logits, mask)`
+
+Neskôr sa môže hodiť pri policy maskovaní.
+
+## Dôležitá poznámka
+
+`utils.py` nemá obsahovať gameplay logiku typu kolízie alebo hunger.
+Len čisté utility.
+
+---
+
+# 6. `core/state.py`
+
+Toto bude jedna z najdôležitejších tried v projekte.
+
+## Trieda `GameState`
+
+Táto trieda reprezentuje **jeden úplný stav hry**.
+
+---
+
+## Úloha triedy
+
+Držať všetky informácie potrebné na:
+
+* simuláciu ďalšieho kroku,
+* enkódovanie stavu,
+* kontrolu terminálneho stavu,
+* MCTS branchovanie.
+
+---
+
+## Atribúty
+
+### `geese: list[list[int]]`
+
+Zoznam 4 hús.
+Každá hus je zoznam pozícií:
+
+* index 0 = hlava
+* posledný index = chvost
+
+Príklad:
+
+```python
+[
+    [34, 23, 22],
+    [5],
+    [],
+    [70, 69]
+]
+```
+
+### `food: list[int]`
+
+Pozície jedla.
+
+### `step: int`
+
+Aktuálny krok epizódy.
+
+### `rows: int`
+
+Počet riadkov.
+
+### `cols: int`
+
+Počet stĺpcov.
+
+### `hunger_rate: int`
+
+Každých koľko ťahov sa skracuje hus.
+
+### `max_length: int`
+
+Maximálna dĺžka.
+
+### `episode_steps: int`
+
+Maximálny počet krokov epizódy.
+
+### `last_actions: list[Optional[str]]`
+
+Posledná akcia každého hráča.
+
+### `alive: list[bool]`
+
+Ktorí hráči sú ešte živí.
+
+### `done: bool`
+
+Či epizóda skončila.
+
+---
+
+## Metódy
+
+### `clone() -> GameState`
+
+Vráti hlbokú kópiu stavu.
+
+Absolútne nutné pre MCTS a simulácie.
+
+### `is_terminal() -> bool`
+
+Vráti, či je stav koncový.
+
+### `active_players() -> list[int]`
+
+Zoznam aktívnych hráčov.
+
+### `goose_length(player_idx) -> int`
+
+Dĺžka konkrétnej husi.
+
+### `head_position(player_idx) -> int | None`
+
+Vráti pozíciu hlavy, ak hráč žije.
+
+### `tail_position(player_idx) -> int | None`
+
+Vráti chvost.
+
+### `legal_actions(player_idx) -> list[str]`
+
+Základné legálne akcie podľa pravidiel hry.
+Toto ešte nemusí byť hard-rule mask, skôr hrubá legalita.
+
+### `to_observation(player_idx)`
+
+Voliteľné.
+Ak by si chcel vedieť previesť interný stav späť na observation-like formát.
+
+---
+
+## Prečo samostatná trieda
+
+Lebo nechceš po celom projekte vláčiť surové dict-y.
+MCTS aj simulátor musia pracovať nad jednotnou reprezentáciou.
+
+---
+
+# 7. `core/simulator.py`
+
+Toto je srdce hernej logiky.
+
+## Úloha
+
+Správne simulovať jeden krok Hungry Geese.
+
+---
+
+## Hlavná trieda alebo funkcie
+
+Môžeš to spraviť:
+
+* ako triedu `Simulator`,
+* alebo ako čisté funkcie pracujúce nad `GameState`.
+
+Ja by som odporučil triedu:
+
+## Trieda `Simulator`
+
+### Hlavná metóda
+
+`step(state: GameState, joint_actions: list[str]) -> GameState`
+
+Dostane:
+
+* aktuálny stav
+* zoznam 4 akcií
+
+Vráti:
+
+* nový stav po jednom kroku
+
+---
+
+## Čo presne `step()` musí robiť
+
+### 1. Overiť akcie
+
+* validita akcie
+* čo s mŕtvymi hráčmi
+
+### 2. Vypočítať nové hlavy
+
+Každá aktívna hus sa posunie podľa svojej akcie.
+
+### 3. Zistiť, kto zjedol jedlo
+
+Ak hlava vstúpi na jedlo, hus rastie.
+
+### 4. Posunúť telá
+
+* ak hus neje, chvost sa skracuje
+* ak je, chvost sa neposúva
+
+### 5. Aplikovať hunger tick
+
+Každých `hunger_rate` krokov stratiť segment.
+
+### 6. Vyriešiť kolízie
+
+Treba riešiť:
+
+* kolízia do tiel
+* head-to-head
+* prázdna hus po hunger
+* iné terminácie
+
+### 7. Spawn nového jedla
+
+Po vyriešení kroku dorovnať počet jedál.
+
+### 8. Aktualizovať:
+
+* `alive`
+* `done`
+* `step`
+* `last_actions`
+
+---
+
+## Pomocné metódy
+
+### `_compute_new_heads(...)`
+
+### `_apply_movement(...)`
+
+### `_apply_hunger(...)`
+
+### `_resolve_collisions(...)`
+
+### `_spawn_food(...)`
+
+### `_check_done(...)`
+
+---
+
+## Veľmi dôležité
+
+Tento modul musí byť **čo najvernejší Kaggle pravidlám**.
+Bude to základ všetkého ďalšieho.
+
+---
+
+# 8. `core/hard_rules.py`
+
+Tu bude ručná bezpečnostná vrstva.
+
+## Úloha
+
+Určiť, ktoré akcie:
+
+* sú nelegálne,
+* sú okamžite smrteľné,
+* a ktoré zostávajú kandidátmi pre MCTS.
+
+---
+
+## Funkcie
+
+### `get_forbidden_reverse(state, player_idx) -> Optional[str]`
+
+Zakázaná opačná akcia.
+
+### `would_collide_immediately(state, player_idx, action) -> bool`
+
+Či akcia vedie okamžite do istého collision.
+
+### `get_legal_mask(state, player_idx) -> np.ndarray | list[int]`
+
+Výstup dĺžky 4:
+
+* `1` = povolené
+* `0` = maskované
+
+### `only_legal_action(mask) -> int`
+
+Ak ostala jediná akcia.
+
+---
+
+## Dôležitá filozofia
+
+Sem patria len **tvrdé istoty**.
+
+Nie:
+
+* malý priestor,
+* danger next,
+* blízkosť nepriateľa.
+
+Tie sú feature-y pre sieť.
+
+---
+
+# 9. `core/encoder.py`
+
+Toto je ďalší extrémne dôležitý modul.
+
+## Úloha
+
+Pre konkrétneho hráča previesť `GameState` na:
+
+* board tensor `6 x 7 x 11`
+* scalar vector dĺžky `13`
+
+---
+
+## Hlavná trieda
+
+Odporúčam:
+
+## Trieda `StateEncoder`
+
+### Metóda
+
+`encode(state: GameState, player_idx: int) -> tuple[np.ndarray, np.ndarray]`
+
+Vracia:
+
+* `board`: shape `(6, 7, 11)`
+* `scalars`: shape `(13,)`
+
+---
+
+## Board channels
+
+Podľa našej dohody:
+
+### Channel 0 — `my_body`
+
+1 na poliach môjho tela.
+
+### Channel 1 — `my_tail`
+
+1 iba na poli môjho chvosta.
+
+### Channel 2 — `enemy_heads`
+
+1 na všetkých hlavách súperov.
+
+### Channel 3 — `enemy_bodies`
+
+1 na telách súperov bez hláv.
+
+### Channel 4 — `food`
+
+1 na poliach s jedlom.
+
+### Channel 5 — `danger_next`
+
+1 na poliach, kam sa súper môže dostať hlavou v ďalšom kroku.
+
+---
+
+## Scalar features
+
+Navrhnuté scalary:
+
+1. moja dĺžka
+2. enemy1 dĺžka
+3. enemy2 dĺžka
+4. enemy3 dĺžka
+5. enemy1 alive
+6. enemy2 alive
+7. enemy3 alive
+8. turns to hunger
+9. normalized step
+   10-13. last action one-hot
+
+---
+
+## Dôležitá úloha encoderu
+
+Musí prepočítavať všetko do **egocentrickej reprezentácie**:
+
+* moja hlava bude vždy v strede referencie
+
+To je miesto, kde použiješ `center_relative()`.
+
+---
+
+# 10. `model/network.py`
+
+Tu bude neurónka.
+
+## Úloha
+
+Z boardu a scalarov urobiť:
+
+* policy logits
+* value
+
+---
+
+## Trieda `PolicyValueNet(nn.Module)`
+
+### Vstup
+
+* `board`: tensor `[B, 6, 7, 11]`
+* `scalars`: tensor `[B, 13]`
+
+### Výstup
+
+* `policy_logits`: `[B, 4]`
+* `value`: `[B, 1]`
+
+---
+
+## Interná štruktúra
+
+### CNN trunk
+
+* Conv2d `6 -> 32`, `3x3`, circular padding
+* ReLU
+* Conv2d `32 -> 64`, `3x3`, circular padding
+* ReLU
+
+### Flatten
+
+* flatten na `[B, 4928]`
+
+### Concat
+
+* pripojí scalary -> `[B, 4941]`
+
+### Shared dense
+
+* Linear `4941 -> 256`
+* ReLU
+
+### Policy head
+
+* Linear `256 -> 4`
+
+### Value head
+
+* Linear `256 -> 64`
+* ReLU
+* Linear `64 -> 1`
+* Tanh
+
+---
+
+## Metódy
+
+### `forward(board, scalars)`
+
+Hlavný forward pass.
+
+### `predict(board, scalars)`
+
+Inference helper:
+
+* `torch.no_grad()`
+* prípadne vráti policy probs + value
+
+---
+
+# 11. `model/losses.py`
+
+Tento súbor nech drží loss logiku.
+
+## Úloha
+
+Oddeliť tréningové straty od tréningového loopu.
+
+## Funkcie
+
+### `policy_loss_fn(logits, target_policy)`
+
+Soft cross-entropy.
+
+### `value_loss_fn(pred_value, target_value)`
+
+MSE alebo Huber.
+
+### `total_loss(...)`
+
+Spojenie policy a value loss.
+
+---
+
+# 12. `search/node.py`
+
+Toto bude reprezentácia jedného uzla stromu.
+
+## Trieda `Node`
+
+## Úloha
+
+Uchovávať search štatistiky pre jeden stav.
+
+---
+
+## Atribúty
+
+### `state: GameState`
+
+Stav patriaci uzlu.
+
+### `parent: Optional[Node]`
+
+Rodič uzla.
+
+### `player_idx: int`
+
+Za koho robíme search.
+
+### `children: dict[action_idx, Node]`
+
+Potomkovia podľa mojich akcií.
+
+### `prior: float`
+
+Prior pravdepodobnosť akcie vedúcej do tohto uzla.
+
+### `visit_count: int`
+
+Počet návštev uzla.
+
+### `value_sum: float`
+
+Súčet backpropagovaných hodnôt.
+
+### `q_value: float`
+
+Priemerná hodnota.
+Môže byť ako property:
+`value_sum / visit_count`
+
+### `is_expanded: bool`
+
+Či uzol už bol expandovaný.
+
+### `is_terminal: bool`
+
+Či ide o koncový stav.
+
+### `legal_mask`
+
+Maska legálnych akcií v tomto uzle.
+
+---
+
+## Metódy
+
+### `q() -> float`
+
+Vráti priemernú hodnotu.
+
+### `expand(...)`
+
+Naplní children.
+
+### `is_leaf() -> bool`
+
+Či nemá expandované deti.
+
+---
+
+# 13. `search/mcts.py`
+
+Tu bude samotný search algoritmus.
+
+## Trieda `MCTS`
+
+## Úloha
+
+Zo stavu a modelu vyrobiť root visit counts pre akcie.
+
+---
+
+## Konštruktor
+
+Bude držať:
+
+* model
+* encoder
+* simulator
+* hard-rules
+* opponent policy
+* `c_puct`
+* `n_simulations`
+* `cutoff_depth`
+
+---
+
+## Hlavná metóda
+
+### `run(root_state: GameState, player_idx: int) -> np.ndarray`
+
+Vracia visits pre 4 akcie.
+
+---
+
+## Interné fázy
+
+### 1. `select(root)`
+
+Ide po strome podľa PUCT, kým nenarazí na leaf.
+
+### 2. `expand(node)`
+
+Pre nový stav:
+
+* zakóduje state
+* zavolá model
+* získa policy + value
+* založí deti pre legálne akcie
+
+### 3. `simulate_transition(state, my_action, player_idx)`
+
+Vygeneruje joint actions:
+
+* moja akcia fixná
+* súperi sampled
+
+Potom zavolá simulátor.
+
+### 4. `backup(path, value)`
+
+Backpropaguje hodnotu naspäť.
+
+---
+
+## Výstup
+
+Po `n_simulations` z root childov vráti visit counts.
+
+---
+
+# 14. `training/opponents.py`
+
+Tento modul riadi správanie súperov v self-play a search simuláciách.
+
+## Úloha
+
+Vybrať akciu súpera.
+
+---
+
+## Trieda alebo funkcie
+
+Môže byť trieda `OpponentPool`.
+
+### Čo bude vedieť
+
+* držať zoznam starších snapshotov modelu
+* vedieť vybrať rule-based baseline
+* sample-nuť, proti komu sa hrá
+
+---
+
+## Funkcie
+
+### `sample_opponent_model()`
+
+Vyberie model zo snapshot poolu.
+
+### `choose_action_for_enemy(state, enemy_idx, mode)`
+
+Podľa módu:
+
+* rule-based
+* current policy
+* snapshot policy
+
+---
+
+# 15. `training/replay_buffer.py`
+
+Tu bude buffer tréningových príkladov.
+
+## Trieda `ReplayBuffer`
+
+## Úloha
+
+Ukladať sample-y z self-play.
+
+---
+
+## Jeden sample bude mať
+
+* `board`
+* `scalars`
+* `policy_target`
+* `value_target`
+
+---
+
+## Metódy
+
+### `add(sample)`
+
+Pridá sample.
+
+### `extend(samples)`
+
+Pridá viac sampleov.
+
+### `sample_batch(batch_size)`
+
+Náhodne vyberie batch.
+
+### `__len__()`
+
+Počet sampleov.
+
+---
+
+# 16. `training/self_play.py`
+
+Toto je generátor tréningových hier.
+
+## Úloha
+
+Odohrá self-play zápasy a vytvorí tréningové dáta.
+
+---
+
+## Trieda `SelfPlayWorker` alebo funkcia `play_game(...)`
+
+### Vstupy
+
+* model
+* simulator
+* encoder
+* mcts
+* opponent pool
+
+### Výstup
+
+* zoznam sampleov z jednej hry
+
+---
+
+## Počas jednej hry
+
+### Pre každý krok:
+
+1. pre každého aktívneho hráča:
+
+   * encode state
+   * run MCTS
+   * získaj visit distribution
+   * vyber akciu
+   * ulož state + policy target
+2. vykonaj joint step v simulátore
+
+### Po skončení hry:
+
+3. urč outcomes / placementy
+4. ku každému uloženému sample doplň `value_target`
+
+---
+
+# 17. `training/trainer.py`
+
+Toto je tréningová slučka.
+
+## Trieda `Trainer`
+
+## Úloha
+
+Trénovať sieť z replay bufferu na GPU/CPU.
+
+---
+
+## Metódy
+
+### `train_step(batch)`
+
+Jeden gradient step.
+
+### `train_epoch(num_steps)`
+
+Viac krokov za sebou.
+
+### `save_checkpoint(path)`
+
+Uloženie modelu.
+
+### `load_checkpoint(path)`
+
+Načítanie modelu.
+
+---
+
+## Čo robí `train_step`
+
+1. načíta batch
+2. forward sieť
+3. policy loss
+4. value loss
+5. backward
+6. optimizer step
+
+---
+
+# 18. `training/evaluation.py`
+
+Tento modul porovnáva agentov.
+
+## Úloha
+
+Zistiť, či je nový model lepší než starý.
+
+---
+
+## Funkcie
+
+### `evaluate_model(model_a, model_b, n_games)`
+
+Odohrá sériu hier.
+
+### `evaluate_against_baselines(model, baselines)`
+
+Porovná proti:
+
+* random
+* food chasing
+* hard-rule agent
+
+---
+
+## Metriky
+
+* priemerné placement
+* win rate
+* average survival steps
+
+---
+
+# 19. `submission.py`
+
+Toto je finálny inference agent pre Kaggle.
+
+## Úloha
+
+Obsahovať len runtime logiku.
+
+---
+
+## Čo bude robiť
+
+1. lazy load modelu
+2. prevod `obs_dict` + `config_dict` na `GameState`
+3. hard-rules mask
+4. ak jediná akcia -> return
+5. inak run MCTS
+6. return best action
+
+---
+
+## Dôležité
+
+Do submissionu nepôjde:
+
+* trainer
+* replay buffer
+* self-play logika
+
+Len inference časť.
+
+---
+
+# 20. `play_local.py`
+
+Toto bude lokálny runner.
+
+## Úloha
+
+Spúšťať:
+
+* lokálne Kaggle env
+* alebo vlastný simulátor
+* a sledovať správanie agenta
+
+---
+
+## Módy
+
+Odporúčam mať:
+
+* test proti sebe samému
+* test proti baseline agentom
+* debug mód s viewerom
+
+---
+
+# 21. `tests/`
+
+Toto je veľmi dôležité, najmä pri simulátore.
+
+## `test_simulator.py`
+
+Overiť:
+
+* pohyb
+* eating
+* hunger
+* kolízie
+* end-of-game
+
+## `test_encoder.py`
+
+Overiť:
+
+* správne channel mapy
+* správne centrum
+* scalary
+
+## `test_hard_rules.py`
+
+Overiť:
+
+* opposite move mask
+* body collision mask
+
+## `test_mcts.py`
+
+Overiť:
+
+* MCTS vráti visits pre legálne akcie
+* maskované akcie nemajú návštevy
+
+---
+
+# 22. Odporúčané poradie implementácie
+
+Toto je podľa mňa ideálne:
+
+## Fáza 1
+
+* `config.py`
+* `actions.py`
+* `utils.py`
+
+## Fáza 2
+
+* `state.py`
+* `simulator.py`
+
+## Fáza 3
+
+* `hard_rules.py`
+
+## Fáza 4
+
+* `encoder.py`
+
+## Fáza 5
+
+* `network.py`
+* `losses.py`
+
+## Fáza 6
+
+* `node.py`
+* `mcts.py`
+
+## Fáza 7
+
+* `replay_buffer.py`
+* `opponents.py`
+* `self_play.py`
+* `trainer.py`
+* `evaluation.py`
+
+## Fáza 8
+
+* `submission.py`
+* `play_local.py`
+
+---
+
+# 23. Čo by som od teba chcel ako prvý konkrétny kód
+
+Začni podľa mňa týmto:
+
+1. `core/actions.py`
+2. `core/utils.py`
+3. `core/state.py`
+
+Toto je najlepší štart, lebo bez toho sa nedá spraviť nič ďalšie rozumne.
+
+Potom hneď:
+4. `core/simulator.py`
+
+To bude prvý veľký míľnik.
+
+---
+
+# 24. Úplne stručne: čo je jadro každej časti
+
+* `actions.py` — definícia smerov
+* `utils.py` — torus a pomocné výpočty
+* `state.py` — reprezentácia jedného stavu hry
+* `simulator.py` — pravidlá hry
+* `hard_rules.py` — tvrdá maska nebezpečných akcií
+* `encoder.py` — stav -> NN vstup
+* `network.py` — policy/value sieť
+* `node.py` — uzol stromu
+* `mcts.py` — search
+* `self_play.py` — generovanie tréningových hier
+* `replay_buffer.py` — pamäť sampleov
+* `trainer.py` — učenie siete
+* `evaluation.py` — porovnávanie modelov
+* `submission.py` — finálny agent pre Kaggle
+
+---
