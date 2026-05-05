@@ -13,6 +13,7 @@ from core.simulator import Simulator
 from core.encoder import StateEncoder
 from model.network import PolicyValueNet
 from search.node import Node
+from projects_agents.rule_based import choose_rule_based_action
 
 
 class MCTS:
@@ -25,6 +26,7 @@ class MCTS:
         cutoff_depth: int = TRAIN_CUTOFF_DEPTH,
         c_puct: float = C_PUCT,
         device: str = "cpu",
+        opponent_policy=None,
     ):
         self.model = model
         self.encoder = encoder
@@ -33,6 +35,7 @@ class MCTS:
         self.cutoff_depth = cutoff_depth
         self.c_puct = c_puct
         self.device = device
+        self.opponent_policy = opponent_policy or choose_rule_based_action
 
     def run(self, root_state: GameState, player_idx: int) -> list[int]:
         root_mask = get_legal_mask(root_state, player_idx)
@@ -68,7 +71,9 @@ class MCTS:
                 path.append(node)
                 depth += 1
 
-            if node.is_terminal:
+            if not node.state.is_alive(node.player_idx):
+                value = -1.0
+            elif node.is_terminal:
                 value = self._terminal_value(node.state, node.player_idx)
 
             elif depth >= self.cutoff_depth:
@@ -146,15 +151,8 @@ class MCTS:
                 joint_actions.append(index_to_action(my_action_idx))
                 continue
 
-            enemy_mask = get_legal_mask(state, i)
-            legal_indices = [idx for idx, is_legal in enumerate(enemy_mask) if is_legal]
-
-            if not legal_indices:
-                joint_actions.append(Action.NORTH)
-                continue
-
-            sampled_idx = random.choice(legal_indices)
-            joint_actions.append(index_to_action(sampled_idx))
+            enemy_action = self.opponent_policy(state, i)
+            joint_actions.append(enemy_action)
 
         return joint_actions
 

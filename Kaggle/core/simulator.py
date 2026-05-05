@@ -6,7 +6,7 @@ from collections import Counter
 from core.state import GameState
 from core.utils import translate
 from config import MIN_FOOD
-from actions import Action, to_action, opposite_action
+from core.actions import Action, to_action, opposite_action
 
 
 class Simulator:

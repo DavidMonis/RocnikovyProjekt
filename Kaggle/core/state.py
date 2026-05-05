@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from config import ROWS, COLS, HUNGER_RATE, MAX_LENGTH, EPISODE_STEPS
-from actions import Action, all_actions, opposite_action, action_to_name, to_action
+from core.actions import Action, all_actions, opposite_action, action_to_name, to_action
 
 
 class GameState:

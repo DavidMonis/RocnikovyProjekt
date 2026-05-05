@@ -1,5 +1,5 @@
 from core.state import GameState
-from core.actions import Action, all_actions, opposite_action, action_to_index
+from core.actions import Action, all_actions, action_to_index
 from core.utils import row_col, translate, torus_distance
 from core.hard_rules import get_legal_mask
 
@@ -74,7 +74,7 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
     if not allowed_actions:
         return Action.NORTH
 
-    candidate_actions = allowed_actions[:]
+    fallback_actions = allowed_actions[:]
 
     player_head = state.head_position(player_idx)
     assert player_head is not None
@@ -84,28 +84,16 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
     if not state.food:
         return allowed_actions[0]
 
-    best_food = state.food[0]
-    best_food_row, best_food_col = row_col(best_food, state.cols)
-
-    best_distance = torus_distance(
-        player_head,
-        best_food,
-        state.rows,
-        state.cols,
-    )
-
-    for food_pos in state.food[1:]:
-        dist = torus_distance(
+    best_food = min(
+        state.food,
+        key=lambda food_pos: torus_distance(
             player_head,
             food_pos,
             state.rows,
             state.cols,
-        )
-
-        if dist < best_distance:
-            best_distance = dist
-            best_food = food_pos
-            best_food_row, best_food_col = row_col(best_food, state.cols)
+        ),
+    )
+    best_food_row, best_food_col = row_col(best_food, state.cols)
 
     blocked = collect_blocked_positions(state)
     danger_cells = collect_danger_cells(state, player_idx)
@@ -134,7 +122,7 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
     if safe_actions:
         allowed_actions = safe_actions
     else:
-        allowed_actions = candidate_actions
+        allowed_actions = fallback_actions
 
     horizontal_action = best_axis_direction(
         player_col,
@@ -143,7 +131,6 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
         Action.EAST,
         Action.WEST,
     )
-
     if horizontal_action is not None and horizontal_action in allowed_actions:
         return horizontal_action
 
@@ -154,7 +141,6 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
         Action.SOUTH,
         Action.NORTH,
     )
-
     if vertical_action is not None and vertical_action in allowed_actions:
         return vertical_action
 

@@ -227,3 +227,8 @@ python --version
 ```text
 ./.venv/bin/python
 ```
+
+
+
+commands:
+PYTHONPATH=. python -m pytest tests/test_simulator.py -q

@@ -5,7 +5,7 @@ from typing import Iterable
 import numpy as np
 
 from config import ROWS, COLS
-from actions import Action, action_delta
+from core.actions import Action, action_delta
 
 
 # =========================
