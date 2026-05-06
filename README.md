@@ -45,7 +45,7 @@ source venv/bin/activate
 Inštalácia závislostí:
 
 ```bash
-pip install torch pygame numpy matplotlib
+pip install torch pygame numpy matplotlib 
 ```
 
 ### Spustenie projektu
@@ -229,6 +229,10 @@ python --version
 ```
 
 
-
-commands:
+```bash
+# commands:
 PYTHONPATH=. python -m pytest tests/test_simulator.py -q
+
+
+pip install torch pygame numpy matplotlib pytest
+```

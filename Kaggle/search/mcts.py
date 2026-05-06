@@ -14,6 +14,7 @@ from core.encoder import StateEncoder
 from model.network import PolicyValueNet
 from search.node import Node
 from projects_agents.rule_based import choose_rule_based_action
+from core.scoring import compute_rank_value_targets
 
 
 class MCTS:
@@ -157,26 +158,7 @@ class MCTS:
         return joint_actions
 
     def _terminal_value(self, state: GameState, player_idx: int) -> float:
-        if not state.is_alive(player_idx):
-            return -1.0
-
-        active_players = state.active_players()
-        if len(active_players) == 1:
-            return 1.0
-
-        my_length = state.goose_length(player_idx)
-        alive_lengths = [state.goose_length(i) for i in active_players]
-
-        if not alive_lengths:
-            return 0.0
-
-        max_len = max(alive_lengths)
-        min_len = min(alive_lengths)
-
-        if max_len == min_len:
-            return 0.0
-
-        return 2.0 * ((my_length - min_len) / (max_len - min_len)) - 1.0
+        return compute_rank_value_targets(state)[player_idx]
 
     def _select_action(self, node: Node) -> int:
         if node.is_leaf():

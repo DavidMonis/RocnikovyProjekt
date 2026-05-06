@@ -1,8 +1,12 @@
-
+# Virtual environments
 venv/
 env/
-Kaggle\.venv
+.venv/
+Kaggle/.venv/
 
-# Ignoruj skompilované Python súbory kdekoľvek
+# Python cache
 __pycache__/
-*.pyc~
+*.pyc
+
+# IDE files
+.idea/

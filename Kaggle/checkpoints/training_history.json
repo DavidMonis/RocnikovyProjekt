@@ -1,0 +1,3168 @@
+[
+  {
+    "iteration": 1,
+    "generated_samples": 1657,
+    "buffer_size": 1657,
+    "avg_loss": 1.3764854955673218,
+    "avg_policy_loss": 1.1914648687839509,
+    "avg_value_loss": 0.18502062864601612,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.7083333333333335,
+      "wins": 2,
+      "win_rate": 0.16666666666666666,
+      "avg_survival_steps": 79.16666666666667,
+      "avg_final_length": 1.25
+    },
+    "current_score": -2.7083333333333335,
+    "best_score": -2.7083333333333335,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 190.64186191558838,
+      "train_seconds": 1.8480279445648193,
+      "eval_seconds": 224.0927083492279,
+      "iteration_seconds": 416.8080463409424
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 2,
+    "generated_samples": 1163,
+    "buffer_size": 2820,
+    "avg_loss": 1.158317769765854,
+    "avg_policy_loss": 1.012561337351799,
+    "avg_value_loss": 0.14575643256306647,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.2916666666666665,
+      "wins": 4,
+      "win_rate": 0.3333333333333333,
+      "avg_survival_steps": 89.58333333333333,
+      "avg_final_length": 1.3333333333333333
+    },
+    "current_score": -2.2916666666666665,
+    "best_score": -2.2916666666666665,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 128.0084309577942,
+      "train_seconds": 1.015209436416626,
+      "eval_seconds": 239.1424925327301,
+      "iteration_seconds": 368.35940432548523
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 3,
+    "generated_samples": 1033,
+    "buffer_size": 3853,
+    "avg_loss": 1.0726340597867965,
+    "avg_policy_loss": 0.9595979583263398,
+    "avg_value_loss": 0.11303609743714332,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.3333333333333335,
+      "wins": 4,
+      "win_rate": 0.3333333333333333,
+      "avg_survival_steps": 89.41666666666667,
+      "avg_final_length": 1.5
+    },
+    "current_score": -2.3333333333333335,
+    "best_score": -2.2916666666666665,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 114.88080668449402,
+      "train_seconds": 0.9066352844238281,
+      "eval_seconds": 245.84540843963623,
+      "iteration_seconds": 361.727224111557
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 4,
+    "generated_samples": 1643,
+    "buffer_size": 5496,
+    "avg_loss": 1.0444364124536514,
+    "avg_policy_loss": 0.9115622913837433,
+    "avg_value_loss": 0.1328741178661585,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5416666666666667,
+      "wins": 9,
+      "win_rate": 0.75,
+      "avg_survival_steps": 109.41666666666667,
+      "avg_final_length": 2.9166666666666665
+    },
+    "current_score": -1.5416666666666667,
+    "best_score": -1.5416666666666667,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 186.13221526145935,
+      "train_seconds": 1.0622882843017578,
+      "eval_seconds": 287.3563952445984,
+      "iteration_seconds": 474.73324751853943
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 5,
+    "generated_samples": 2009,
+    "buffer_size": 7505,
+    "avg_loss": 0.9994456613063812,
+    "avg_policy_loss": 0.8908188450336456,
+    "avg_value_loss": 0.10862681768834591,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.3333333333333333,
+      "wins": 10,
+      "win_rate": 0.8333333333333334,
+      "avg_survival_steps": 106.66666666666667,
+      "avg_final_length": 3.1666666666666665
+    },
+    "current_score": -1.3333333333333333,
+    "best_score": -1.3333333333333333,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 224.76849174499512,
+      "train_seconds": 1.0707108974456787,
+      "eval_seconds": 275.5942175388336,
+      "iteration_seconds": 501.6190929412842
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 6,
+    "generated_samples": 1066,
+    "buffer_size": 8571,
+    "avg_loss": 0.961527270078659,
+    "avg_policy_loss": 0.8652169477939605,
+    "avg_value_loss": 0.0963103250414133,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.3333333333333333,
+      "wins": 10,
+      "win_rate": 0.8333333333333334,
+      "avg_survival_steps": 105.5,
+      "avg_final_length": 5.583333333333333
+    },
+    "current_score": -1.3333333333333333,
+    "best_score": -1.3333333333333333,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 116.5726387500763,
+      "train_seconds": 1.0372121334075928,
+      "eval_seconds": 273.69366574287415,
+      "iteration_seconds": 391.39748883247375
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 7,
+    "generated_samples": 1215,
+    "buffer_size": 9786,
+    "avg_loss": 0.9591690623760223,
+    "avg_policy_loss": 0.8570519238710403,
+    "avg_value_loss": 0.10211713999509811,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 9,
+      "win_rate": 0.75,
+      "avg_survival_steps": 122.58333333333333,
+      "avg_final_length": 3.6666666666666665
+    },
+    "current_score": -1.5,
+    "best_score": -1.3333333333333333,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 135.92517399787903,
+      "train_seconds": 1.0091018676757812,
+      "eval_seconds": 312.38408279418945,
+      "iteration_seconds": 449.411155462265
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 8,
+    "generated_samples": 1757,
+    "buffer_size": 11543,
+    "avg_loss": 0.9464624232053757,
+    "avg_policy_loss": 0.8349315112829209,
+    "avg_value_loss": 0.11153091222047806,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.0,
+      "wins": 12,
+      "win_rate": 1.0,
+      "avg_survival_steps": 123.5,
+      "avg_final_length": 5.25
+    },
+    "current_score": -1.0,
+    "best_score": -1.0,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 190.16461372375488,
+      "train_seconds": 0.995103120803833,
+      "eval_seconds": 307.2026481628418,
+      "iteration_seconds": 498.5446562767029
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 9,
+    "generated_samples": 922,
+    "buffer_size": 12465,
+    "avg_loss": 0.9137703812122345,
+    "avg_policy_loss": 0.8264277988672256,
+    "avg_value_loss": 0.0873425829038024,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.8333333333333333,
+      "wins": 7,
+      "win_rate": 0.5833333333333334,
+      "avg_survival_steps": 104.33333333333333,
+      "avg_final_length": 3.0833333333333335
+    },
+    "current_score": -1.8333333333333333,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 102.46881818771362,
+      "train_seconds": 1.0604171752929688,
+      "eval_seconds": 261.6601719856262,
+      "iteration_seconds": 365.2873749732971
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 10,
+    "generated_samples": 980,
+    "buffer_size": 13445,
+    "avg_loss": 0.9009268647432327,
+    "avg_policy_loss": 0.8206324321031571,
+    "avg_value_loss": 0.08029443554580212,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.8333333333333333,
+      "wins": 7,
+      "win_rate": 0.5833333333333334,
+      "avg_survival_steps": 111.41666666666667,
+      "avg_final_length": 2.9166666666666665
+    },
+    "current_score": -1.8333333333333333,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 107.65360188484192,
+      "train_seconds": 1.0496795177459717,
+      "eval_seconds": 277.1712098121643,
+      "iteration_seconds": 386.05504536628723
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 11,
+    "generated_samples": 1276,
+    "buffer_size": 14721,
+    "avg_loss": 0.9005976748466492,
+    "avg_policy_loss": 0.8100814640522003,
+    "avg_value_loss": 0.09051621075719594,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.8333333333333333,
+      "wins": 7,
+      "win_rate": 0.5833333333333334,
+      "avg_survival_steps": 134.5,
+      "avg_final_length": 3.0
+    },
+    "current_score": -1.8333333333333333,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 138.14299082756042,
+      "train_seconds": 0.9520821571350098,
+      "eval_seconds": 335.19688177108765,
+      "iteration_seconds": 474.38620471954346
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 12,
+    "generated_samples": 944,
+    "buffer_size": 15665,
+    "avg_loss": 0.8938043230772018,
+    "avg_policy_loss": 0.8048513859510422,
+    "avg_value_loss": 0.08895293608307839,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.8333333333333333,
+      "wins": 7,
+      "win_rate": 0.5833333333333334,
+      "avg_survival_steps": 110.0,
+      "avg_final_length": 2.4166666666666665
+    },
+    "current_score": -1.8333333333333333,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 102.04221081733704,
+      "train_seconds": 0.9943125247955322,
+      "eval_seconds": 295.36350870132446,
+      "iteration_seconds": 398.4921634197235
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 13,
+    "generated_samples": 1365,
+    "buffer_size": 17030,
+    "avg_loss": 0.8975140684843064,
+    "avg_policy_loss": 0.7998653930425644,
+    "avg_value_loss": 0.09764867499470711,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5833333333333333,
+      "wins": 9,
+      "win_rate": 0.75,
+      "avg_survival_steps": 111.33333333333333,
+      "avg_final_length": 3.5
+    },
+    "current_score": -1.5833333333333333,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 164.56830763816833,
+      "train_seconds": 1.016423225402832,
+      "eval_seconds": 295.28655433654785,
+      "iteration_seconds": 460.96414732933044
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 14,
+    "generated_samples": 1536,
+    "buffer_size": 18566,
+    "avg_loss": 0.8857346600294114,
+    "avg_policy_loss": 0.7935472220182419,
+    "avg_value_loss": 0.09218743823468685,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 6,
+      "win_rate": 0.5,
+      "avg_survival_steps": 123.66666666666667,
+      "avg_final_length": 2.9166666666666665
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 186.85486435890198,
+      "train_seconds": 0.9505150318145752,
+      "eval_seconds": 322.4492073059082,
+      "iteration_seconds": 510.35294914245605
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 15,
+    "generated_samples": 1046,
+    "buffer_size": 19612,
+    "avg_loss": 0.8787884795665741,
+    "avg_policy_loss": 0.7903751665353775,
+    "avg_value_loss": 0.08841331403702497,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.375,
+      "wins": 10,
+      "win_rate": 0.8333333333333334,
+      "avg_survival_steps": 130.91666666666666,
+      "avg_final_length": 4.5
+    },
+    "current_score": -1.375,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 124.22409200668335,
+      "train_seconds": 0.8080582618713379,
+      "eval_seconds": 354.19995522499084,
+      "iteration_seconds": 479.32342624664307
+    },
+    "device": "cuda"
+  },
+  {
+    "iteration": 16,
+    "generated_samples": 970,
+    "buffer_size": 970,
+    "avg_loss": 0.7236846846342087,
+    "avg_policy_loss": 0.7103061938285827,
+    "avg_value_loss": 0.01337849051458761,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.75,
+      "wins": 7,
+      "win_rate": 0.5833333333333334,
+      "avg_survival_steps": 123.0,
+      "avg_final_length": 3.4166666666666665
+    },
+    "current_score": -1.75,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 113.46944403648376,
+      "train_seconds": 1.4667160511016846,
+      "eval_seconds": 332.51180481910706,
+      "iteration_seconds": 447.54377150535583
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 17,
+    "generated_samples": 1207,
+    "buffer_size": 1207,
+    "avg_loss": 0.7618867880105973,
+    "avg_policy_loss": 0.6842810207605362,
+    "avg_value_loss": 0.07760576630942523,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 98.25,
+      "avg_final_length": 1.75
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 161.27114534378052,
+      "train_seconds": 1.742445945739746,
+      "eval_seconds": 89.99141502380371,
+      "iteration_seconds": 253.09790897369385
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 18,
+    "generated_samples": 1494,
+    "buffer_size": 2701,
+    "avg_loss": 0.7333872920274734,
+    "avg_policy_loss": 0.6343836289644241,
+    "avg_value_loss": 0.09900366257876157,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.5,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 87.25,
+      "avg_final_length": 1.5
+    },
+    "current_score": -2.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 179.98339581489563,
+      "train_seconds": 1.1864984035491943,
+      "eval_seconds": 85.08338832855225,
+      "iteration_seconds": 266.3462858200073
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 19,
+    "generated_samples": 1383,
+    "buffer_size": 4084,
+    "avg_loss": 0.6816599750518799,
+    "avg_policy_loss": 0.6119037383794784,
+    "avg_value_loss": 0.06975623803213239,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 115.75,
+      "avg_final_length": 3.25
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 176.95761466026306,
+      "train_seconds": 1.0969603061676025,
+      "eval_seconds": 97.39265179634094,
+      "iteration_seconds": 275.5382196903229
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 20,
+    "generated_samples": 1228,
+    "buffer_size": 5312,
+    "avg_loss": 0.6626725405454635,
+    "avg_policy_loss": 0.6059171205759049,
+    "avg_value_loss": 0.056755420994013546,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 111.0,
+      "avg_final_length": 5.5
+    },
+    "current_score": -1.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 141.24150466918945,
+      "train_seconds": 1.2668876647949219,
+      "eval_seconds": 93.07456421852112,
+      "iteration_seconds": 235.769864320755
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 21,
+    "generated_samples": 1809,
+    "buffer_size": 7121,
+    "avg_loss": 0.7003908574581146,
+    "avg_policy_loss": 0.603164284825325,
+    "avg_value_loss": 0.09722657419741154,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 106.0,
+      "avg_final_length": 5.25
+    },
+    "current_score": -1.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 205.7287917137146,
+      "train_seconds": 1.1633999347686768,
+      "eval_seconds": 89.38994598388672,
+      "iteration_seconds": 296.38535141944885
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 22,
+    "generated_samples": 1450,
+    "buffer_size": 8571,
+    "avg_loss": 0.695535472035408,
+    "avg_policy_loss": 0.5923495578765869,
+    "avg_value_loss": 0.10318591542541981,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 89.25,
+      "avg_final_length": 4.25
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 172.73673629760742,
+      "train_seconds": 1.0742192268371582,
+      "eval_seconds": 75.67579507827759,
+      "iteration_seconds": 249.5790581703186
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 23,
+    "generated_samples": 896,
+    "buffer_size": 9467,
+    "avg_loss": 0.6624123096466065,
+    "avg_policy_loss": 0.5915745210647583,
+    "avg_value_loss": 0.07083778895437717,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.375,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 110.75,
+      "avg_final_length": 5.75
+    },
+    "current_score": -1.375,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 104.6532928943634,
+      "train_seconds": 1.2015011310577393,
+      "eval_seconds": 95.13294506072998,
+      "iteration_seconds": 201.07489204406738
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 24,
+    "generated_samples": 1994,
+    "buffer_size": 11461,
+    "avg_loss": 0.6562560176849366,
+    "avg_policy_loss": 0.5827595210075378,
+    "avg_value_loss": 0.0734964969754219,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.125,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 152.25,
+      "avg_final_length": 7.0
+    },
+    "current_score": -1.125,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 228.92344403266907,
+      "train_seconds": 1.120323896408081,
+      "eval_seconds": 127.64126062393188,
+      "iteration_seconds": 357.7802746295929
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 25,
+    "generated_samples": 1401,
+    "buffer_size": 1401,
+    "avg_loss": 0.605377373099327,
+    "avg_policy_loss": 0.5340721353888511,
+    "avg_value_loss": 0.07130523737054319,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.0,
+      "wins": 4,
+      "win_rate": 1.0,
+      "avg_survival_steps": 108.25,
+      "avg_final_length": 5.0
+    },
+    "current_score": -1.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 158.80829763412476,
+      "train_seconds": 1.5374011993408203,
+      "eval_seconds": 92.8038740158081,
+      "iteration_seconds": 253.248117685318
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 26,
+    "generated_samples": 1471,
+    "buffer_size": 2872,
+    "avg_loss": 0.5800620973110199,
+    "avg_policy_loss": 0.49662549048662186,
+    "avg_value_loss": 0.08343660969287157,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 111.75,
+      "avg_final_length": 3.5
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 162.70746421813965,
+      "train_seconds": 0.9856255054473877,
+      "eval_seconds": 100.03653287887573,
+      "iteration_seconds": 263.8273169994354
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 27,
+    "generated_samples": 1505,
+    "buffer_size": 4377,
+    "avg_loss": 0.5533368039131165,
+    "avg_policy_loss": 0.47453964442014696,
+    "avg_value_loss": 0.07879715830087662,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 111.75,
+      "avg_final_length": 3.75
+    },
+    "current_score": -1.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 166.69688534736633,
+      "train_seconds": 0.984295129776001,
+      "eval_seconds": 93.08786177635193,
+      "iteration_seconds": 260.8637864589691
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 28,
+    "generated_samples": 2038,
+    "buffer_size": 6415,
+    "avg_loss": 0.560637326836586,
+    "avg_policy_loss": 0.4738537973165512,
+    "avg_value_loss": 0.08678352743387223,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 3,
+      "win_rate": 0.75,
+      "avg_survival_steps": 87.5,
+      "avg_final_length": 4.75
+    },
+    "current_score": -1.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 224.53914666175842,
+      "train_seconds": 1.025794267654419,
+      "eval_seconds": 70.55079174041748,
+      "iteration_seconds": 296.2106821537018
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 29,
+    "generated_samples": 1616,
+    "buffer_size": 8031,
+    "avg_loss": 0.5195797601342201,
+    "avg_policy_loss": 0.46004384130239484,
+    "avg_value_loss": 0.059535920955240726,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.0,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 128.5,
+      "avg_final_length": 2.5
+    },
+    "current_score": -2.0,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 179.46630716323853,
+      "train_seconds": 0.8153085708618164,
+      "eval_seconds": 110.53495621681213,
+      "iteration_seconds": 290.9150037765503
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 30,
+    "generated_samples": 945,
+    "buffer_size": 8976,
+    "avg_loss": 0.5131694373488426,
+    "avg_policy_loss": 0.4618211016058922,
+    "avg_value_loss": 0.05134833546355367,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.5,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 110.75,
+      "avg_final_length": 1.0
+    },
+    "current_score": -2.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 110.83415365219116,
+      "train_seconds": 1.061934232711792,
+      "eval_seconds": 94.00880980491638,
+      "iteration_seconds": 206.08902502059937
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 31,
+    "generated_samples": 15675,
+    "buffer_size": 15675,
+    "avg_loss": 0.8446059942245483,
+    "avg_policy_loss": 0.543463390469551,
+    "avg_value_loss": 0.30114260300993917,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.55,
+      "wins": 28,
+      "win_rate": 0.7,
+      "avg_survival_steps": 128.875,
+      "avg_final_length": 5.35
+    },
+    "current_score": -1.55,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1699.349401473999,
+      "train_seconds": 1.4660277366638184,
+      "eval_seconds": 993.3066656589508,
+      "iteration_seconds": 2694.7187163829803
+    },
+    "device": "cuda",
+    "role_patterns": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "rules",
+        "mcts_nn",
+        "mcts_nn"
+      ],
+      [
+        "mcts_nn",
+        "rules",
+        "rules",
+        "mcts_nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 32,
+    "generated_samples": 15222,
+    "buffer_size": 15222,
+    "avg_loss": 0.7786023658514023,
+    "avg_policy_loss": 0.5106498980522156,
+    "avg_value_loss": 0.267952468842268,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.45,
+      "wins": 30,
+      "win_rate": 0.75,
+      "avg_survival_steps": 122.85,
+      "avg_final_length": 4.375
+    },
+    "current_score": -1.45,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1569.0544793605804,
+      "train_seconds": 1.4077892303466797,
+      "eval_seconds": 951.2794120311737,
+      "iteration_seconds": 2522.3275060653687
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 33,
+    "generated_samples": 14641,
+    "buffer_size": 29863,
+    "avg_loss": 0.7792983466386795,
+    "avg_policy_loss": 0.4969971099495888,
+    "avg_value_loss": 0.28230123594403267,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.4,
+      "wins": 31,
+      "win_rate": 0.775,
+      "avg_survival_steps": 120.725,
+      "avg_final_length": 5.875
+    },
+    "current_score": -1.4,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1527.4205067157745,
+      "train_seconds": 0.9135808944702148,
+      "eval_seconds": 963.1377332210541,
+      "iteration_seconds": 2492.6080288887024
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 34,
+    "generated_samples": 14474,
+    "buffer_size": 44337,
+    "avg_loss": 0.7830653685331345,
+    "avg_policy_loss": 0.5004729989171028,
+    "avg_value_loss": 0.2825923700630665,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.425,
+      "wins": 31,
+      "win_rate": 0.775,
+      "avg_survival_steps": 117.325,
+      "avg_final_length": 5.175
+    },
+    "current_score": -1.425,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1511.911697626114,
+      "train_seconds": 0.904604434967041,
+      "eval_seconds": 934.4952349662781,
+      "iteration_seconds": 2448.9516780376434
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 35,
+    "generated_samples": 15768,
+    "buffer_size": 50000,
+    "avg_loss": 0.7819231349229813,
+    "avg_policy_loss": 0.4910155060887337,
+    "avg_value_loss": 0.2909076276421547,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.4,
+      "wins": 32,
+      "win_rate": 0.8,
+      "avg_survival_steps": 113.525,
+      "avg_final_length": 5.4
+    },
+    "current_score": -1.4,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1676.7083966732025,
+      "train_seconds": 1.2427937984466553,
+      "eval_seconds": 958.7037675380707,
+      "iteration_seconds": 2638.4171512126923
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 36,
+    "generated_samples": 16216,
+    "buffer_size": 50000,
+    "avg_loss": 0.7686483877897262,
+    "avg_policy_loss": 0.4811649963259697,
+    "avg_value_loss": 0.2874833899736404,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.6,
+      "wins": 28,
+      "win_rate": 0.7,
+      "avg_survival_steps": 118.725,
+      "avg_final_length": 4.35
+    },
+    "current_score": -1.6,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1797.7166442871094,
+      "train_seconds": 1.1900389194488525,
+      "eval_seconds": 990.637246131897,
+      "iteration_seconds": 2791.2259261608124
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 37,
+    "generated_samples": 17086,
+    "buffer_size": 50000,
+    "avg_loss": 0.7383399885892868,
+    "avg_policy_loss": 0.4577518942952156,
+    "avg_value_loss": 0.28058809638023374,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.3375,
+      "wins": 31,
+      "win_rate": 0.775,
+      "avg_survival_steps": 135.8,
+      "avg_final_length": 5.525
+    },
+    "current_score": -1.3375,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1871.8994286060333,
+      "train_seconds": 1.2197179794311523,
+      "eval_seconds": 1131.551479101181,
+      "iteration_seconds": 3006.419817209244
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 38,
+    "generated_samples": 17438,
+    "buffer_size": 50000,
+    "avg_loss": 0.7336896908283234,
+    "avg_policy_loss": 0.45003145456314086,
+    "avg_value_loss": 0.28365823775529864,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.475,
+      "wins": 29,
+      "win_rate": 0.725,
+      "avg_survival_steps": 132.8,
+      "avg_final_length": 5.475
+    },
+    "current_score": -1.475,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1826.0784378051758,
+      "train_seconds": 0.9990711212158203,
+      "eval_seconds": 1081.5769329071045,
+      "iteration_seconds": 2910.322018623352
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 39,
+    "generated_samples": 16713,
+    "buffer_size": 50000,
+    "avg_loss": 0.7225015735626221,
+    "avg_policy_loss": 0.4375024968385696,
+    "avg_value_loss": 0.28499908044934275,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.55,
+      "wins": 29,
+      "win_rate": 0.725,
+      "avg_survival_steps": 116.375,
+      "avg_final_length": 4.6
+    },
+    "current_score": -1.55,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1764.8332026004791,
+      "train_seconds": 0.9839286804199219,
+      "eval_seconds": 914.7441914081573,
+      "iteration_seconds": 2682.3771369457245
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 40,
+    "generated_samples": 15957,
+    "buffer_size": 50000,
+    "avg_loss": 0.7432090389728546,
+    "avg_policy_loss": 0.43973344266414643,
+    "avg_value_loss": 0.30347559943795205,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 28,
+      "win_rate": 0.7,
+      "avg_survival_steps": 139.475,
+      "avg_final_length": 5.65
+    },
+    "current_score": -1.5,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1684.5684552192688,
+      "train_seconds": 0.8786706924438477,
+      "eval_seconds": 1110.6909203529358,
+      "iteration_seconds": 2797.961567401886
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 41,
+    "generated_samples": 15420,
+    "buffer_size": 50000,
+    "avg_loss": 0.7378579235076904,
+    "avg_policy_loss": 0.43482677459716795,
+    "avg_value_loss": 0.3030311457812786,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.4375,
+      "wins": 31,
+      "win_rate": 0.775,
+      "avg_survival_steps": 127.475,
+      "avg_final_length": 5.85
+    },
+    "current_score": -1.4375,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1621.1690731048584,
+      "train_seconds": 0.9809517860412598,
+      "eval_seconds": 1017.129453420639,
+      "iteration_seconds": 2641.160313606262
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 42,
+    "generated_samples": 16732,
+    "buffer_size": 50000,
+    "avg_loss": 0.723726846575737,
+    "avg_policy_loss": 0.43315082639455793,
+    "avg_value_loss": 0.2905760200321674,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.3,
+      "wins": 34,
+      "win_rate": 0.85,
+      "avg_survival_steps": 120.175,
+      "avg_final_length": 5.675
+    },
+    "current_score": -1.3,
+    "best_score": -1.0,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1754.5044746398926,
+      "train_seconds": 0.889185905456543,
+      "eval_seconds": 953.4140810966492,
+      "iteration_seconds": 2710.543439388275
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "rules",
+        "nn"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "mcts_nn",
+        "rules"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "mcts_nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 43,
+    "generated_samples": 400,
+    "buffer_size": 50000,
+    "avg_loss": 0.6846915483474731,
+    "avg_policy_loss": 0.4399421215057373,
+    "avg_value_loss": 0.24474945664405823,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.4,
+      "wins": 3,
+      "win_rate": 0.3,
+      "avg_survival_steps": 68.0,
+      "avg_final_length": 0.6
+    },
+    "evaluation": {
+      "n_games": 10,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.4,
+          "wins": 3,
+          "win_rate": 0.3,
+          "avg_survival_steps": 68.0,
+          "avg_final_length": 0.6
+        },
+        {
+          "agent_index": 1,
+          "name": "old_model_1",
+          "avg_placement": 2.7,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 104.1,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 2,
+          "name": "old_model_2",
+          "avg_placement": 2.4,
+          "wins": 2,
+          "win_rate": 0.2,
+          "avg_survival_steps": 96.2,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 3,
+          "name": "old_model_3",
+          "avg_placement": 2.5,
+          "wins": 2,
+          "win_rate": 0.2,
+          "avg_survival_steps": 88.7,
+          "avg_final_length": 1.1
+        }
+      ]
+    },
+    "current_score": -2.4,
+    "best_score": -2.4,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 42.25098943710327,
+      "train_seconds": 0.57303786277771,
+      "eval_seconds": 791.8474748134613,
+      "iteration_seconds": 836.558343410492
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 44,
+    "generated_samples": 13778,
+    "buffer_size": 50000,
+    "avg_loss": 0.6710828479131062,
+    "avg_policy_loss": 0.4152968928217888,
+    "avg_value_loss": 0.2557859556376934,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 3.1,
+      "wins": 0,
+      "win_rate": 0.0,
+      "avg_survival_steps": 92.5,
+      "avg_final_length": 0.3
+    },
+    "evaluation": {
+      "n_games": 10,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 3.1,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 92.5,
+          "avg_final_length": 0.3
+        },
+        {
+          "agent_index": 1,
+          "name": "old_model_1",
+          "avg_placement": 2.05,
+          "wins": 4,
+          "win_rate": 0.4,
+          "avg_survival_steps": 121.6,
+          "avg_final_length": 1.8
+        },
+        {
+          "agent_index": 2,
+          "name": "old_model_2",
+          "avg_placement": 2.8,
+          "wins": 1,
+          "win_rate": 0.1,
+          "avg_survival_steps": 77.7,
+          "avg_final_length": 1.2
+        },
+        {
+          "agent_index": 3,
+          "name": "old_model_3",
+          "avg_placement": 2.05,
+          "wins": 3,
+          "win_rate": 0.3,
+          "avg_survival_steps": 136.0,
+          "avg_final_length": 2.2
+        }
+      ]
+    },
+    "current_score": -3.1,
+    "best_score": -2.4,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1481.3960056304932,
+      "train_seconds": 2.9587948322296143,
+      "eval_seconds": 860.4919276237488,
+      "iteration_seconds": 2346.540190219879
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 45,
+    "generated_samples": 14071,
+    "buffer_size": 50000,
+    "avg_loss": 0.6238898753126463,
+    "avg_policy_loss": 0.39114539802074433,
+    "avg_value_loss": 0.23274447659651437,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.55,
+      "wins": 1,
+      "win_rate": 0.1,
+      "avg_survival_steps": 94.5,
+      "avg_final_length": 0.8
+    },
+    "evaluation": {
+      "n_games": 10,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.55,
+          "wins": 1,
+          "win_rate": 0.1,
+          "avg_survival_steps": 94.5,
+          "avg_final_length": 0.8
+        },
+        {
+          "agent_index": 1,
+          "name": "old_model_1",
+          "avg_placement": 2.75,
+          "wins": 1,
+          "win_rate": 0.1,
+          "avg_survival_steps": 58.5,
+          "avg_final_length": 0.6
+        },
+        {
+          "agent_index": 2,
+          "name": "old_model_2",
+          "avg_placement": 2.65,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 88.5,
+          "avg_final_length": 0.5
+        },
+        {
+          "agent_index": 3,
+          "name": "old_model_3",
+          "avg_placement": 2.05,
+          "wins": 3,
+          "win_rate": 0.3,
+          "avg_survival_steps": 139.3,
+          "avg_final_length": 1.1
+        }
+      ]
+    },
+    "current_score": -2.55,
+    "best_score": -2.4,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1417.0627884864807,
+      "train_seconds": 2.4510931968688965,
+      "eval_seconds": 766.7848153114319,
+      "iteration_seconds": 2187.9776072502136
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 46,
+    "generated_samples": 256,
+    "buffer_size": 50000,
+    "avg_loss": 0.6125607490539551,
+    "avg_policy_loss": 0.37497174739837646,
+    "avg_value_loss": 0.23758898675441742,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.175,
+      "wins": 5,
+      "win_rate": 0.25,
+      "avg_survival_steps": 132.0,
+      "avg_final_length": 1.5
+    },
+    "evaluation": {
+      "n_games": 20,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.175,
+          "wins": 5,
+          "win_rate": 0.25,
+          "avg_survival_steps": 132.0,
+          "avg_final_length": 1.5
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.5,
+          "wins": 4,
+          "win_rate": 0.2,
+          "avg_survival_steps": 103.2,
+          "avg_final_length": 1.4
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.65,
+          "wins": 3,
+          "win_rate": 0.15,
+          "avg_survival_steps": 97.75,
+          "avg_final_length": 0.85
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.675,
+          "wins": 2,
+          "win_rate": 0.1,
+          "avg_survival_steps": 104.6,
+          "avg_final_length": 0.85
+        }
+      ]
+    },
+    "current_score": -2.175,
+    "best_score": -2.175,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 29.244450092315674,
+      "train_seconds": 0.5377330780029297,
+      "eval_seconds": 589.4195969104767,
+      "iteration_seconds": 621.1689658164978
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 47,
+    "generated_samples": 13682,
+    "buffer_size": 50000,
+    "avg_loss": 0.5706609702706337,
+    "avg_policy_loss": 0.36565693926811216,
+    "avg_value_loss": 0.20500403156876565,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.25,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 164.25,
+      "avg_final_length": 1.25
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.25,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 164.25,
+          "avg_final_length": 1.25
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 3.25,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 35.25,
+          "avg_final_length": 0.0
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 1.875,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 196.75,
+          "avg_final_length": 1.5
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.625,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 67.75,
+          "avg_final_length": 0.5
+        }
+      ]
+    },
+    "current_score": -2.25,
+    "best_score": -2.175,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1667.8904693126678,
+      "train_seconds": 6.141289234161377,
+      "eval_seconds": 153.28911709785461,
+      "iteration_seconds": 1829.1178097724915
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 48,
+    "generated_samples": 14114,
+    "buffer_size": 50000,
+    "avg_loss": 0.5293965082764626,
+    "avg_policy_loss": 0.3522250144481659,
+    "avg_value_loss": 0.17717149417102337,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.625,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 122.25,
+      "avg_final_length": 4.5
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.625,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 122.25,
+          "avg_final_length": 4.5
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 1.875,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 162.25,
+          "avg_final_length": 3.0
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.75,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 87.5,
+          "avg_final_length": 0.5
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.75,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 115.25,
+          "avg_final_length": 1.0
+        }
+      ]
+    },
+    "current_score": -2.625,
+    "best_score": -2.175,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1604.4347507953644,
+      "train_seconds": 5.719864130020142,
+      "eval_seconds": 106.07520723342896,
+      "iteration_seconds": 1718.0212683677673
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 49,
+    "generated_samples": 13239,
+    "buffer_size": 50000,
+    "avg_loss": 0.49667178267240525,
+    "avg_policy_loss": 0.3346949704885483,
+    "avg_value_loss": 0.16197681146860124,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.125,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 102.5,
+      "avg_final_length": 1.0
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.125,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 102.5,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.625,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 150.5,
+          "avg_final_length": 0.75
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 3.125,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 61.75,
+          "avg_final_length": 0.0
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.125,
+          "wins": 2,
+          "win_rate": 0.5,
+          "avg_survival_steps": 109.75,
+          "avg_final_length": 0.75
+        }
+      ]
+    },
+    "current_score": -2.125,
+    "best_score": -2.125,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 1457.0500075817108,
+      "train_seconds": 5.791382074356079,
+      "eval_seconds": 87.50997114181519,
+      "iteration_seconds": 1552.1613743305206
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 50,
+    "generated_samples": 14103,
+    "buffer_size": 50000,
+    "avg_loss": 0.47359117871522904,
+    "avg_policy_loss": 0.3243318566083908,
+    "avg_value_loss": 0.1492593212723732,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.5,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 128.5,
+      "avg_final_length": 0.5
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 128.5,
+          "avg_final_length": 0.5
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.0,
+          "wins": 2,
+          "win_rate": 0.5,
+          "avg_survival_steps": 103.0,
+          "avg_final_length": 2.0
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 146.75,
+          "avg_final_length": 2.5
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 3.0,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 80.75,
+          "avg_final_length": 0.0
+        }
+      ]
+    },
+    "current_score": -2.5,
+    "best_score": -2.125,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1570.4835476875305,
+      "train_seconds": 5.760544538497925,
+      "eval_seconds": 112.57562494277954,
+      "iteration_seconds": 1690.7610759735107
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 51,
+    "generated_samples": 13355,
+    "buffer_size": 50000,
+    "avg_loss": 0.4556288571953773,
+    "avg_policy_loss": 0.3126937472820282,
+    "avg_value_loss": 0.14293510963767767,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.125,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 65.25,
+      "avg_final_length": 1.0
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.125,
+          "wins": 2,
+          "win_rate": 0.5,
+          "avg_survival_steps": 65.25,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.25,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 77.75,
+          "avg_final_length": 0.75
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 3.125,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 65.25,
+          "avg_final_length": 0.0
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 77.75,
+          "avg_final_length": 0.5
+        }
+      ]
+    },
+    "current_score": -2.125,
+    "best_score": -2.125,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1481.0407614707947,
+      "train_seconds": 5.685811758041382,
+      "eval_seconds": 55.893147230148315,
+      "iteration_seconds": 1544.4303748607635
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 52,
+    "generated_samples": 207,
+    "buffer_size": 50000,
+    "avg_loss": 0.4025529623031616,
+    "avg_policy_loss": 0.2767224460840225,
+    "avg_value_loss": 0.12583051472902299,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.3125,
+      "wins": 12,
+      "win_rate": 0.3,
+      "avg_survival_steps": 111.725,
+      "avg_final_length": 1.2
+    },
+    "evaluation": {
+      "n_games": 40,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.3125,
+          "wins": 12,
+          "win_rate": 0.3,
+          "avg_survival_steps": 111.725,
+          "avg_final_length": 1.2
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.7875,
+          "wins": 4,
+          "win_rate": 0.1,
+          "avg_survival_steps": 103.975,
+          "avg_final_length": 0.875
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.425,
+          "wins": 11,
+          "win_rate": 0.275,
+          "avg_survival_steps": 97.65,
+          "avg_final_length": 1.275
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.475,
+          "wins": 8,
+          "win_rate": 0.2,
+          "avg_survival_steps": 105.275,
+          "avg_final_length": 1.225
+        }
+      ]
+    },
+    "current_score": -2.3125,
+    "best_score": -2.125,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 23.475541353225708,
+      "train_seconds": 0.6334984302520752,
+      "eval_seconds": 1010.7936553955078,
+      "iteration_seconds": 1036.5808520317078
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 53,
+    "generated_samples": 12984,
+    "buffer_size": 50000,
+    "avg_loss": 0.39527910816669465,
+    "avg_policy_loss": 0.2836708755195141,
+    "avg_value_loss": 0.11160823276638984,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.5,
+      "wins": 1,
+      "win_rate": 0.25,
+      "avg_survival_steps": 23.25,
+      "avg_final_length": 0.25
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 23.25,
+          "avg_final_length": 0.25
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 62.5,
+          "avg_final_length": 0.25
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 94.0,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.5,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 70.75,
+          "avg_final_length": 0.5
+        }
+      ]
+    },
+    "current_score": -2.5,
+    "best_score": -2.125,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1511.0903725624084,
+      "train_seconds": 8.625590801239014,
+      "eval_seconds": 20.732038736343384,
+      "iteration_seconds": 1542.276085138321
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 54,
+    "generated_samples": 14544,
+    "buffer_size": 50000,
+    "avg_loss": 0.37248581133782865,
+    "avg_policy_loss": 0.27121992655098437,
+    "avg_value_loss": 0.10126588460430502,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 1.5,
+      "wins": 2,
+      "win_rate": 0.5,
+      "avg_survival_steps": 184.5,
+      "avg_final_length": 2.5
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 1.5,
+          "wins": 2,
+          "win_rate": 0.5,
+          "avg_survival_steps": 184.5,
+          "avg_final_length": 2.5
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.875,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 86.75,
+          "avg_final_length": 1.25
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 3.25,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 39.75,
+          "avg_final_length": 0.0
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.375,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 137.5,
+          "avg_final_length": 0.75
+        }
+      ]
+    },
+    "current_score": -1.5,
+    "best_score": -1.5,
+    "improved": true,
+    "timing": {
+      "self_play_seconds": 1686.6410729885101,
+      "train_seconds": 8.523999452590942,
+      "eval_seconds": 154.52738523483276,
+      "iteration_seconds": 1851.7439980506897
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 55,
+    "generated_samples": 13460,
+    "buffer_size": 50000,
+    "avg_loss": 0.3360940380394459,
+    "avg_policy_loss": 0.2525513855069876,
+    "avg_value_loss": 0.08354265182092786,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 3.125,
+      "wins": 0,
+      "win_rate": 0.0,
+      "avg_survival_steps": 50.75,
+      "avg_final_length": 0.0
+    },
+    "evaluation": {
+      "n_games": 4,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 3.125,
+          "wins": 0,
+          "win_rate": 0.0,
+          "avg_survival_steps": 50.75,
+          "avg_final_length": 0.0
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.625,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 68.5,
+          "avg_final_length": 0.5
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.25,
+          "wins": 1,
+          "win_rate": 0.25,
+          "avg_survival_steps": 90.5,
+          "avg_final_length": 0.75
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.0,
+          "wins": 2,
+          "win_rate": 0.5,
+          "avg_survival_steps": 72.75,
+          "avg_final_length": 1.0
+        }
+      ]
+    },
+    "current_score": -3.125,
+    "best_score": -1.5,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 1565.0175263881683,
+      "train_seconds": 8.246965408325195,
+      "eval_seconds": 41.803611278533936,
+      "iteration_seconds": 1616.8425805568695
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  },
+  {
+    "iteration": 56,
+    "generated_samples": 152,
+    "buffer_size": 50000,
+    "avg_loss": 0.2933263897895813,
+    "avg_policy_loss": 0.2334335207939148,
+    "avg_value_loss": 0.0598928689956665,
+    "candidate_metrics": {
+      "agent_index": 0,
+      "name": "candidate_model",
+      "avg_placement": 2.425,
+      "wins": 6,
+      "win_rate": 0.15,
+      "avg_survival_steps": 94.825,
+      "avg_final_length": 1.2
+    },
+    "evaluation": {
+      "n_games": 40,
+      "rotate_seats": true,
+      "agents": [
+        {
+          "agent_index": 0,
+          "name": "candidate_model",
+          "avg_placement": 2.425,
+          "wins": 6,
+          "win_rate": 0.15,
+          "avg_survival_steps": 94.825,
+          "avg_final_length": 1.2
+        },
+        {
+          "agent_index": 1,
+          "name": "old_nn_1",
+          "avg_placement": 2.3875,
+          "wins": 5,
+          "win_rate": 0.125,
+          "avg_survival_steps": 113.875,
+          "avg_final_length": 1.0
+        },
+        {
+          "agent_index": 2,
+          "name": "old_nn_2",
+          "avg_placement": 2.8625,
+          "wins": 1,
+          "win_rate": 0.025,
+          "avg_survival_steps": 78.0,
+          "avg_final_length": 0.7
+        },
+        {
+          "agent_index": 3,
+          "name": "old_nn_3",
+          "avg_placement": 2.325,
+          "wins": 9,
+          "win_rate": 0.225,
+          "avg_survival_steps": 96.8,
+          "avg_final_length": 1.55
+        }
+      ]
+    },
+    "current_score": -2.425,
+    "best_score": -1.5,
+    "improved": false,
+    "timing": {
+      "self_play_seconds": 16.488007307052612,
+      "train_seconds": 0.6188573837280273,
+      "eval_seconds": 822.1545312404633,
+      "iteration_seconds": 841.3647313117981
+    },
+    "device": "cuda",
+    "seat_role_schedules": [
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "nn",
+        "nn",
+        "rules"
+      ],
+      [
+        "mcts_nn",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ],
+      [
+        "rules",
+        "mcts_nn",
+        "nn",
+        "nn"
+      ]
+    ]
+  }
+]

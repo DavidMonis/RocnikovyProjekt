@@ -1252,3 +1252,30 @@ To bude prvý veľký míľnik.
 * `submission.py` — finálny agent pre Kaggle
 
 ---
+
+
+
+
+Curriculum plan:
+Fáza 1:
+latest vs iter_0040
+seat roles: mix 1–2 MCTS, NN, rules
+MCTS opponent_policy: rules
+
+Fáza 2:
+keď latest stabilne poráža iter_0040 aj rules
+seat roles: 1× MCTS, 3× NN
+MCTS opponent_policy: rules
+
+Fáza 3:
+latest vs iter_0050
+seat roles: 1× MCTS, 3× NN
+My MCTS opponent_policy: začať testovať NN policy
+
+
+Fáza 4:
+najťažší tréning/eval
+candidate/latest MCTS model = latest, napr. iter_0080
+opponent models = iter_0060
+opponent_policy v candidate MCTS = NN policy iter_0060
+opponent_policy v opponent MCTS = NN policy iter_0060
