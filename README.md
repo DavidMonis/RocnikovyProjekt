@@ -967,3 +967,22 @@ Testy:
 ```bash
 PYTHONPATH=. pytest
 ```
+
+
+# Licencia
+
+Časti projektu vytvorené autorom Dávidom Monišom sú licencované pod licenciou MIT.  
+Kód je možné používať, upravovať a šíriť za podmienky, že zostane zachované pôvodné copyright oznámenie a text licencie.
+
+Projekt alebo jeho významné časti nie je vhodné prezentovať ako vlastné pôvodné dielo bez uvedenia autora.
+
+Pozri súbor `LICENSE`.
+
+## Externý kód a tretie strany
+
+Tento repozitár môže obsahovať aj externý kód použitý iba na porovnanie, testovanie alebo lokálne vyhodnocovanie agentov.
+
+Súbor:
+
+```text
+winning_agent/kaggle_public_agent.py
