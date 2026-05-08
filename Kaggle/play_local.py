@@ -23,7 +23,7 @@ GOOSE_LOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
 
 CLEVER_BOT = "bots/clever_bot.py"
 SMART_BOT = "bots/smart_bot.py"
-STUPID_BOT = "bots/bot.py"
+STUPID_BOT = "bots/stupid_bot.py"
 
 CHECKPOINT_PATH = "checkpoints/latest.pt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
