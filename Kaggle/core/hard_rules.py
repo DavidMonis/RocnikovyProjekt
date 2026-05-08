@@ -7,6 +7,12 @@ from core.utils import translate
 
 
 def get_forbidden_reverse(state: GameState, player_idx: int) -> Action | None:
+    """
+    Return the action that would reverse the player's previous move.
+
+    Hungry Geese does not allow moving directly into the previous neck position,
+    so the opposite of the last action is forbidden.
+    """
     last_action = state.last_actions[player_idx]
 
     if last_action is None:
@@ -15,7 +21,18 @@ def get_forbidden_reverse(state: GameState, player_idx: int) -> Action | None:
     return opposite_action(last_action)
 
 
-def get_blocked_positions_for_instant_death(state: GameState,player_idx: int,action: Action) -> set[int]:
+def get_blocked_positions_for_instant_death(
+    state: GameState,
+    player_idx: int,
+    action: Action,
+) -> set[int]:
+    """
+    Return positions that would cause an immediate body collision.
+
+    This is intentionally conservative only for certain deaths:
+        - own tail is allowed if the player is not eating, because it moves away
+        - enemy tails are allowed, because they may move away as well
+    """
     head = state.head_position(player_idx)
     if head is None:
         return set()
@@ -35,13 +52,20 @@ def get_blocked_positions_for_instant_death(state: GameState,player_idx: int,act
             else:
                 blocked.update(goose[:-1])
         else:
-            # leave the enemy tail free because death may not be certain.
+            # Enemy tails are not treated as certain death here.
             blocked.update(goose[:-1])
 
     return blocked
 
 
-def would_collide_immediately(state: GameState,player_idx: int,action: Action) -> bool:
+def would_collide_immediately(
+    state: GameState,
+    player_idx: int,
+    action: Action,
+) -> bool:
+    """
+    Return True if the action immediately collides with a blocked body position.
+    """
     if not state.is_alive(player_idx):
         return True
 
@@ -56,6 +80,16 @@ def would_collide_immediately(state: GameState,player_idx: int,action: Action) -
 
 
 def get_legal_mask(state: GameState, player_idx: int) -> list[int]:
+    """
+    Return a binary mask of actions that are allowed by hard safety rules.
+
+    The mask removes:
+        - reverse moves
+        - moves that certainly collide with a body segment
+
+    It does not remove every risky move, for example possible head-on collisions.
+    Those are handled by MCTS/search/evaluation rather than hard masking.
+    """
     if not state.is_alive(player_idx):
         return [0] * N_ACTIONS
 
@@ -76,6 +110,11 @@ def get_legal_mask(state: GameState, player_idx: int) -> list[int]:
 
 
 def only_legal_action(mask: list[int] | np.ndarray) -> int | None:
+    """
+    Return the only legal action index if exactly one action is legal.
+
+    Return None if there are zero or multiple legal actions.
+    """
     legal_actions = [i for i, value in enumerate(mask) if value]
 
     if len(legal_actions) == 1:

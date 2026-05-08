@@ -193,16 +193,16 @@ def test_train_step_requests_configured_batch_size_and_passes_loss_inputs(monkey
     def fake_total_loss(
         policy_logits: torch.Tensor,
         pred_value: torch.Tensor,
-        policy_targets: torch.Tensor,
-        value_targets: torch.Tensor,
+        target_policy: torch.Tensor,
+        target_value: torch.Tensor,
         value_loss_weight: float,
     ):
         captured["policy_logits_shape"] = tuple(policy_logits.shape)
         captured["pred_value_shape"] = tuple(pred_value.shape)
-        captured["policy_targets_shape"] = tuple(policy_targets.shape)
-        captured["value_targets_shape"] = tuple(value_targets.shape)
-        captured["policy_targets_device"] = policy_targets.device.type
-        captured["value_targets_device"] = value_targets.device.type
+        captured["policy_targets_shape"] = tuple(target_policy.shape)
+        captured["value_targets_shape"] = tuple(target_value.shape)
+        captured["policy_targets_device"] = target_policy.device.type
+        captured["value_targets_device"] = target_value.device.type
         captured["value_loss_weight"] = value_loss_weight
 
         policy_loss = policy_logits.sum() * 0.0 + 2.0

@@ -34,7 +34,8 @@
 #
 # 16. evaluate_model_vs_baselines() creates one candidate model agent and three rule-based baselines
 #
-# 17. evaluate_model_vs_model() creates two seats for model A and two seats for model B
+# 17. evaluate_model_vs_model() creates one candidate model agent and three old model agents
+
 
 import random
 
@@ -111,6 +112,7 @@ class MutatingTerminalSimulator:
         state.geese[0][0] = 999
         state.step = 1
         state.done = True
+        state.survival_steps = [1, 1, 1, 1]
 
         return state
 
@@ -121,6 +123,7 @@ def make_state(
     step: int = 0,
     last_actions=None,
     alive=None,
+    survival_steps=None,
     done: bool = False,
 ) -> GameState:
     padded_geese = [goose.copy() for goose in geese]
@@ -142,12 +145,18 @@ def make_state(
         while len(alive) < len(padded_geese):
             alive.append(False)
 
+    if survival_steps is not None:
+        survival_steps = list(survival_steps)
+        while len(survival_steps) < len(padded_geese):
+            survival_steps.append(0)
+
     return GameState(
         geese=padded_geese,
         food=food.copy(),
         step=step,
         last_actions=last_actions,
         alive=alive,
+        survival_steps=survival_steps,
         done=done,
     )
 
@@ -354,6 +363,7 @@ def test_play_match_tracks_survival_final_lengths_placements_and_winner():
         food=[60, 70],
         step=1,
         alive=[True, False, True, True],
+        survival_steps=[1, 1, 1, 1],
     )
 
     state_after_step_2 = make_state(
@@ -361,6 +371,7 @@ def test_play_match_tracks_survival_final_lengths_placements_and_winner():
         food=[60, 70],
         step=2,
         alive=[True, False, False, True],
+        survival_steps=[2, 1, 2, 2],
     )
 
     terminal_state = make_state(
@@ -368,6 +379,7 @@ def test_play_match_tracks_survival_final_lengths_placements_and_winner():
         food=[60, 70],
         step=3,
         alive=[True, False, False, False],
+        survival_steps=[3, 1, 2, 3],
         done=True,
     )
 
@@ -382,11 +394,11 @@ def test_play_match_tracks_survival_final_lengths_placements_and_winner():
 
     assert len(simulator.calls) == 3
 
-    # player 1 dies at step 1, player 2 at step 2, player 3 at step 3,
-    # player 0 survives until terminal step 3
+    # player 1 dies at step 1, player 2 at step 2, player 3 dies at terminal step 3,
+    # player 0 also reaches terminal step 3 but wins because it has greater final length
     assert result.survival_steps == [3, 1, 2, 3]
     assert result.final_lengths == [3, 0, 0, 0]
-    assert result.placements == pytest.approx([1.0, 3.0, 3.0, 3.0])
+    assert result.placements == pytest.approx([1.0, 4.0, 3.0, 2.0])
     assert result.winner == 0
 
     first_joint_actions = simulator.calls[0][1]
@@ -398,13 +410,15 @@ def test_compute_placements_tie_aware_ranks_alive_above_dead_and_averages_ties()
 
     state = make_state(
         geese=[
-            [12, 11],       # alive, length 2
-            [50, 49],       # alive, length 2
-            [70, 69, 68],   # dead, length 3, still ranked below alive players
-            [75],           # alive, length 1
+            [12, 11],
+            [50, 49],
+            [70, 69, 68],
+            [75],
         ],
         food=[13, 60],
+        step=10,
         alive=[True, True, False, True],
+        survival_steps=[10, 10, 5, 10],
         done=True,
     )
 
@@ -626,9 +640,9 @@ def test_evaluate_model_vs_model_creates_two_agents_for_each_model(monkeypatch):
     assert captured["n_games"] == 7
     assert captured["rotate_seats"] is True
     assert [agent.name for agent in captured["agents"]] == [
-        "model_a_1",
-        "model_a_2",
-        "model_b_1",
-        "model_b_2",
+        "candidate_model",
+        "old_model_1",
+        "old_model_2",
+        "old_model_3",
     ]
     assert all(isinstance(agent, MCTSAgent) for agent in captured["agents"])

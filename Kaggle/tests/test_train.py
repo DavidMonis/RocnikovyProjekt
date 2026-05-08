@@ -63,7 +63,23 @@ class DummyModel:
     instances = []
 
     def __init__(self):
+        self.eval_calls = 0
         DummyModel.instances.append(self)
+
+    def eval(self):
+        self.eval_calls += 1
+        return self
+    
+class DummyReferenceModel:
+    instance = None
+
+    def __init__(self):
+        self.eval_calls = 0
+        DummyReferenceModel.instance = self
+
+    def eval(self):
+        self.eval_calls += 1
+        return self
 
 
 class DummyMCTS:
@@ -97,6 +113,8 @@ class DummyReplayBuffer:
     def __init__(self):
         self.size = DummyReplayBuffer.initial_size
         self.extend_calls = []
+        self.save_calls = []
+        self.load_calls = []
         DummyReplayBuffer.instances.append(self)
 
     def __len__(self):
@@ -106,6 +124,13 @@ class DummyReplayBuffer:
         samples = list(samples)
         self.extend_calls.append(samples)
         self.size += len(samples)
+
+    def save(self, path: str):
+        self.save_calls.append(path)
+        Path(path).write_text("dummy replay buffer", encoding="utf-8")
+
+    def load(self, path: str):
+        self.load_calls.append(path)
 
 
 class DummyTrainer:
@@ -164,9 +189,10 @@ class DummyEvaluationRunner:
         self.evaluate_calls = []
         DummyEvaluationRunner.instances.append(self)
 
-    def evaluate_model_vs_baselines(self, model, encoder, device, n_games):
+    def evaluate_model_vs_model(self, model_a, model_b, encoder, device, n_games):
         self.evaluate_calls.append({
-            "model": model,
+            "model_a": model_a,
+            "model_b": model_b,
             "encoder": encoder,
             "device": device,
             "n_games": n_games,
@@ -216,6 +242,7 @@ def patch_main_dependencies(monkeypatch, tmp_path):
     monkeypatch.setattr(train_module, "NUM_SELF_PLAY_GAMES_PER_ITERATION", 2)
     monkeypatch.setattr(train_module, "NUM_TRAIN_STEPS_PER_ITERATION", 2)
     monkeypatch.setattr(train_module, "SAVE_INTERVAL", 5)
+    monkeypatch.setattr(train_module, "EVAL_GAMES", 4)
 
     monkeypatch.setattr(train_module, "get_device", lambda: "cpu")
 
@@ -228,8 +255,32 @@ def patch_main_dependencies(monkeypatch, tmp_path):
     monkeypatch.setattr(train_module, "Trainer", DummyTrainer)
     monkeypatch.setattr(train_module, "EvaluationRunner", DummyEvaluationRunner)
 
+    monkeypatch.setattr(train_module, "REFERENCE_MODEL_CHECKPOINT", "reference.pt")
+    (tmp_path / "reference.pt").write_text(
+        "dummy reference checkpoint",
+        encoding="utf-8",
+    )
+
+    reference_model = DummyReferenceModel()
+
+    monkeypatch.setattr(
+        train_module,
+        "load_model_from_checkpoint",
+        lambda path, device: reference_model,
+    )
+
+    monkeypatch.setattr(
+        train_module,
+        "make_nn_policy",
+        lambda **kwargs: "nn_opponent_policy",
+    )
+
     time_values = iter([100.0, 101.0, 102.0, 103.0, 104.0, 110.0])
-    monkeypatch.setattr(train_module.time, "time", lambda: next(time_values, 110.0))
+    monkeypatch.setattr(
+        train_module.time,
+        "time",
+        lambda: next(time_values, 110.0),
+    )
 
     summary_calls = []
 
@@ -237,7 +288,11 @@ def patch_main_dependencies(monkeypatch, tmp_path):
         summary_calls.append(kwargs)
         raise StopAfterIteration()
 
-    monkeypatch.setattr(train_module, "print_iteration_summary", fake_print_iteration_summary)
+    monkeypatch.setattr(
+        train_module,
+        "print_iteration_summary",
+        fake_print_iteration_summary,
+    )
 
     return summary_calls
 
@@ -347,6 +402,7 @@ def test_print_iteration_summary_for_skipped_training(capsys, monkeypatch):
         },
         current_score=-2.5,
         best_score=-2.0,
+        improved=False,
         iter_time=65,
         device="cpu",
     )
@@ -380,6 +436,7 @@ def test_print_iteration_summary_for_training_losses(capsys, monkeypatch):
         },
         current_score=-1.0,
         best_score=-2.0,
+        improved=True,
         iter_time=3661,
         device="cuda",
     )
@@ -435,11 +492,11 @@ def test_main_runs_one_controlled_iteration_and_skips_training(monkeypatch, tmp_
     assert mcts_kwargs["encoder"] is DummyEncoder.instances[0]
     assert mcts_kwargs["simulator"] is DummySimulator.instances[0]
     assert mcts_kwargs["device"] == "cpu"
-    assert mcts_kwargs["opponent_policy"] is train_module.choose_rule_based_action
+    assert mcts_kwargs["opponent_policy"] == "nn_opponent_policy"
 
     expected_role_calls = [
         ["mcts_nn", "mcts_nn", "rules", "rules"],
-        ["rules", "mcts_nn", "mcts_nn", "rules"],
+        ["mcts_nn", "mcts_nn", "rules", "nn"],
     ]
 
     assert DummySelfPlayWorker.instances[0].play_game_calls == expected_role_calls
@@ -457,7 +514,8 @@ def test_main_runs_one_controlled_iteration_and_skips_training(monkeypatch, tmp_
 
     assert evaluator.evaluate_calls == [
         {
-            "model": DummyModel.instances[0],
+            "model_a": DummyModel.instances[0],
+            "model_b": DummyReferenceModel.instance,
             "encoder": DummyEncoder.instances[0],
             "device": "cpu",
             "n_games": 4,

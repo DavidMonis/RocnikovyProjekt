@@ -4,10 +4,27 @@ from config import N_PLAYERS
 from core.state import GameState
 
 
+# Value targets assigned by final rank:
+#   1st ->  1.00
+#   2nd ->  0.33
+#   3rd -> -0.33
+#   4th -> -1.00
+#
+# Ties receive the average value of the tied rank range.
 RANK_VALUE_TARGETS = [1.0, 0.33, -0.33, -1.0]
 
 
 def compute_rank_value_targets(state: GameState) -> list[float]:
+    """
+    Compute value targets for all players based on final ranking.
+
+    Ranking priority:
+        1. later survival step is better
+        2. longer final goose length is better
+
+    If multiple players have the same ranking score, they share the average
+    value of the corresponding rank positions.
+    """
     scored_players = []
 
     for player_idx in range(N_PLAYERS):

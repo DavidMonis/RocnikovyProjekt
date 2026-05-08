@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import numpy as np
 import torch
 
@@ -19,14 +17,19 @@ def make_nn_policy(
     fallback_policy=choose_rule_based_action,
 ):
     """
-    Vytvorí lacnú NN policy:
-        policy(state, player_idx) -> Action
+    Create a cheap neural-network policy.
 
-    Nepoužíva MCTS. Iba:
-        encode state z pohľadu daného hráča
-        forward modelu
-        legal mask
-        argmax
+    This policy is used when we want an opponent/action selector that is much
+    cheaper than MCTS.
+
+    It does not run search. It only:
+        1. encodes the state from the selected player's perspective,
+        2. runs the policy-value network,
+        3. applies the legal-action mask,
+        4. returns the legal action with the highest probability.
+
+    Returned function:
+        policy(state, player_idx) -> Action
     """
 
     def policy(state: GameState, player_idx: int) -> Action:
@@ -34,8 +37,8 @@ def make_nn_policy(
             return Action.NORTH
 
         legal_mask = get_legal_mask(state, player_idx)
-        forced_idx = only_legal_action(legal_mask)
 
+        forced_idx = only_legal_action(legal_mask)
         if forced_idx is not None:
             return index_to_action(forced_idx)
 
@@ -56,14 +59,9 @@ def make_nn_policy(
             device=device,
         ).unsqueeze(0)
 
-        was_training = model.training
-        model.eval()
-
-        with torch.no_grad():
-            policy_logits, _ = model.predict(board_tensor, scalars_tensor)
-
-        if was_training:
-            model.train()
+        # model.predict() already switches to eval mode, disables gradients,
+        # and restores the previous training/eval state afterwards.
+        policy_logits, _ = model.predict(board_tensor, scalars_tensor)
 
         logits_np = policy_logits[0].detach().cpu().numpy()
 

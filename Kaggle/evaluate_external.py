@@ -60,7 +60,7 @@ MY_AGENT = "submission.py"
 GOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
 
 # Your stronger handcrafted baseline bot.
-SMART_BOT = "bots/stupid_bot.py"
+SMART_BOT = "bots/bot.py"
 
 
 # ---------------------------------------------------------------------

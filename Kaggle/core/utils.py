@@ -13,16 +13,12 @@ from core.actions import Action, action_delta
 # =========================
 
 def row_col(position: int, cols: int = COLS) -> tuple[int, int]:
-    """
-    Convert linear board position to (row, col).
-    """
+    """Convert a linear board position to (row, col)."""
     return position // cols, position % cols
 
 
 def to_position(row: int, col: int, cols: int = COLS) -> int:
-    """
-    Convert (row, col) back to linear board position.
-    """
+    """Convert (row, col) coordinates to a linear board position."""
     return row * cols + col
 
 
@@ -31,23 +27,22 @@ def to_position(row: int, col: int, cols: int = COLS) -> int:
 # =========================
 
 def wrap_row(row: int, rows: int = ROWS) -> int:
-    """
-    Wrap row index on torus board.
-    """
+    """Wrap a row index on a toroidal board."""
     return row % rows
 
 
 def wrap_col(col: int, cols: int = COLS) -> int:
-    """
-    Wrap col index on torus board.
-    """
+    """Wrap a column index on a toroidal board."""
     return col % cols
 
 
-def wrap_position(row: int, col: int, rows: int = ROWS, cols: int = COLS) -> tuple[int, int]:
-    """
-    Wrap both row and col on torus board.
-    """
+def wrap_position(
+    row: int,
+    col: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> tuple[int, int]:
+    """Wrap both row and column coordinates on a toroidal board."""
     return row % rows, col % cols
 
 
@@ -55,9 +50,19 @@ def wrap_position(row: int, col: int, rows: int = ROWS, cols: int = COLS) -> tup
 # Movement
 # =========================
 
-def translate(position: int, action: Action | str | int, rows: int = ROWS, cols: int = COLS) -> int:
+def translate(
+    position: int,
+    action: Action | str | int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> int:
     """
-    Move one position in given action direction with torus wrapping.
+    Move one cell in the given action direction with toroidal wrapping.
+
+    The action may be provided as:
+        - Action enum
+        - Kaggle-style string
+        - integer policy index
     """
     row, col = row_col(position, cols)
     dr, dc = action_delta(action)
@@ -68,10 +73,16 @@ def translate(position: int, action: Action | str | int, rows: int = ROWS, cols:
     return to_position(new_row, new_col, cols)
 
 
-def neighbor_positions(position: int, rows: int = ROWS, cols: int = COLS) -> list[int]:
+def neighbor_positions(
+    position: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> list[int]:
     """
-    Return all 4 neighboring positions with torus wrapping.
-    Order follows Action enum order.
+    Return all four neighboring positions with toroidal wrapping.
+
+    The order follows the Action enum / policy output order:
+        NORTH, SOUTH, EAST, WEST
     """
     return [
         translate(position, Action.NORTH, rows, cols),
@@ -86,27 +97,28 @@ def neighbor_positions(position: int, rows: int = ROWS, cols: int = COLS) -> lis
 # =========================
 
 def torus_row_distance(row_a: int, row_b: int, rows: int = ROWS) -> int:
-    """
-    Shortest vertical distance between two rows on torus.
-    """
+    """Return the shortest vertical distance between two rows on a torus."""
     direct = abs(row_a - row_b)
     wrapped = rows - direct
+
     return min(direct, wrapped)
 
 
 def torus_col_distance(col_a: int, col_b: int, cols: int = COLS) -> int:
-    """
-    Shortest horizontal distance between two columns on torus.
-    """
+    """Return the shortest horizontal distance between two columns on a torus."""
     direct = abs(col_a - col_b)
     wrapped = cols - direct
+
     return min(direct, wrapped)
 
 
-def torus_distance(pos_a: int, pos_b: int, rows: int = ROWS, cols: int = COLS) -> int:
-    """
-    Manhattan distance on torus board.
-    """
+def torus_distance(
+    pos_a: int,
+    pos_b: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> int:
+    """Return Manhattan distance between two positions on a toroidal board."""
     row_a, col_a = row_col(pos_a, cols)
     row_b, col_b = row_col(pos_b, cols)
 
@@ -122,7 +134,10 @@ def torus_distance(pos_a: int, pos_b: int, rows: int = ROWS, cols: int = COLS) -
 
 def signed_torus_delta(a: int, b: int, size: int) -> int:
     """
-    Return shortest signed delta from a to b on torus.
+    Return the shortest signed delta from coordinate a to coordinate b.
+
+    Positive values mean moving forward along the axis.
+    Negative values mean moving backward along the axis.
     """
     delta = (b - a) % size
 
@@ -132,11 +147,18 @@ def signed_torus_delta(a: int, b: int, size: int) -> int:
     return delta
 
 
-def center_relative(target_pos: int, head_pos: int, rows: int = ROWS, cols: int = COLS) -> int:
+def center_relative(
+    target_pos: int,
+    head_pos: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> int:
     """
-    Convert real board position to egocentric encoded linear position.
+    Convert a real board position to a head-centered encoded position.
 
-    Assumes odd board dimensions so the center cell is well-defined.
+    The current player's head becomes the center cell of the encoded board.
+    This assumes odd board dimensions, which is true for Hungry Geese:
+        rows = 7, cols = 11
     """
     target_row, target_col = row_col(target_pos, cols)
     head_row, head_col = row_col(head_pos, cols)
@@ -153,11 +175,16 @@ def center_relative(target_pos: int, head_pos: int, rows: int = ROWS, cols: int 
     return to_position(encoded_row, encoded_col, cols)
 
 
-def position_from_center_relative(encoded_pos: int, head_pos: int, rows: int = ROWS, cols: int = COLS) -> int:
+def position_from_center_relative(
+    encoded_pos: int,
+    head_pos: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> int:
     """
-    Inverse of center_relative.
+    Convert a head-centered encoded position back to a real board position.
 
-    Converts encoded egocentric linear position back to real board position.
+    This is the inverse operation of center_relative.
     """
     encoded_row, encoded_col = row_col(encoded_pos, cols)
     head_row, head_col = row_col(head_pos, cols)
@@ -179,31 +206,32 @@ def position_from_center_relative(encoded_pos: int, head_pos: int, rows: int = R
 # =========================
 
 def all_board_positions(rows: int = ROWS, cols: int = COLS) -> list[int]:
-    """
-    Return all board positions as linear indices.
-    """
+    """Return all board positions as linear indices."""
     return list(range(rows * cols))
 
 
-def in_bounds(row: int, col: int, rows: int = ROWS, cols: int = COLS) -> bool:
+def in_bounds(
+    row: int,
+    col: int,
+    rows: int = ROWS,
+    cols: int = COLS,
+) -> bool:
     """
-    Standard non-wrapped bounds check.
+    Return whether coordinates are inside the non-wrapped board bounds.
+
+    This is mainly useful for validation/debugging. Normal movement uses
+    toroidal wrapping instead.
     """
     return 0 <= row < rows and 0 <= col < cols
 
 
 def positions_to_set(positions: Iterable[int]) -> set[int]:
-    """
-    Convert iterable of positions to set.
-    """
+    """Convert an iterable of positions to a set."""
     return set(positions)
 
 
 def occupied_positions(geese: list[list[int]]) -> set[int]:
-    """
-    Return all occupied positions by all geese.
-    Empty geese are ignored.
-    """
+    """Return all positions currently occupied by any goose."""
     occupied: set[int] = set()
 
     for goose in geese:
@@ -213,26 +241,31 @@ def occupied_positions(geese: list[list[int]]) -> set[int]:
 
 
 def alive_indices(geese: list[list[int]]) -> list[int]:
-    """
-    Return indices of alive players based on non-empty goose body.
-    """
-    return [idx for idx, goose in enumerate(geese) if len(goose) > 0]
+    """Return indices of players with non-empty goose bodies."""
+    return [
+        idx
+        for idx, goose in enumerate(geese)
+        if len(goose) > 0
+    ]
 
 
 # =========================
 # Mask / softmax helpers
 # =========================
 
-def safe_softmax_mask(logits: np.ndarray, mask: np.ndarray | list[int] | list[bool]) -> np.ndarray:
+def safe_softmax_mask(
+    logits: np.ndarray,
+    mask: np.ndarray | list[int] | list[bool],
+) -> np.ndarray:
     """
-    Apply mask to logits and return probabilities.
+    Apply a legal-action mask to logits and return a probability distribution.
 
-    mask:
-        1 / True  = allowed
-        0 / False = forbidden
+    Mask convention:
+        True / 1   = allowed action
+        False / 0  = forbidden action
 
-    If all actions are masked, returns uniform distribution over all actions.
-    This should normally not happen, but it prevents crashes.
+    If all actions are masked, the function returns a uniform distribution.
+    That case should be rare, but this fallback prevents training/search crashes.
     """
     logits = np.asarray(logits, dtype=np.float32)
     mask = np.asarray(mask, dtype=bool)
@@ -265,7 +298,9 @@ def safe_softmax_mask(logits: np.ndarray, mask: np.ndarray | list[int] | list[bo
 
 def normalize_visit_counts(visits: np.ndarray | list[int]) -> np.ndarray:
     """
-    Convert MCTS visit counts to policy target distribution.
+    Convert MCTS visit counts to a policy target distribution.
+
+    If there are no visits, return a uniform distribution as a safe fallback.
     """
     visits = np.asarray(visits, dtype=np.float32)
     total = visits.sum()

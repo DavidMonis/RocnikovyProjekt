@@ -1,7 +1,7 @@
-from core.state import GameState
 from core.actions import Action, all_actions, action_to_index
-from core.utils import row_col, translate, torus_distance
 from core.hard_rules import get_legal_mask
+from core.state import GameState
+from core.utils import row_col, torus_distance, translate
 
 
 def best_axis_direction(
@@ -11,6 +11,12 @@ def best_axis_direction(
     positive_dir: Action,
     negative_dir: Action,
 ) -> Action | None:
+    """
+    Choose the shorter torus direction on one axis.
+
+    Example:
+        On columns, positive_dir is EAST and negative_dir is WEST.
+    """
     forward = (food_coord - player_coord) % size
     backward = (player_coord - food_coord) % size
 
@@ -24,17 +30,25 @@ def best_axis_direction(
 
 
 def collect_blocked_positions(state: GameState) -> set[int]:
-    blocked = set()
+    """
+    Return all currently occupied board positions.
+    """
+    blocked: set[int] = set()
 
     for goose in state.geese:
-        for pos in goose:
-            blocked.add(pos)
+        blocked.update(goose)
 
     return blocked
 
 
 def collect_danger_cells(state: GameState, player_idx: int) -> set[int]:
-    danger_cells = set()
+    """
+    Return cells where enemy heads can legally move next turn.
+
+    The rule-based agent treats these cells as dangerous because moving there
+    may cause a head-on collision.
+    """
+    danger_cells: set[int] = set()
 
     for enemy_idx in range(len(state.geese)):
         if enemy_idx == player_idx or not state.is_alive(enemy_idx):
@@ -62,12 +76,23 @@ def collect_danger_cells(state: GameState, player_idx: int) -> set[int]:
 
 
 def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
+    """
+    Simple handcrafted baseline agent.
+
+    Decision logic:
+        1. Use hard rules to remove illegal/immediately deadly actions.
+        2. Prefer actions that avoid occupied cells and enemy head-danger cells.
+        3. Move toward the closest food using torus distance.
+        4. Prefer horizontal movement first, then vertical movement.
+        5. If no food-oriented action is available, return the first safe action.
+    """
     if not state.is_alive(player_idx):
         return Action.NORTH
 
     legal_mask = get_legal_mask(state, player_idx)
     allowed_actions = [
-        action for action in all_actions()
+        action
+        for action in all_actions()
         if legal_mask[action_to_index(action)]
     ]
 
@@ -101,7 +126,7 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
     my_goose = state.geese[player_idx]
     my_tail = my_goose[-1]
 
-    safe_actions = []
+    safe_actions: list[Action] = []
 
     for action in allowed_actions:
         new_head = translate(
@@ -113,6 +138,8 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
 
         blocked_now = set(blocked)
 
+        # Moving into our own tail is safe if we are not eating,
+        # because the tail moves away during the same step.
         if new_head not in state.food:
             blocked_now.discard(my_tail)
 
@@ -131,6 +158,7 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
         Action.EAST,
         Action.WEST,
     )
+
     if horizontal_action is not None and horizontal_action in allowed_actions:
         return horizontal_action
 
@@ -141,6 +169,7 @@ def choose_rule_based_action(state: GameState, player_idx: int) -> Action:
         Action.SOUTH,
         Action.NORTH,
     )
+
     if vertical_action is not None and vertical_action in allowed_actions:
         return vertical_action
 

@@ -1,12 +1,22 @@
 import torch
 
-from config import BATCH_SIZE, LEARNING_RATE, WEIGHT_DECAY, VALUE_LOSS_WEIGHT
-from model.network import PolicyValueNet
+from config import BATCH_SIZE, LEARNING_RATE, VALUE_LOSS_WEIGHT, WEIGHT_DECAY
 from model.losses import total_loss
+from model.network import PolicyValueNet
 from training.replay_buffer import ReplayBuffer
 
 
 class Trainer:
+    """
+    Handles neural-network optimization.
+
+    The trainer:
+        - samples batches from the replay buffer,
+        - computes policy and value losses,
+        - runs backpropagation,
+        - saves and loads checkpoints.
+    """
+
     def __init__(
         self,
         model: PolicyValueNet,
@@ -32,12 +42,17 @@ class Trainer:
         )
 
     def train_step(self) -> dict:
+        """
+        Run one optimization step on a random replay-buffer batch.
+        """
         if len(self.replay_buffer) < self.batch_size:
             raise ValueError("Not enough samples in replay buffer for one training step.")
 
         self.model.train()
 
-        boards, scalars, policy_targets, value_targets = self.replay_buffer.sample_batch(self.batch_size)
+        boards, scalars, policy_targets, value_targets = self.replay_buffer.sample_batch(
+            self.batch_size,
+        )
 
         boards = torch.from_numpy(boards).to(self.device, non_blocking=True)
         scalars = torch.from_numpy(scalars).to(self.device, non_blocking=True)
@@ -47,11 +62,11 @@ class Trainer:
         policy_logits, pred_value = self.model(boards, scalars)
 
         loss, policy_loss, value_loss = total_loss(
-            policy_logits,
-            pred_value,
-            policy_targets,
-            value_targets,
-            self.value_loss_weight,
+            policy_logits=policy_logits,
+            pred_value=pred_value,
+            target_policy=policy_targets,
+            target_value=value_targets,
+            value_loss_weight=self.value_loss_weight,
         )
 
         self.optimizer.zero_grad(set_to_none=True)
@@ -65,6 +80,12 @@ class Trainer:
         }
 
     def train_steps(self, n_steps: int) -> dict:
+        """
+        Run multiple optimization steps and return averaged losses.
+        """
+        if n_steps <= 0:
+            raise ValueError("n_steps must be positive")
+
         logs = []
 
         for _ in range(n_steps):
@@ -76,7 +97,15 @@ class Trainer:
             "avg_value_loss": sum(x["value_loss"] for x in logs) / len(logs),
         }
 
-    def save_checkpoint(self, path: str, iteration: int, stats: dict | None = None) -> None:
+    def save_checkpoint(
+        self,
+        path: str,
+        iteration: int,
+        stats: dict | None = None,
+    ) -> None:
+        """
+        Save model, optimizer, current iteration, and optional training stats.
+        """
         torch.save(
             {
                 "iteration": iteration,
@@ -88,6 +117,16 @@ class Trainer:
         )
 
     def load_checkpoint(self, path: str) -> tuple[int, dict]:
+        """
+        Load model and optimizer state from checkpoint.
+
+        Returns:
+            iteration:
+                Iteration stored in checkpoint.
+
+            stats:
+                Additional checkpoint metadata.
+        """
         checkpoint = torch.load(path, map_location=self.device)
 
         self.model.load_state_dict(checkpoint["model_state_dict"])
@@ -95,4 +134,5 @@ class Trainer:
 
         iteration = int(checkpoint.get("iteration", 0))
         stats = checkpoint.get("stats", {})
+
         return iteration, stats

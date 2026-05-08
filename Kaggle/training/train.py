@@ -1,31 +1,36 @@
-from __future__ import annotations
-
 import json
 import time
 from pathlib import Path
-from projects_agents.nn_policy import make_nn_policy
+
 import torch
 
 from config import (
     CHECKPOINT_DIR,
-    SAVE_INTERVAL,
+    DEVICE,
+    EVAL_GAMES,
     NUM_SELF_PLAY_GAMES_PER_ITERATION,
     NUM_TRAIN_STEPS_PER_ITERATION,
-    EVAL_GAMES,
-    DEVICE
+    SAVE_INTERVAL,
 )
-from core.simulator import Simulator
 from core.encoder import StateEncoder
+from core.simulator import Simulator
 from model.network import PolicyValueNet
+from projects_agents.nn_policy import make_nn_policy
+from projects_agents.rule_based import choose_rule_based_action
 from search.mcts import MCTS
+from training.evaluation import EvaluationRunner
 from training.replay_buffer import ReplayBuffer
 from training.self_play import SelfPlayWorker
 from training.trainer import Trainer
-from training.evaluation import EvaluationRunner
-from projects_agents.rule_based import choose_rule_based_action
+
+
+REFERENCE_MODEL_CHECKPOINT = "iter_0080.pt"
 
 
 def get_device() -> str:
+    """
+    Resolve the training device from config.DEVICE.
+    """
     device = DEVICE.lower()
 
     if device == "auto":
@@ -43,13 +48,25 @@ def get_device() -> str:
 
 
 def extract_candidate_metrics(eval_summary: dict) -> dict:
+    """
+    Extract metrics for the candidate model from evaluation summary.
+    """
     for agent_info in eval_summary["agents"]:
         if agent_info["name"] == "candidate_model":
             return agent_info
+
     raise ValueError("candidate_model not found in evaluation summary")
 
 
 def choose_resume_checkpoint(checkpoint_dir: Path) -> Path | None:
+    """
+    Choose checkpoint for resuming training.
+
+    Priority:
+        1. latest.pt
+        2. best.pt
+        3. latest iter_XXXX.pt snapshot
+    """
     latest_ckpt = checkpoint_dir / "latest.pt"
     best_ckpt = checkpoint_dir / "best.pt"
 
@@ -66,25 +83,93 @@ def choose_resume_checkpoint(checkpoint_dir: Path) -> Path | None:
     return None
 
 
+def load_model_from_checkpoint(path: str | Path, device: str) -> PolicyValueNet:
+    """
+    Load a PolicyValueNet from a checkpoint file.
+    """
+    path = Path(path)
+
+    model = PolicyValueNet().to(device)
+
+    checkpoint = torch.load(
+        path,
+        map_location=device,
+    )
+
+    model.load_state_dict(checkpoint["model_state_dict"])
+    model.eval()
+
+    return model
+
+
 def format_seconds(seconds: float) -> str:
+    """
+    Format seconds into a compact human-readable string.
+    """
     seconds = int(seconds)
-    h = seconds // 3600
-    m = (seconds % 3600) // 60
-    s = seconds % 60
-    if h > 0:
-        return f"{h}h {m}m {s}s"
-    if m > 0:
-        return f"{m}m {s}s"
-    return f"{s}s"
+
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+
+    if hours > 0:
+        return f"{hours}h {minutes}m {secs}s"
+
+    if minutes > 0:
+        return f"{minutes}m {secs}s"
+
+    return f"{secs}s"
 
 
 def get_gpu_info(device: str) -> str:
+    """
+    Return basic GPU memory information if CUDA is used.
+    """
     if device != "cuda" or not torch.cuda.is_available():
         return "GPU: N/A"
 
     mem_alloc = torch.cuda.memory_allocated() / 1024**2
     mem_reserved = torch.cuda.memory_reserved() / 1024**2
+
     return f"GPU mem alloc={mem_alloc:.1f} MB, reserved={mem_reserved:.1f} MB"
+
+
+def average_train_logs(train_logs: list[dict]) -> tuple[float, float, float]:
+    """
+    Average training losses from per-step logs.
+    """
+    avg_loss = sum(x["loss"] for x in train_logs) / len(train_logs)
+    avg_policy_loss = sum(x["policy_loss"] for x in train_logs) / len(train_logs)
+    avg_value_loss = sum(x["value_loss"] for x in train_logs) / len(train_logs)
+
+    return avg_loss, avg_policy_loss, avg_value_loss
+
+
+def load_training_history(history_path: Path) -> list[dict]:
+    """
+    Load training history if it exists.
+    """
+    if not history_path.exists():
+        return []
+
+    with open(history_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_training_history(history_path: Path, history: list[dict]) -> None:
+    """
+    Save full training history as JSON.
+    """
+    with open(history_path, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
+
+
+def append_history_jsonl(history_jsonl_path: Path, history_entry: dict) -> None:
+    """
+    Append one training-history entry as JSONL.
+    """
+    with open(history_jsonl_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(history_entry) + "\n")
 
 
 def print_iteration_summary(
@@ -101,9 +186,13 @@ def print_iteration_summary(
     iter_time: float,
     device: str,
 ) -> None:
+    """
+    Print a compact summary after each training iteration.
+    """
     print("\n" + "=" * 70)
     print(f"ITERATION {iteration} SUMMARY")
     print("=" * 70)
+
     print(f"generated_samples   : {generated_samples}")
     print(f"replay_buffer_size  : {buffer_size}")
     print(f"iteration_time      : {format_seconds(iter_time)}")
@@ -128,27 +217,38 @@ def print_iteration_summary(
     print(f"current_score       : {current_score:.6f}")
     print(f"best_score          : {best_score:.6f}")
     print(f"improved            : {'YES' if improved else 'NO'}")
+
     print("=" * 70 + "\n")
 
 
-def main():
+def main() -> None:
     device = get_device()
     print(f"Using device: {device}")
 
     checkpoint_dir = Path(CHECKPOINT_DIR)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+    latest_ckpt = checkpoint_dir / "latest.pt"
+    best_ckpt = checkpoint_dir / "best.pt"
+    history_path = checkpoint_dir / "training_history.json"
+    history_jsonl_path = checkpoint_dir / "training_history.jsonl"
+    replay_buffer_path = checkpoint_dir / "replay_buffer.pkl"
+
+    # Core components.
     simulator = Simulator()
     encoder = StateEncoder()
     model = PolicyValueNet()
 
     replay_buffer = ReplayBuffer()
 
+    # During training, MCTS uses a cheap NN policy to approximate opponents
+    # inside the search tree. The policy references the same model object,
+    # so after checkpoint loading it automatically uses the loaded weights.
     mcts_opponent_policy = make_nn_policy(
-    model=model,
-    encoder=encoder,
-    device=device,
-    fallback_policy=choose_rule_based_action,
+        model=model,
+        encoder=encoder,
+        device=device,
+        fallback_policy=choose_rule_based_action
     )
 
     mcts = MCTS(
@@ -156,7 +256,7 @@ def main():
         encoder=encoder,
         simulator=simulator,
         device=device,
-        opponent_policy=mcts_opponent_policy,
+        opponent_policy=mcts_opponent_policy
     )
 
     self_play_worker = SelfPlayWorker(
@@ -173,13 +273,12 @@ def main():
 
     evaluator = EvaluationRunner(simulator=simulator)
 
-    latest_ckpt = checkpoint_dir / "latest.pt"
-    best_ckpt = checkpoint_dir / "best.pt"
-    history_path = checkpoint_dir / "training_history.json"
-    history_jsonl_path = checkpoint_dir / "training_history.jsonl"
-    replay_buffer_path = checkpoint_dir / "replay_buffer.pkl"
-
-    # default training patterns
+    # Self-play seat-role schedule.
+    #
+    # Percentages per 5 games:
+    #   mcts_nn = 12 / 20 = 60 %
+    #   nn      = 5 / 20  = 25 %
+    #   rules   = 3 / 20  = 15 %
     seat_role_schedules = [
         ["mcts_nn", "mcts_nn", "rules", "rules"],
         ["mcts_nn", "mcts_nn", "rules", "nn"],
@@ -190,11 +289,12 @@ def main():
 
     start_iteration = 1
     best_score = float("-inf")
-    history: list[dict] = []
 
+    # Resume checkpoint if available.
     resume_ckpt = choose_resume_checkpoint(checkpoint_dir)
     if resume_ckpt is not None:
         loaded_iteration, loaded_stats = trainer.load_checkpoint(str(resume_ckpt))
+
         start_iteration = loaded_iteration + 1
         best_score = float(loaded_stats.get("best_score", float("-inf")))
 
@@ -204,14 +304,13 @@ def main():
             replay_buffer.load(str(replay_buffer_path))
             print(f"Loaded replay buffer: {len(replay_buffer)} samples")
 
-    if history_path.exists():
-        with open(history_path, "r", encoding="utf-8") as f:
-            history = json.load(f)
+    history = load_training_history(history_path)
 
-    old_model_path = checkpoint_dir / "iter_0060.pt"
+    # Fixed reference model used for internal evaluation.
+    old_model_path = checkpoint_dir / REFERENCE_MODEL_CHECKPOINT
 
     if not old_model_path.exists():
-        raise FileNotFoundError(f"Old model checkpoint not found: {old_model_path}")
+        raise FileNotFoundError(f"Reference model checkpoint not found: {old_model_path}")
 
     old_model = load_model_from_checkpoint(old_model_path, device)
 
@@ -219,6 +318,7 @@ def main():
 
     while True:
         iter_start_time = time.time()
+
         print(f"\n========== ITERATION {iteration} ==========")
 
         # -------------------------------------------------
@@ -231,8 +331,10 @@ def main():
             seat_roles = seat_role_schedules[game_idx % len(seat_role_schedules)]
 
             game_start = time.time()
+
             samples = self_play_worker.play_game(seat_roles=seat_roles)
             replay_buffer.extend(samples)
+
             generated_samples += len(samples)
             game_time = time.time() - game_start
 
@@ -244,6 +346,7 @@ def main():
             )
 
         self_play_time = time.time() - self_play_start
+
         print(f"[self-play] total generated samples: {generated_samples}")
         print(f"[self-play] total time: {format_seconds(self_play_time)}")
         print(f"[buffer] current size: {len(replay_buffer)}")
@@ -260,21 +363,26 @@ def main():
                 log = trainer.train_step()
                 train_logs.append(log)
 
-                if (step_idx + 1) % 10 == 0 or (step_idx + 1) == NUM_TRAIN_STEPS_PER_ITERATION:
+                should_print = (
+                    (step_idx + 1) % 10 == 0
+                    or (step_idx + 1) == NUM_TRAIN_STEPS_PER_ITERATION
+                )
+
+                if should_print:
                     running_avg_loss = sum(x["loss"] for x in train_logs) / len(train_logs)
+
                     print(
                         f"[train] step {step_idx + 1}/{NUM_TRAIN_STEPS_PER_ITERATION} | "
                         f"last_loss={log['loss']:.6f} | "
                         f"running_avg_loss={running_avg_loss:.6f}"
                     )
 
-            avg_loss = sum(x["loss"] for x in train_logs) / len(train_logs)
-            avg_policy_loss = sum(x["policy_loss"] for x in train_logs) / len(train_logs)
-            avg_value_loss = sum(x["value_loss"] for x in train_logs) / len(train_logs)
+            avg_loss, avg_policy_loss, avg_value_loss = average_train_logs(train_logs)
         else:
             avg_loss = None
             avg_policy_loss = None
             avg_value_loss = None
+
             print("[train] skipped, not enough samples in replay buffer yet")
 
         train_time = time.time() - train_start
@@ -288,35 +396,43 @@ def main():
         model.eval()
         old_model.eval()
 
-        # MCTS vs MCTS
+        # Internal evaluation:
+        # Candidate model runs as MCTS.
+        # Reference model also runs as MCTS.
+        #
+        # By default, MCTSAgent uses rule_based opponent approximation inside
+        # search, unless evaluation.py is explicitly configured otherwise.
         eval_summary = evaluator.evaluate_model_vs_model(
             model_a=model,
             model_b=old_model,
             encoder=encoder,
             device=device,
-            n_games=EVAL_GAMES
+            n_games=EVAL_GAMES,
         )
 
-        #MCTS vs rule_based
+        # Alternative evaluations:
+        #
+        # MCTS candidate vs rule-based baselines:
         # eval_summary = evaluator.evaluate_model_vs_baselines(
-        #     model_a=model,
+        #     model=model,
         #     encoder=encoder,
         #     device=device,
-        #     n_games=EVAL_GAMES
+        #     n_games=EVAL_GAMES,
         # )
-
+        #
+        # MCTS candidate vs cheap NN agents:
         # eval_summary = evaluator.evaluate_model_vs_nn(
         #     model_a=model,
         #     model_b=old_model,
         #     encoder=encoder,
         #     device=device,
-        #     n_games=EVAL_GAMES
+        #     n_games=EVAL_GAMES,
         # )
 
         eval_time = time.time() - eval_start
         candidate_metrics = extract_candidate_metrics(eval_summary)
 
-        # score = maximize negative placement
+        # Lower average placement is better, so we maximize negative placement.
         current_score = -candidate_metrics["avg_placement"]
 
         print(f"[eval] total time: {format_seconds(eval_time)}")
@@ -336,22 +452,40 @@ def main():
             "evaluation": eval_summary,
             "best_score": future_best_score,
             "device": device,
-            "seat_role_schedules": seat_role_schedules
+            "seat_role_schedules": seat_role_schedules,
         }
 
-        trainer.save_checkpoint(str(latest_ckpt), iteration, iteration_stats)
+        trainer.save_checkpoint(
+            str(latest_ckpt),
+            iteration,
+            iteration_stats,
+        )
+
         replay_buffer.save(str(replay_buffer_path))
 
         if iteration % SAVE_INTERVAL == 0:
             iter_ckpt = checkpoint_dir / f"iter_{iteration:04d}.pt"
-            trainer.save_checkpoint(str(iter_ckpt), iteration, iteration_stats)
+
+            trainer.save_checkpoint(
+                str(iter_ckpt),
+                iteration,
+                iteration_stats,
+            )
+
             print(f"[checkpoint] saved snapshot: {iter_ckpt.name}")
 
         improved = current_score > best_score
+
         if improved:
             best_score = current_score
             iteration_stats["best_score"] = best_score
-            trainer.save_checkpoint(str(best_ckpt), iteration, iteration_stats)
+
+            trainer.save_checkpoint(
+                str(best_ckpt),
+                iteration,
+                iteration_stats,
+            )
+
             print(f"[checkpoint] new best model saved at iteration {iteration}")
 
         # -------------------------------------------------
@@ -378,16 +512,13 @@ def main():
                 "iteration_seconds": iter_time,
             },
             "device": device,
-            "seat_role_schedules": seat_role_schedules
+            "seat_role_schedules": seat_role_schedules,
         }
 
         history.append(history_entry)
 
-        with open(history_path, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=2)
-
-        with open(history_jsonl_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(history_entry) + "\n")
+        save_training_history(history_path, history)
+        append_history_jsonl(history_jsonl_path, history_entry)
 
         print_iteration_summary(
             iteration=iteration,
@@ -405,21 +536,6 @@ def main():
         )
 
         iteration += 1
-
-def load_model_from_checkpoint(path: str | Path, device: str) -> PolicyValueNet:
-    path = Path(path)
-
-    model = PolicyValueNet().to(device)
-
-    checkpoint = torch.load(
-        path,
-        map_location=device,
-    )
-
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.eval()
-
-    return model
 
 
 if __name__ == "__main__":

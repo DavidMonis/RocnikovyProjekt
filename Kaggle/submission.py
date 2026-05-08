@@ -1,52 +1,63 @@
-from __future__ import annotations
-
 import torch
-import numpy as np
 
 from config import (
-    ROWS,
     COLS,
+    EPISODE_STEPS,
     HUNGER_RATE,
     MAX_LENGTH,
-    EPISODE_STEPS,
-    SUBMISSION_MCTS_SIMULATIONS,
+    ROWS,
     SUBMISSION_CUTOFF_DEPTH,
+    SUBMISSION_MCTS_SIMULATIONS,
 )
-from core.actions import Action, action_to_name, index_to_action
-from core.state import GameState
-from core.simulator import Simulator
+from core.actions import Action, action_to_name
 from core.encoder import StateEncoder
-from core.hard_rules import get_legal_mask, only_legal_action
-from core.utils import safe_softmax_mask
+from core.simulator import Simulator
+from core.state import GameState
 from model.network import PolicyValueNet
-from training.evaluation import MCTSAgent
+from projects_agents.nn_policy import make_nn_policy
 from projects_agents.rule_based import choose_rule_based_action
+from training.evaluation import MCTSAgent
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 CHECKPOINT_PATH = "checkpoints/latest.pt"
 
-_model = None
-_encoder = None
-_simulator = None
-_agent = None
 
-_prev_geese = None
-_prev_step = None
-_last_actions = None
+_model: PolicyValueNet | None = None
+_encoder: StateEncoder | None = None
+_simulator: Simulator | None = None
+_agent: MCTSAgent | None = None
+
+_prev_geese: list[list[int]] | None = None
+_prev_step: int | None = None
+_last_actions: list[Action | None] | None = None
 
 
 def _get(obj, key):
+    """
+    Read a field from either a dictionary-like object or an attribute object.
+    Kaggle observations may behave differently depending on context/version.
+    """
     if isinstance(obj, dict):
         return obj[key]
+
     return getattr(obj, key)
 
 
 def _row_col(pos: int) -> tuple[int, int]:
+    """
+    Convert linear board position to (row, col).
+    """
     return pos // COLS, pos % COLS
 
 
 def _infer_action(prev_head: int, current_head: int) -> Action | None:
+    """
+    Infer a goose action from previous and current head position.
+
+    This is needed because the Kaggle observation does not directly provide
+    every player's previous action, but our GameState stores last_actions.
+    """
     prev_r, prev_c = _row_col(prev_head)
     curr_r, curr_c = _row_col(current_head)
 
@@ -66,6 +77,9 @@ def _infer_action(prev_head: int, current_head: int) -> Action | None:
 
 
 def _load_model() -> PolicyValueNet:
+    """
+    Load the trained policy-value network from checkpoint.
+    """
     model = PolicyValueNet().to(DEVICE)
 
     checkpoint = torch.load(
@@ -79,56 +93,13 @@ def _load_model() -> PolicyValueNet:
     return model
 
 
-def _make_nn_policy(model: PolicyValueNet, encoder: StateEncoder, device: str):
+def _init_once() -> None:
     """
-    Lacná opponent policy pre MCTS:
-    súperi nehrajú vnorený MCTS, iba čistú NN policy s legal maskou.
+    Lazily initialize model, encoder, simulator, and MCTS agent.
+
+    Kaggle calls agent(...) many times during one game, so loading the model
+    must happen only once.
     """
-    def policy(state: GameState, player_idx: int) -> Action:
-        if not state.is_alive(player_idx):
-            return Action.NORTH
-
-        legal_mask = get_legal_mask(state, player_idx)
-        forced_idx = only_legal_action(legal_mask)
-
-        if forced_idx is not None:
-            return index_to_action(forced_idx)
-
-        if sum(legal_mask) <= 0:
-            return choose_rule_based_action(state, player_idx)
-
-        board, scalars = encoder.encode(state, player_idx)
-
-        board_tensor = torch.tensor(
-            board,
-            dtype=torch.float32,
-            device=device,
-        ).unsqueeze(0)
-
-        scalars_tensor = torch.tensor(
-            scalars,
-            dtype=torch.float32,
-            device=device,
-        ).unsqueeze(0)
-
-        model.eval()
-
-        with torch.no_grad():
-            policy_logits, _ = model.predict(board_tensor, scalars_tensor)
-
-        logits_np = policy_logits[0].detach().cpu().numpy()
-        probs = safe_softmax_mask(
-            logits_np,
-            np.array(legal_mask, dtype=np.int32),
-        )
-
-        action_idx = int(np.argmax(probs))
-        return index_to_action(action_idx)
-
-    return policy
-
-
-def _init_once():
     global _model, _encoder, _simulator, _agent
 
     if _agent is not None:
@@ -138,10 +109,11 @@ def _init_once():
     _encoder = StateEncoder()
     _simulator = Simulator()
 
-    nn_opponent_policy = _make_nn_policy(
+    nn_opponent_policy = make_nn_policy(
         model=_model,
         encoder=_encoder,
         device=DEVICE,
+        fallback_policy=choose_rule_based_action,
     )
 
     _agent = MCTSAgent(
@@ -157,10 +129,17 @@ def _init_once():
     )
 
 
-def _update_last_actions_from_observation(geese: list[list[int]], step: int) -> list[Action | None]:
+def _update_last_actions_from_observation(
+    geese: list[list[int]],
+    step: int,
+) -> list[Action | None]:
+    """
+    Reconstruct last actions from the previous observation.
+
+    At step 0 or after a reset, all last actions are unknown.
+    """
     global _prev_geese, _prev_step, _last_actions
 
-    # Nová hra alebo prvý krok.
     if step == 0 or _prev_geese is None or _prev_step is None or step <= _prev_step:
         _last_actions = [None] * len(geese)
         return _last_actions
@@ -175,24 +154,31 @@ def _update_last_actions_from_observation(geese: list[list[int]], step: int) -> 
         if not prev_goose or not current_goose:
             continue
 
-        inferred = _infer_action(
+        inferred_action = _infer_action(
             prev_head=prev_goose[0],
             current_head=current_goose[0],
         )
 
-        if inferred is not None:
-            _last_actions[player_idx] = inferred
+        if inferred_action is not None:
+            _last_actions[player_idx] = inferred_action
 
     return _last_actions
 
 
 def _build_state_from_obs(obs) -> tuple[GameState, int]:
+    """
+    Convert Kaggle observation into internal GameState.
+    """
     geese = [list(goose) for goose in _get(obs, "geese")]
     food = list(_get(obs, "food"))
     step = int(_get(obs, "step"))
     player_idx = int(_get(obs, "index"))
 
-    last_actions = _update_last_actions_from_observation(geese, step)
+    last_actions = _update_last_actions_from_observation(
+        geese=geese,
+        step=step,
+    )
+
     alive = [len(goose) > 0 for goose in geese]
 
     state = GameState(
@@ -213,9 +199,17 @@ def _build_state_from_obs(obs) -> tuple[GameState, int]:
 
 
 def agent(obs, config):
+    """
+    Kaggle entry point.
+
+    Returns:
+        One of: "NORTH", "SOUTH", "EAST", "WEST"
+    """
     global _prev_geese, _prev_step, _last_actions
 
     _init_once()
+
+    assert _agent is not None
 
     state, player_idx = _build_state_from_obs(obs)
 
@@ -224,7 +218,7 @@ def agent(obs, config):
     else:
         action = _agent.choose_action(state, player_idx)
 
-    # Uložíme stav pre ďalšie volanie.
+    # Store current observation for action reconstruction on the next call.
     _prev_geese = [goose.copy() for goose in state.geese]
     _prev_step = state.step
 
