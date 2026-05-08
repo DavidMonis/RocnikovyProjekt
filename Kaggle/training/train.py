@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-
+from projects_agents.nn_policy import make_nn_policy
 import torch
 
 from config import (
@@ -144,12 +144,19 @@ def main():
 
     replay_buffer = ReplayBuffer()
 
+    mcts_opponent_policy = make_nn_policy(
+    model=model,
+    encoder=encoder,
+    device=device,
+    fallback_policy=choose_rule_based_action,
+    )
+
     mcts = MCTS(
         model=model,
         encoder=encoder,
         simulator=simulator,
         device=device,
-        opponent_policy=choose_rule_based_action,
+        opponent_policy=mcts_opponent_policy,
     )
 
     self_play_worker = SelfPlayWorker(
@@ -174,10 +181,11 @@ def main():
 
     # default training patterns
     seat_role_schedules = [
+        ["mcts_nn", "mcts_nn", "rules", "rules"],
+        ["mcts_nn", "mcts_nn", "rules", "nn"],
+        ["mcts_nn", "nn", "mcts_nn", "nn"],
         ["mcts_nn", "mcts_nn", "nn", "nn"],
-        ["mcts_nn", "nn", "nn", "mcts_nn"],
-        ["mcts_nn", "mcts_nn", "nn", "nn"],
-        ["nn", "mcts_nn", "nn", "mcts_nn"],
+        ["mcts_nn", "mcts_nn", "mcts_nn", "mcts_nn"],
     ]
 
     start_iteration = 1
@@ -200,7 +208,7 @@ def main():
         with open(history_path, "r", encoding="utf-8") as f:
             history = json.load(f)
 
-    old_model_path = checkpoint_dir / "iter_0050.pt"
+    old_model_path = checkpoint_dir / "iter_0060.pt"
 
     if not old_model_path.exists():
         raise FileNotFoundError(f"Old model checkpoint not found: {old_model_path}")
@@ -280,14 +288,14 @@ def main():
         model.eval()
         old_model.eval()
 
-        #MCTS vs MCTS
-        # eval_summary = evaluator.evaluate_model_vs_model(
-        #     model_a=model,
-        #     model_b=old_model,
-        #     encoder=encoder,
-        #     device=device,
-        #     n_games=EVAL_GAMES
-        # )
+        # MCTS vs MCTS
+        eval_summary = evaluator.evaluate_model_vs_model(
+            model_a=model,
+            model_b=old_model,
+            encoder=encoder,
+            device=device,
+            n_games=EVAL_GAMES
+        )
 
         #MCTS vs rule_based
         # eval_summary = evaluator.evaluate_model_vs_baselines(
@@ -297,13 +305,13 @@ def main():
         #     n_games=EVAL_GAMES
         # )
 
-        eval_summary = evaluator.evaluate_model_vs_nn(
-            model_a=model,
-            model_b=old_model,
-            encoder=encoder,
-            device=device,
-            n_games=EVAL_GAMES
-        )
+        # eval_summary = evaluator.evaluate_model_vs_nn(
+        #     model_a=model,
+        #     model_b=old_model,
+        #     encoder=encoder,
+        #     device=device,
+        #     n_games=EVAL_GAMES
+        # )
 
         eval_time = time.time() - eval_start
         candidate_metrics = extract_candidate_metrics(eval_summary)

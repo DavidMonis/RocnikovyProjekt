@@ -20,6 +20,7 @@ from config import (
     EVAL_CUTOFF_DEPTH,
     C_PUCT,
 )
+from projects_agents.nn_policy import make_nn_policy
 from core.actions import Action, index_to_action
 from core.state import GameState
 from core.simulator import Simulator
@@ -156,7 +157,7 @@ class EvaluationRunner:
         self,
         agents: list[Any],
         initial_state: GameState | None = None,
-    ) -> MatchResult:
+        ) -> MatchResult:
         if len(agents) != N_PLAYERS:
             raise ValueError(f"Expected exactly {N_PLAYERS} agents.")
 
@@ -164,8 +165,6 @@ class EvaluationRunner:
             state = self._initial_state()
         else:
             state = initial_state.clone()
-
-        survival_steps = [0 for _ in range(N_PLAYERS)]
 
         while not state.is_terminal():
             joint_actions = [Action.NORTH for _ in range(N_PLAYERS)]
@@ -177,17 +176,9 @@ class EvaluationRunner:
                 action = agents[player_idx].choose_action(state, player_idx)
                 joint_actions[player_idx] = action
 
-            next_state = self.simulator.step(state, joint_actions)
+            state = self.simulator.step(state, joint_actions)
 
-            for player_idx in range(N_PLAYERS):
-                if state.is_alive(player_idx) and not next_state.is_alive(player_idx):
-                    survival_steps[player_idx] = next_state.step
-
-            state = next_state
-
-        for player_idx in range(N_PLAYERS):
-            if state.is_alive(player_idx):
-                survival_steps[player_idx] = state.step
+        survival_steps = [state.survival_step(i) for i in range(N_PLAYERS)]
 
         placements = self._compute_placements_tie_aware(state)
 
@@ -220,6 +211,7 @@ class EvaluationRunner:
         wins = [0 for _ in range(N_PLAYERS)]
 
         for game_idx in range(n_games):
+            print("Game number:",game_idx)
             if rotate_seats:
                 offset = game_idx % N_PLAYERS
                 rotated_agents = agents[offset:] + agents[:offset]
@@ -298,7 +290,11 @@ class EvaluationRunner:
         n_games: int = 20,
         n_simulations: int = EVAL_MCTS_SIMULATIONS,
         cutoff_depth: int = EVAL_CUTOFF_DEPTH,
+        candidate_opponent_policy=None
     ) -> dict[str, Any]:
+        if candidate_opponent_policy is None:
+            candidate_opponent_policy = choose_rule_based_action
+
         candidate_agent = MCTSAgent(
             model=model_a,
             encoder=encoder,
@@ -306,7 +302,8 @@ class EvaluationRunner:
             device=device,
             n_simulations=n_simulations,
             cutoff_depth=cutoff_depth,
-            name="candidate_model"
+            name="candidate_model",
+            opponent_policy=candidate_opponent_policy,
         )
 
         old_agent_1 = MCTSAgent(
@@ -357,6 +354,13 @@ class EvaluationRunner:
         n_simulations: int = EVAL_MCTS_SIMULATIONS,
         cutoff_depth: int = EVAL_CUTOFF_DEPTH,
     ) -> dict[str, Any]:
+        candidate_opponent_policy = make_nn_policy(
+            model=model_b,
+            encoder=encoder,
+            device=device,
+            fallback_policy=choose_rule_based_action,
+        )
+
         candidate_agent = MCTSAgent(
             model=model_a,
             encoder=encoder,
@@ -365,6 +369,7 @@ class EvaluationRunner:
             n_simulations=n_simulations,
             cutoff_depth=cutoff_depth,
             name="candidate_model",
+            opponent_policy=candidate_opponent_policy
         )
 
         old_agent_1 = NNAgent(
@@ -425,7 +430,7 @@ class EvaluationRunner:
 
         for player_idx in range(N_PLAYERS):
             score = (
-                1 if state.is_alive(player_idx) else 0,
+                state.survival_step(player_idx),
                 state.goose_length(player_idx),
             )
             scored_players.append((player_idx, score))

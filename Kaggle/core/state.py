@@ -19,6 +19,7 @@ class GameState:
         episode_steps: int = EPISODE_STEPS,
         last_actions: list[Optional[Action | str | int]] | None = None,
         alive: list[bool] | None = None,
+        survival_steps: list[int] | None = None,
         done: bool = False,
     ):
         self.geese = [goose.copy() for goose in geese]
@@ -50,6 +51,19 @@ class GameState:
                 raise ValueError("alive must have same length as geese")
             self.alive = [bool(x) for x in alive]
 
+        if survival_steps is None:
+            # Number of completed turns survived by each player.
+            # For alive geese this is usually equal to state.step.
+            # For dead geese this stores the turn on which they died.
+            self.survival_steps = [
+                self.step if self.alive[i] else 0
+                for i in range(self.n_players)
+            ]
+        else:
+            if len(survival_steps) != self.n_players:
+                raise ValueError("survival_steps must have same length as geese")
+            self.survival_steps = [int(x) for x in survival_steps]
+
     def clone(self) -> GameState:
         return GameState(
             geese=[goose.copy() for goose in self.geese],
@@ -63,6 +77,7 @@ class GameState:
             last_actions=self.last_actions.copy(),
             alive=self.alive.copy(),
             done=self.done,
+            survival_steps=self.survival_steps.copy()
         )
 
     def active_players(self) -> list[int]:
@@ -111,3 +126,6 @@ class GameState:
 
     def legal_action_names(self, player_idx: int) -> list[str]:
         return [action_to_name(action) for action in self.legal_actions(player_idx)]
+    
+    def survival_step(self, player_idx: int) -> int:
+        return self.survival_steps[player_idx]

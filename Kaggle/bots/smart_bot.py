@@ -292,7 +292,7 @@ def agent(obs_dict, config_dict):
 
     # reset pri novej hre
     if step == 0:
-        LAST_ACTION = {}
+        LAST_ACTION.pop(my_index, None)
 
     action = choose_action(obs_dict, config_dict)
     LAST_ACTION[my_index] = action

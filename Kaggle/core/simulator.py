@@ -16,6 +16,7 @@ class Simulator:
 
         new_state = state.clone()
         n_players = len(new_state.geese)
+        next_step = new_state.step + 1
 
         actions: list[Action | None] = []
         for i in range(n_players):
@@ -38,6 +39,7 @@ class Simulator:
             if last_action is not None and action == opposite_action(last_action):
                 new_state.geese[i] = []
                 new_state.alive[i] = False
+                new_state.survival_steps[i] = next_step
                 continue
 
             goose = new_state.geese[i]
@@ -53,6 +55,7 @@ class Simulator:
             if head in goose:
                 new_state.geese[i] = []
                 new_state.alive[i] = False
+                new_state.survival_steps[i] = next_step
                 continue
 
             # 4. Max length handling
@@ -70,6 +73,7 @@ class Simulator:
                 if len(goose) == 0:
                     new_state.geese[i] = []
                     new_state.alive[i] = False
+                    new_state.survival_steps[i] = next_step
                     continue
 
         # 7. Global collisions
@@ -83,12 +87,18 @@ class Simulator:
             if head is not None and position_counts[head] > 1:
                 new_state.geese[i] = []
                 new_state.alive[i] = False
+                new_state.survival_steps[i] = next_step
+
+        # 7.5 Update survival steps for all geese that are still alive
+        for i in range(n_players):
+            if new_state.is_alive(i):
+                new_state.survival_steps[i] = next_step
 
         # 8. Spawn food up to MIN_FOOD
         self.spawn_food(new_state)
 
         # 9. Advance step
-        new_state.step += 1
+        new_state.step = next_step
 
         # 10. Save last actions
         for i in range(n_players):

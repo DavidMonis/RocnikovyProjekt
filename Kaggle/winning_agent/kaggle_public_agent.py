@@ -21,6 +21,13 @@ import numpy as np
 import collections
 import copy
 
+# Compatibility fix for old Kaggle code with NumPy 2.x
+np.Inf = np.inf
+np.NaN = np.nan
+
+def to_scalar(x):
+    return float(np.asarray(x).reshape(-1)[0])
+
 USER = getpass.getuser()
 LOCAL_MODE = USER in ['taaha', 'rob', 'anton']
 VERBOSE = False
@@ -47,18 +54,39 @@ options = {
 
 }
 
-RESOURCE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
+WEIGHTS_DIR = "weights/"
+
+RESOURCE_DIR_CANDIDATES = [
+    "winning_agent/",              # lokálne, keď spúšťaš z Kaggle/ root priečinka
+    "./",                          # keď spúšťaš priamo z winning_agent/
+    "/kaggle_simulations/agent/",  # reálna Kaggle submission cesta
+]
+
+RESOURCE_DIR = None
+
+for candidate in RESOURCE_DIR_CANDIDATES:
+    if os.path.exists(os.path.join(candidate, WEIGHTS_DIR)):
+        RESOURCE_DIR = candidate
+        break
+
+if RESOURCE_DIR is None:
+    raise FileNotFoundError(
+        "Could not find weights directory. Tried: "
+        + ", ".join(os.path.join(c, WEIGHTS_DIR) for c in RESOURCE_DIR_CANDIDATES)
+    )
 
 # configure onnx for pinning to a single cpu
 sys.path.append(RESOURCE_DIR)
 os.environ['OMP_NUM_THREADS'] = '1'
 import onnxruntime
+
+onnxruntime.set_default_logger_severity(3)
+
 opts = onnxruntime.SessionOptions() 
 opts.inter_op_num_threads = 1 
 opts.intra_op_num_threads = 1 
 opts.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL 
-
-WEIGHTS_DIR = 'weights/'
+opts.log_severity_level = 3  # 3 = errors only, hides warnings
 
 VALUE_FILE = 'run26_36090_opset13_d0617_bs4.onnx'
 
@@ -521,7 +549,7 @@ def inputs_to_predictions(obses, idx, mode, do_tta = False):
         ort_inputs = {value_session.get_inputs()[0].name: x}
         o = value_session.run(None, ort_inputs)
 
-        score = float(o[1])
+        score = to_scalar(o[1])
         if mode == 'SCORE': return (None, score)
 
         p = softmax(o[0])[0]
@@ -541,7 +569,7 @@ def inputs_to_predictions(obses, idx, mode, do_tta = False):
             ort_inputs = {model_session.get_inputs()[0].name: xt}
             o = model_session.run(None, ort_inputs)
             op = softmax(o[0])[0]
-            score = float(o[1])
+            score = to_scalar(o[1])
 
             scores.append(score)
 
@@ -1042,7 +1070,7 @@ def hrl_evaluate(obses, mode = 'SCORE', tta = None):
     output = handyrl_session.run(None, ort_inputs)
 
     predictions = output[0][0]
-    value = float(output[1][0][0])
+    value = to_scalar(output[1])
     
     action = ['NORTH', 'SOUTH', 'WEST', 'EAST'][predictions.argmax()]
     score_actions = dict(zip(ACTIONS, predictions))

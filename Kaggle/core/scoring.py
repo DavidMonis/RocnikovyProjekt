@@ -12,7 +12,7 @@ def compute_rank_value_targets(state: GameState) -> list[float]:
 
     for player_idx in range(N_PLAYERS):
         score = (
-            1 if state.is_alive(player_idx) else 0,
+            state.survival_step(player_idx),
             state.goose_length(player_idx),
         )
         scored_players.append((player_idx, score))
