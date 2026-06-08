@@ -668,6 +668,24 @@ PYTHONPATH=. python play_local.py --mode mcts-vs-bots --seed 123
 
 ---
 
+## Výber checkpointu
+
+Predvolene `play_local.py` načítava `checkpoints/latest.pt`. Pomocou `--checkpoint` môžeš zvoliť konkrétny checkpoint bez toho, aby si ho musel manuálne kopírovať:
+
+```bash
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt
+```
+
+Toto je užitočné najmä pri porovnávaní rôznych fáz tréningu. Pre konzistentné porovnanie použij rovnaký seed:
+
+```bash
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt --seed 42
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0050.pt --seed 42
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0100.pt --seed 42
+```
+
+---
+
 ## Vlastná zostava agentov
 
 Použi mód `custom` a zadaj štyroch agentov:
@@ -954,6 +972,13 @@ MCTS proti MCTS:
 
 ```bash
 PYTHONPATH=. python play_local.py --mode mcts-vs-mcts
+```
+
+Porovnanie rôznych fáz tréningu (rovnaký seed):
+
+```bash
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt --seed 42
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0100.pt --seed 42
 ```
 
 Externé vyhodnotenie:

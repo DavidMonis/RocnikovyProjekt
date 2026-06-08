@@ -1280,6 +1280,20 @@ PYTHONPATH=. python play_local.py
 
 This runs Kaggle’s Hungry Geese environment with selected agents.
 
+To load a specific checkpoint instead of `checkpoints/latest.pt`, use `--checkpoint`:
+
+```bash
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt
+```
+
+This is useful for comparing different training stages. Use `--seed` to keep the starting position identical across runs:
+
+```bash
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt --seed 42
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0050.pt --seed 42
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0100.pt --seed 42
+```
+
 ---
 
 ### 15.3 Run External Evaluation

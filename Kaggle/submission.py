@@ -1,3 +1,4 @@
+import os
 import torch
 
 from config import (
@@ -20,7 +21,7 @@ from training.evaluation import MCTSAgent
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-CHECKPOINT_PATH = "checkpoints/latest.pt"
+CHECKPOINT_PATH = os.environ.get("GEESE_CHECKPOINT", "checkpoints/latest.pt")
 
 
 _model: PolicyValueNet | None = None

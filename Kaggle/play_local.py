@@ -3,6 +3,7 @@ import random
 from pathlib import Path
 
 import numpy as np
+import os
 import torch
 from kaggle_environments import make
 
@@ -316,11 +317,23 @@ def parse_args():
         help="Optional random seed for reproducibility.",
     )
 
+    parser.add_argument(
+    "--checkpoint",
+    default=None,
+    help="Checkpoint file to load instead of checkpoints/latest.pt.",
+    )
+
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+
+    if args.checkpoint:
+        checkpoint_abs = str(Path(args.checkpoint).resolve())
+        os.environ["GEESE_CHECKPOINT"] = checkpoint_abs
+        global CHECKPOINT_PATH
+        CHECKPOINT_PATH = checkpoint_abs
 
     if args.seed is not None:
         random.seed(args.seed)
