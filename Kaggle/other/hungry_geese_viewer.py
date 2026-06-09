@@ -36,7 +36,7 @@ class HungryGeeseReplayViewer:
         title: str = "Hungry Geese Replay",
         width: int = 1400,
         height: int = 850,
-        autoplay_delay_ms: int = 350,
+        autoplay_delay_ms: int = 100,
     ) -> None:
         pygame.init()
         pygame.font.init()

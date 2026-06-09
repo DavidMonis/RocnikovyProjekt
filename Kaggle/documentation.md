@@ -1079,7 +1079,33 @@ Esc         -> close viewer
 
 ---
 
-### 11.2 `other/lib.py`
+### 11.2 `other/replay_viewer.py`
+
+`replay_viewer.py` is the command-line entry point for replaying a saved JSON game file.
+
+Usage:
+
+```bash
+PYTHONPATH=. python other/replay_viewer.py replays/game_0.json
+```
+
+It loads a JSON replay file (saved from `replays/` directory), wraps it into a namespace compatible with `HungryGeeseReplayViewer`, and opens the Pygame viewer.
+
+Controls:
+
+```text
+Left / Right arrow  -> step backward / forward
+Space               -> toggle autoplay
+Home                -> jump to first step
+End                 -> jump to last step
+Esc                 -> close viewer
+```
+
+This script is the main way to visually inspect individual games saved during self-play generation or external evaluation.
+
+---
+
+### 11.3 `other/lib.py`
 
 Small helper/debug script for inspecting Kaggle Hungry Geese classes using Python introspection.
 
@@ -1306,7 +1332,19 @@ Use this to compare `submission.py` against Goose Loose or handcrafted baselines
 
 ---
 
-### 15.4 Run Tests
+### 15.4 Replay a Saved Game
+
+```bash
+PYTHONPATH=. python other/replay_viewer.py replays/game_0.json
+```
+
+This opens the Pygame viewer for the selected JSON replay file. Use Left/Right arrows to step through the game, Space to autoplay, Home/End to jump to start/end, Esc to close.
+
+Replay files are saved to the `replays/` directory when replay saving is enabled during self-play or external evaluation.
+
+---
+
+### 15.5 Run Tests
 
 ```bash
 PYTHONPATH=. pytest
@@ -1448,6 +1486,12 @@ Run external evaluation:
 
 ```bash
 PYTHONPATH=. python evaluate_external.py
+```
+
+Replay a saved game:
+
+```bash
+PYTHONPATH=. python other/replay_viewer.py replays/game_0.json
 ```
 
 Install missing packages example:

@@ -306,6 +306,7 @@ config.py                         # centrálne nastavenia projektu
 submission.py                     # finálny Kaggle agent
 play_local.py                     # lokálne hranie a vizualizácia hry
 evaluate_external.py              # externé porovnanie proti Goose Loose
+other/replay_viewer.py            # interaktívny prehrávač uložených JSON replay súborov
 ```
 
 ## Core logika
@@ -757,7 +758,24 @@ Pozor: veľký počet hier môže trvať dlho, najmä ak Goose Loose agent použ
 
 ---
 
-# 8. Spustenie testov
+# 8. Replay Viewer
+
+Súbor `other/replay_viewer.py` umožňuje interaktívne prehrať uloženú hru zo súboru JSON replay.
+
+```bash
+PYTHONPATH=. python other/replay_viewer.py replays/game_0.json
+```
+
+Ovládanie v prehliadači:
+
+- `←` / `→` — krok dozadu / dopredu
+- `SPACE` — spustiť / zastaviť autoplay
+- `HOME` / `END` — skok na začiatok / koniec hry
+- `ESC` — zavrieť
+
+---
+
+# 9. Spustenie testov
 
 Všetky testy:
 
@@ -787,7 +805,7 @@ PYTHONPATH=. pytest -q
 
 ---
 
-# 9. Kontrolné príkazy
+# 10. Kontrolné príkazy
 
 Zisti, ktorý Python používaš:
 
@@ -821,7 +839,7 @@ python -c "from kaggle_environments import make; make('hungry_geese'); print('OK
 
 ---
 
-# 10. Časté problémy
+# 11. Časté problémy
 
 ## ModuleNotFoundError
 
@@ -906,7 +924,7 @@ alebo uprav Goose Loose kód na `np.inf`.
 
 ---
 
-# 11. Užitočné príkazy
+# 12. Užitočné príkazy
 
 Prvé nastavenie Hungry Geese projektu:
 
@@ -967,6 +985,12 @@ Externé vyhodnotenie:
 
 ```bash
 PYTHONPATH=. python evaluate_external.py
+```
+
+Replay Viewer:
+
+```bash
+PYTHONPATH=. python other/replay_viewer.py replays/game_0.json
 ```
 
 Testy:

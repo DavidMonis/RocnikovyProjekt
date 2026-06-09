@@ -60,6 +60,8 @@ Veľká pozornosť bola venovaná testom. Niektoré testy bolo potrebné upravi�
 
 Nakoniec bola vytvorená aj projektová dokumentácia, ktorá opisuje štruktúru projektu, jednotlivé moduly, spôsob konfigurácie, tréning, lokálne spúšťanie hier, testovanie a externé vyhodnocovanie.
 
+Ako pomocný nástroj bol vytvorený aj `other/replay_viewer.py` — interaktívny Pygame prehliadač, ktorý načíta uložený JSON replay (z priečinka `replays/`) a umožní ho krok po kroku prechádzať alebo prehrať automaticky. Nástroj slúžil najmä na vizuálnu kontrolu hier počas vývoja a na nahrávanie ukážkových videí.
+
 ---
 
 ## 6. Externé vyhodnotenie proti Goose Loose
