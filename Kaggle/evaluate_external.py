@@ -1,6 +1,3 @@
-from __future__ import annotations
-import time
-
 """
 External agent evaluation for Kaggle Hungry Geese.
 
@@ -40,6 +37,8 @@ Recommended reading:
   that is a very good sign.
 """
 
+from __future__ import annotations
+import time
 import random
 from typing import Any
 
@@ -86,9 +85,16 @@ def extract_final_rewards(env) -> list[int]:
     """
     Extract final rewards from the Kaggle environment after env.run(...).
 
-    In Hungry Geese, higher reward means better final rank.
-    This function is written defensively because different versions of
-    kaggle_environments may expose state slightly differently.
+    Kaggle Hungry Geese reward formula (from hungry_geese.py source):
+        reward = (step + 1) * (max_length + 1) + len(goose)
+                = (step + 1) * 100 + length          (with max_length = 99)
+
+    This encodes survival step as the dominant term (weight 100) and
+    goose length as a secondary term (weight 1, max 99).
+    A 1-step survival difference always outweighs any length advantage.
+
+    The last survivor gets their reward computed one step later than
+    agents who died in the same step transition, so they correctly rank first.
     """
     rewards = []
 
@@ -107,44 +113,81 @@ def extract_final_rewards(env) -> list[int]:
     return list(observation["rewards"])
 
 
-def compute_tie_aware_placements(rewards: list[int]) -> list[float]:
+def decode_reward_to_survival_step(reward: int, max_length: int = 99) -> int:
     """
-    Convert final rewards into tie-aware placements.
+    Decode a Kaggle Hungry Geese reward into the survival step.
 
-    Example:
-    rewards sorted from best to worst:
-        [100, 80, 80, 10]
+    Kaggle formula: reward = (step + 1) * (max_length + 1) + length
+    Inverse:        step   = reward // (max_length + 1) - 1
 
-    placements become:
-        [1.0, 2.5, 2.5, 4.0]
-
-    The two tied players share places 2 and 3:
-        (2 + 3) / 2 = 2.5
+    The last survivor gets step = actual_last_step + 1 because their reward
+    is computed before they are marked DONE, giving them a naturally higher
+    step value that correctly places them first.
     """
-    indexed = list(enumerate(rewards))
+    if reward is None or reward <= 0:
+        return -1
+    return reward // (max_length + 1) - 1
+
+
+def compute_placements_by_survival_step(
+    rewards: list[int],
+    max_length: int = 99,
+) -> list[float]:
+    """
+    Compute tie-aware placements ranked by survival step only.
+
+    PRIMARY key : survival step decoded from Kaggle reward.
+                  Longer survival = better placement.
+
+    TIEBREAKER  : none — agents that died on the same step share the same
+                  placement regardless of body length.
+
+    Rationale:
+        Kaggle's reward encodes (step * 100 + length).  Using the raw reward
+        as the sort key means two agents that died on identical steps but
+        with different body lengths get different placements — the one with
+        the longer body "wins" the tiebreaker.  In practice this penalises
+        the agent that happened to eat less food at the same moment it died,
+        which is not a meaningful skill difference.
+
+        Decoding the reward to the survival step and tying same-step deaths
+        matches how Kaggle actually ranks agents for leaderboard scoring:
+        placement (i.e. death order) is the primary criterion; body length
+        is only a secondary display metric, not a placement differentiator.
+
+    Example (4 agents):
+        survival steps: [75, 75, 75, 75]   (all die same step)
+        placements    : [2.5, 2.5, 2.5, 2.5]   (4-way tie, share places 1-4)
+
+        survival steps: [136, 74, 137, 136]  (last survivor at 137)
+        placements    : [2.5, 4.0, 1.0, 2.5]
+    """
+    steps = [decode_reward_to_survival_step(r, max_length) for r in rewards]
+
+    indexed = list(enumerate(steps))
     indexed.sort(key=lambda x: x[1], reverse=True)
 
-    placements = [0.0 for _ in rewards]
+    placements = [0.0] * len(rewards)
 
     i = 0
     while i < len(indexed):
         j = i + 1
 
+        # All agents with the same decoded step are tied.
         while j < len(indexed) and indexed[j][1] == indexed[i][1]:
             j += 1
 
         avg_place = sum(range(i + 1, j + 1)) / (j - i)
 
         for k in range(i, j):
-            original_idx = indexed[k][0]
-            placements[original_idx] = float(avg_place)
+            placements[indexed[k][0]] = float(avg_place)
 
         i = j
 
     return placements
 
 
-def run_one_game(agents: list[str], seed: int | None = None) -> dict:
+def run_one_game(agents: list[str],name, seed: int | None = None) -> dict:
     """
     Run one Hungry Geese game with the given list of 4 agents.
 
@@ -157,8 +200,36 @@ def run_one_game(agents: list[str], seed: int | None = None) -> dict:
     env = make("hungry_geese", debug=False)
     env.run(agents)
 
+    #delete later
+    import json, os
+    os.makedirs("replays", exist_ok=True)
+
+    def _to_plain(obj):
+        if isinstance(obj, dict):
+            return {k: _to_plain(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_to_plain(v) for v in obj]
+        try:
+            return _to_plain(dict(obj))
+        except Exception:
+            return obj
+
+    replay_data = {
+        "agents": agents,
+        "seed": seed,
+        "configuration": _to_plain(dict(env.configuration)),
+        "steps": [
+            [_to_plain(dict(agent_state)) for agent_state in step]
+            for step in env.steps
+        ],
+    }
+    with open(f"replays/game_{seed}_{name}.json", "w") as f:
+        json.dump(replay_data, f)
+    #
+
     rewards = extract_final_rewards(env)
-    placements = compute_tie_aware_placements(rewards)
+    max_length = int(get_field(env.configuration, "max_length"))
+    placements = compute_placements_by_survival_step(rewards, max_length)
 
     return {
         "rewards": rewards,
@@ -184,6 +255,9 @@ def evaluate_setup(
     my_pairwise_placements = []
     goose_pairwise_placements = []
 
+    my_kaggle_scores = []
+    goose_kaggle_scores = []
+
     my_fractional_wins = 0.0
     goose_fractional_wins = 0.0
     pairwise_score = 0.0
@@ -205,8 +279,9 @@ def evaluate_setup(
             flush=True,
         )
 
-        result = run_one_game(agents, seed=game_idx)
+        result = run_one_game(agents,name, seed=game_idx)
         placements = result["placements"]
+        rewards = result["rewards"]
 
         game_time = time.time() - game_start
         elapsed = time.time() - start_time
@@ -243,19 +318,25 @@ def evaluate_setup(
             pairwise_games += 1
 
         # Type-level statistics for setups with multiple copies.
-        first_place_count = sum(1 for p in placements if p == 1.0)
+        # Use the best (lowest) placement value to find who won.
+        # With tied first place (e.g. two agents at placement 1.5),
+        # p == 1.0 would miss them — so we compare against the actual minimum.
+        best_placement = min(placements)
+        first_place_count = sum(1 for p in placements if p == best_placement)
 
         for seat in my_seats:
             my_all_placements.append(placements[seat])
+            my_kaggle_scores.append(rewards[seat])
 
-            if placements[seat] == 1.0:
-                my_fractional_wins += 1.0 / max(1, first_place_count)
+            if placements[seat] == best_placement:
+                my_fractional_wins += 1.0 / first_place_count
 
         for seat in goose_seats:
             goose_all_placements.append(placements[seat])
+            goose_kaggle_scores.append(rewards[seat])
 
-            if placements[seat] == 1.0:
-                goose_fractional_wins += 1.0 / max(1, first_place_count)
+            if placements[seat] == best_placement:
+                goose_fractional_wins += 1.0 / first_place_count
 
     summary = {
         "name": name,
@@ -269,6 +350,10 @@ def evaluate_setup(
         # Higher is better.
         "fractional_win_rate_my": my_fractional_wins / n_games,
         "fractional_win_rate_goose": goose_fractional_wins / n_games,
+
+        # Average raw Kaggle reward: (step+1)*100 + length. Higher = longer survival + bigger body.
+        "kaggle_env_score_my": float(np.mean(my_kaggle_scores)) if my_kaggle_scores else None,
+        "kaggle_env_score_goose": float(np.mean(goose_kaggle_scores)) if goose_kaggle_scores else None,
     }
 
     if pairwise_games > 0:
@@ -294,31 +379,10 @@ def print_summary(summary: dict) -> None:
     print(f"fractional_win_rate_my        : {summary['fractional_win_rate_my']:.4f}")
     print(f"fractional_win_rate_goose     : {summary['fractional_win_rate_goose']:.4f}")
 
-    if "pairwise_score_my_vs_goose" in summary:
-        pairwise = summary["pairwise_score_my_vs_goose"]
-        print(f"pairwise_score_my_vs_goose    : {pairwise:.4f}")
-        print(f"avg_pairwise_my_place         : {summary['avg_pairwise_my_place']:.4f}")
-        print(f"avg_pairwise_goose_place      : {summary['avg_pairwise_goose_place']:.4f}")
-
-        if pairwise > 0.55:
-            verdict = "Your agent is clearly better in this setup."
-        elif pairwise > 0.50:
-            verdict = "Your agent is slightly better in this setup."
-        elif pairwise == 0.50:
-            verdict = "The agents are roughly equal in this setup."
-        elif pairwise >= 0.45:
-            verdict = "Goose Loose is slightly better in this setup."
-        else:
-            verdict = "Goose Loose is clearly better in this setup."
-
-        print(f"pairwise verdict              : {verdict}")
-
-    if summary["avg_placement_my"] < summary["avg_placement_goose"]:
-        print("placement verdict             : Your agent has better average placement.")
-    elif summary["avg_placement_my"] > summary["avg_placement_goose"]:
-        print("placement verdict             : Goose Loose has better average placement.")
-    else:
-        print("placement verdict             : Average placement is tied.")
+    if summary.get("kaggle_env_score_my") is not None:
+        print(f"kaggle_env_score_my           : {summary['kaggle_env_score_my']:.1f}")
+    if summary.get("kaggle_env_score_goose") is not None:
+        print(f"kaggle_env_score_goose        : {summary['kaggle_env_score_goose']:.1f}")
 
     print("-" * 70)
 

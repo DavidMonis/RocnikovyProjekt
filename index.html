@@ -152,47 +152,234 @@
       </div>
     </section>
 
-    <!-- Sekcia: Plán na druhý semester -->
-    <section class="card">
-      <h2>Plán na druhý semester – Kaggle Hungry Geese</h2>
+    <!-- Sekcia: Kaggle Hungry Geese – Fáza 2 -->
+    <section class=”card”>
+      <h2>Kaggle Hungry Geese – Fáza 2</h2>
 
       <p>
-        Cieľom druhého semestra je zapojiť sa do súťaže
-        <a href="https://www.kaggle.com/competitions/hungry-geese" target="_blank" rel="noopener">
-        <strong>Kaggle – Hungry Geese</strong>
-        </a>, ktorá predstavuje multi-agentovú verziu hry Snake.
-        V tejto hre súťažia štyri „husi“ na jednej mriežke, zbierajú potravu a snažia sa prežiť čo najdlhšie
-        bez kolízie so stenou alebo inými hráčmi.
+        Druhá fáza rozšírila projekt o komplexný AI systém pre multi-agentovú hru
+        <a href=”https://www.kaggle.com/competitions/hungry-geese” target=”_blank” rel=”noopener”><strong>Kaggle Hungry Geese</strong></a>
+        — 4 hráčska verzia Snaku na toroidálnej mriežke 7 × 11.
+        Jednoduchý DQN tu nestačí: hra vyžaduje modelovanie súperov, dlhodobé plánovanie
+        a reakciu na nebezpečné head-on kolízie v reálnom čase.
+        Vznikol kompletný pipeline: vlastný simulátor herného prostredia, CNN policy-value sieť,
+        Monte Carlo Tree Search a self-play tréning s replay bufferom.
       </p>
 
+      <!-- Architektúra siete -->
+      <h3>Architektúra neurónovej siete</h3>
       <p>
-        Hoci je súťaž oficiálne ukončená, Kaggle stále umožňuje spúšťať notebooky,
-        simulovať zápasy a porovnávať výsledky lokálne, takže projekt je možné realizovať
-        ako realistickú „offline“ súťaž.
+        Model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong> — rovnaký dizajn
+        ako používa AlphaZero. Predikuje zároveň pravdepodobnosti akcií (policy) aj hodnotu
+        aktuálnej pozície (value), čo umožňuje efektívne kombinovanie so stromovým prehľadávaním.
       </p>
 
-      <h3>Hlavná úloha</h3>
+      <div class=”arch-flow”>
+        <div class=”arch-box”>
+          <strong>Vstup: 6 kanálov × 7 × 11</strong><br>
+          <small>vlastné telo &nbsp;·&nbsp; hlavy súperov &nbsp;·&nbsp; telá súperov &nbsp;·&nbsp; chvosty &nbsp;·&nbsp; jedlo &nbsp;·&nbsp; nebezpečné polia</small>
+        </div>
+        <div class=”arch-arrow”>↓</div>
+        <div class=”arch-box”>
+          Conv2d &ensp;6 → 32 filtre, 3×3, <em>circular padding</em> + ReLU
+        </div>
+        <div class=”arch-arrow”>↓</div>
+        <div class=”arch-box”>
+          Conv2d &ensp;32 → 64 filtre, 3×3, circular padding + ReLU → Flatten (4 928)
+        </div>
+        <div class=”arch-arrow”>↓&ensp; concat 13 skalárov (dĺžky, hunger tick, krok, …) &ensp;↓</div>
+        <div class=”arch-box”>
+          Dense &ensp;4 941 → 256, ReLU &ensp;— spoločná herná reprezentácia
+        </div>
+        <div class=”arch-arrow”>↓&ensp; rozdelenie na dve hlavy &ensp;↓</div>
+        <div class=”arch-split”>
+          <div class=”arch-box”>
+            <strong>Policy head</strong><br>
+            256 → 4, Softmax<br>
+            <small>P(N) &nbsp;P(S) &nbsp;P(E) &nbsp;P(W)</small><br>
+            <small style=”color:var(--muted)”>Loss: cross-entropy<br>vs. MCTS visit counts</small>
+          </div>
+          <div class=”arch-box”>
+            <strong>Value head</strong><br>
+            256 → 1, Tanh<br>
+            <small>hodnota pozície [−1, 1]</small><br>
+            <small style=”color:var(--muted)”>Loss: MSE<br>vs. finálne umiestnenie</small>
+          </div>
+        </div>
+      </div>
+
+      <p class=”note”>
+        <strong>Prečo circular padding?</strong> Hracia plocha je toroidálna — pravý okraj nadväzuje
+        na ľavý, horný na spodný. Circular convolutions toto priamo modelujú bez extra logiky,
+        takže sieť vidí vzťahy cez okraje rovnako ako vo vnútri mapy.
+      </p>
+
+      <!-- MCTS -->
+      <h3>Monte Carlo Tree Search — prečo a kedy</h3>
       <p>
-        Upraviť existujúceho Snake DQN agenta tak, aby bol schopný hrať v prostredí Hungry Geese
-        (4 hráči, iná mapa, iné pravidlá pohybu a kolízií) a následne dosiahnuť merateľné
-        umiestnenie v rebríčku alebo v offline hodnotení.
+        Samotný forward pass siete je krátkozraký: vyberie akciu bez predvídania dôsledkov.
+        <strong>MCTS</strong> sieť obalí a nechá ju simulovať desiatky ťahov dopredu.
+        Pomocou PUCT formuly (ako v AlphaZero) balancuje exploráciu nových ťahov
+        a exploitáciu sľubných. Policy head navrhuje, ktoré vetvy sú zaujímavé
+        (väčšina nezmyselných ťahov sa preskočí), value head odhaduje výsledok
+        bez nutnosti hrať hru až do samého konca.
       </p>
 
-      <h3>Plánované kroky</h3>
-      <ol>
-        <li><strong>Analýza pravidiel Hungry Geese</strong></li>
-        <li><strong>Úprava herného prostredia</strong></li>
-        <li><strong>Úprava neurónovej siete a vstupov</strong></li>
-        <li><strong>Tréning v multi-agent prostredí</strong></li>
-        <li><strong>Simulácia Kaggle hodnotenia</strong></li>
-        <li><strong>Vyhodnotenie a dokumentácia</strong></li>
-      </ol>
+      <table class=”data-table”>
+        <thead>
+          <tr><th>Fáza</th><th>Simulácií</th><th>Hĺbka</th><th>Účel</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Self-play tréning</td>
+            <td><strong>32</strong></td>
+            <td>4 kroky</td>
+            <td>Generovanie tréningových dát — rýchlosť > kvalita</td>
+          </tr>
+          <tr>
+            <td>Interná evaluácia</td>
+            <td><strong>64</strong></td>
+            <td>6 krokov</td>
+            <td>Porovnanie nového modelu s referenčným checkpointom</td>
+          </tr>
+          <tr>
+            <td>Finálny submission</td>
+            <td><strong>128</strong></td>
+            <td>8 krokov</td>
+            <td>Maximálna hracia sila — Kaggle limit ~1 s/ťah</td>
+          </tr>
+        </tbody>
+      </table>
 
+      <p class=”note”>
+        Súperove ťahy vnútri MCTS sú aproximované rule-based politikou — plnohodnotné MCTS
+        pre každého súpera by bolo výpočtovo neúnosné. Tréning aj submission používajú tú istú
+        sieť; líšia sa iba počtom simulácií.
+      </p>
+
+      <!-- Štatistiky tréningu -->
+      <h3>Zaujímavé štatistiky tréningu</h3>
+
+      <div class=”stat-chips”>
+        <div class=”stat-chip”>
+          <span class=”sv”>65.7 h</span>
+          <span class=”sl”>Celkový čas tréningu</span>
+        </div>
+        <div class=”stat-chip”>
+          <span class=”sv”>102</span>
+          <span class=”sl”>Tréningových iterácií</span>
+        </div>
+        <div class=”stat-chip”>
+          <span class=”sv”>10 200</span>
+          <span class=”sl”>Self-play hier</span>
+        </div>
+        <div class=”stat-chip”>
+          <span class=”sv”>1,74 M</span>
+          <span class=”sl”>Vygenerovaných pozícií</span>
+        </div>
+        <div class=”stat-chip”>
+          <span class=”sv”>11 651</span>
+          <span class=”sl”>Riadkov Python kódu</span>
+        </div>
+        <div class=”stat-chip”>
+          <span class=”sv”>&lt; 1 %</span>
+          <span class=”sl”>Čas samotného trénovania siete</span>
+        </div>
+      </div>
+
+      <table class=”data-table”>
+        <thead>
+          <tr><th>Metrika</th><th>Začiatok tréningu</th><th>Koniec tréningu</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Celková loss</td><td>1.3765</td><td><strong>0.5082</strong> &ensp;(−63 %)</td></tr>
+          <tr><td>Policy loss</td><td>1.1915</td><td><strong>0.2267</strong> &ensp;(−81 %)</td></tr>
+          <tr><td>Priemerné prežitie husi</td><td>79 krokov</td><td><strong>177 krokov</strong></td></tr>
+          <tr><td>Priemerná dĺžka husi</td><td>1.25 článkov</td><td><strong>5.50 článkov</strong></td></tr>
+        </tbody>
+      </table>
+
+      <p class=”note”>
+        Samotný tréning siete (gradient updates) zaberá <strong>menej ako 1 % celkového času</strong>
+        — 0.2 h z 65.7 h. Väčšina šla na generovanie self-play hier (77 %) a internú evaluáciu (23 %).
+        Model sa zlepšil iba v <strong>10 z 102 iterácií</strong> (9,8 %) — typické správanie self-play:
+        väčšina iterácií udržiava úroveň, zlepšenia sú zriedkavé.
+      </p>
+
+      <!-- Externé hodnotenie -->
+      <h3>Externé hodnotenie vs. Goose Loose</h3>
       <p>
-        Výsledkom druhého semestra bude agent schopný hrať komplexnú multi-agentovú
-        verziu hry Snake a demonštrovať praktické použitie reinforcement learningu
-        v súťažnom prostredí.
+        Finálny agent bol porovnaný s verejným agentom <strong>Goose Loose</strong>
+        v troch scenároch po 100 hrách s rotáciou pozícií (seat bias elimination).
+        <em>Výsledky budú doplnené po dokončení evaluácie.</em>
       </p>
+      <table class=”data-table”>
+        <thead>
+          <tr>
+            <th>Scenár</th>
+            <th>avg placement my</th>
+            <th>avg placement goose</th>
+            <th>win rate my</th>
+            <th>kaggle score my</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>direct duel + 2 boty</td>
+            <td>—</td><td>—</td><td>—</td><td>—</td>
+          </tr>
+          <tr>
+            <td>balanced (2 my + 2 Goose)</td>
+            <td>—</td><td>—</td><td>—</td><td>—</td>
+          </tr>
+          <tr>
+            <td>stress (1 my + 3 Goose)</td>
+            <td>—</td><td>—</td><td>—</td><td>—</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class=”note”>
+        avg placement: nižšie = lepšie (1,0 = prvé miesto, 4,0 = posledné).
+        win rate zahŕňa zdieľané víťazstvá (pri remíze dostane každý 0,5).
+      </p>
+
+      <!-- Videá -->
+      <h3>Ukážky hier</h3>
+      <p>Záznamy hier finálneho agenta voči Goose Loose.</p>
+
+      <div class=”video-grid”>
+        <div class=”video-card”>
+          <h3>Hra 1</h3>
+          <video controls playsinline width=”100%” preload=”metadata”>
+            <source src=”video/Final_Video1.mp4” type=”video/mp4”>
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
+
+        <div class=”video-card”>
+          <h3>Hra 2</h3>
+          <video controls playsinline width=”100%” preload=”metadata”>
+            <source src=”video/Final_Video2.mp4” type=”video/mp4”>
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
+
+        <div class=”video-card”>
+          <h3>Hra 3</h3>
+          <video controls playsinline width=”100%” preload=”metadata”>
+            <source src=”video/Final_Video3.mp4” type=”video/mp4”>
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
+
+        <div class=”video-card”>
+          <h3>Hra 4</h3>
+          <video controls playsinline width=”100%” preload=”metadata”>
+            <source src=”video/Final_Video4.mp4” type=”video/mp4”>
+            Váš prehliadač nepodporuje HTML5 video.
+          </video>
+        </div>
+      </div>
     </section>
 
   </main>

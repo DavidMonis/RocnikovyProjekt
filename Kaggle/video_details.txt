@@ -1,0 +1,109 @@
+Game 1:
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0010.pt --seed 42
+==============================================================================================================================
+Mode   : mcts-vs-bots
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py (iter_0010.pt)
+  1: bots/clever_bot.py
+  2: bots/smart_bot.py
+  3: bots/stupid_bot.py
+==============================================================================================================================
+(vlavo hore)
+
+
+Game 2:
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0030.pt --seed 42
+==============================================================================================================================
+Mode   : mcts-vs-bots
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py (iter_0030.pt)
+  1: bots/clever_bot.py
+  2: bots/smart_bot.py
+  3: bots/stupid_bot.py
+==============================================================================================================================
+(vpravo hore)
+
+
+
+
+Game 3:
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0060.pt --seed 42
+==============================================================================================================================
+Mode   : mcts-vs-bots
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py (iter_0060.pt)
+  1: bots/clever_bot.py
+  2: bots/smart_bot.py
+  3: bots/stupid_bot.py
+==============================================================================================================================
+(vlavo dole)
+
+
+
+Game 4:
+PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/iter_0100.pt --seed 42
+==============================================================================================================================
+Mode   : mcts-vs-bots
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py (iter_0100.pt)
+  1: bots/clever_bot.py
+  2: bots/smart_bot.py
+  3: bots/stupid_bot.py
+==============================================================================================================================
+(vpravo dole)
+
+
+
+Game 5:
+PYTHONPATH=. python play_local.py --mode custom --agents stupid smart mcts goose
+==============================================================================================================================
+Mode   : custom
+Render : viewer
+Device : cuda
+Agents :
+  0: bots/stupid_bot.py
+  1: bots/smart_bot.py
+  2: submission.py
+  3: winning_agent/kaggle_public_agent.py
+==============================================================================================================================
+
+
+
+
+Game 6:
+PYTHONPATH=. python play_local.py --mode custom --agents mcts nn nn nn
+==============================================================================================================================
+Mode   : custom
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py
+  1: callable nn_agent
+  2: callable nn_agent
+  3: callable nn_agent
+==============================================================================================================================
+
+
+
+
+
+Game 7:
+PYTHONPATH=. python play_local.py --mode mcts-vs-mcts
+==============================================================================================================================
+Mode   : mcts-vs-mcts
+Render : viewer
+Device : cuda
+Agents :
+  0: submission.py
+  1: submission.py
+  2: submission.py
+  3: submission.py
+==============================================================================================================================

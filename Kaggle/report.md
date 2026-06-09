@@ -64,6 +64,8 @@ Nakoniec bola vytvorená aj projektová dokumentácia, ktorá opisuje štruktúr
 
 ## 6. Externé vyhodnotenie proti Goose Loose
 
+> **⚠️ TODO – AKTUALIZOVAŤ:** Všetky čísla v sekcii 6 (6.1, 6.2, 6.3) pochádzajú z bežania s chybným výpočtom placement-u (rovnaký survival krok = rôzny placement podľa dĺžky hada). Po opätovnom spustení 100-game evaluácie s opraveným `compute_placements_by_survival_step` je potrebné nahradiť všetky výsledkové bloky a nadväzujúce komentáre.
+
 Finálne externé vyhodnotenie bolo vykonané proti silnému verejnému agentovi **Goose Loose**, ktorý patrí medzi veľmi kvalitné Hungry Geese riešenia. Cieľom bolo zistiť, ako sa môj agent správa mimo interného tréningového prostredia a ako obstojí proti výrazne silnejšiemu referenčnému súperovi.
 
 Vyhodnotenie prebehlo v troch setupoch po 100 hrách s rotáciou pozícií.
@@ -72,6 +74,7 @@ Vyhodnotenie prebehlo v troch setupoch po 100 hrách s rotáciou pozícií.
 
 ### 6.1 Direct duel with smart baseline
 
+<!-- TODO: nahradiť výsledkovým blokom z nového bežania (opravený placement) -->
 ```text
 setup                         : direct_duel_with_smart_baseline
 games                         : 100
@@ -85,12 +88,14 @@ avg_pairwise_my_place         : 2.0600
 avg_pairwise_goose_place      : 1.0000
 ```
 
+<!-- TODO: aktualizovať komentár na základe nových čísel -->
 V tomto nastavení bol výsledok jednoznačný. Goose Loose skončil priemerne na 1. mieste a môj agent mal priemerné umiestnenie 2.06. Pairwise skóre bolo 0.0, čo znamená, že v priamom porovnaní môj agent v tomto setupe Goose Loose ani raz neprekonal.
 
 ---
 
 ### 6.2 Balanced 2 my 2 goose
 
+<!-- TODO: nahradiť výsledkovým blokom z nového bežania (opravený placement) -->
 ```text
 setup                         : balanced_2_my_2_goose
 games                         : 100
@@ -101,12 +106,14 @@ fractional_win_rate_my        : 0.0300
 fractional_win_rate_goose     : 0.8900
 ```
 
+<!-- TODO: aktualizovať komentár na základe nových čísel -->
 V balanced nastavení, kde hrali dvaja moji agenti a dvaja Goose Loose agenti, bol rozdiel stále veľmi výrazný. Goose Loose mal priemerné umiestnenie 1.7075, zatiaľ čo môj agent 3.2925. Fractional win rate môjho agenta bol iba 0.03, zatiaľ čo Goose Loose dosiahol 0.89.
 
 ---
 
 ### 6.3 Stress 1 my 3 goose
 
+<!-- TODO: nahradiť výsledkovým blokom z nového bežania (opravený placement) -->
 ```text
 setup                         : stress_1_my_3_goose
 games                         : 100
@@ -117,11 +124,14 @@ fractional_win_rate_my        : 0.0000
 fractional_win_rate_goose     : 0.8900
 ```
 
+<!-- TODO: aktualizovať komentár na základe nových čísel -->
 Najťažšie nastavenie bolo 1 môj agent proti 3 Goose Loose agentom. Tu môj agent dosiahol priemerné umiestnenie 3.74 a win rate 0.0. Tento výsledok ukazuje, že proti viacerým silným agentom naraz už môj agent nedokázal dlhodobo prežiť ani získať výhodné pozície.
 
 ---
 
 ## 7. Interpretácia výsledkov
+
+> **⚠️ TODO – AKTUALIZOVAŤ:** Tento oddiel odkazuje na konkrétne čísla zo sekcie 6. Po aktualizácii výsledkov v sekcii 6 je potrebné skontrolovať, či interpretácia stále sedí, a prípadne upraviť formulácie.
 
 Finálne výsledky ukázali, že Goose Loose bol vo všetkých testovaných setupoch jednoznačne silnejší. Napriek tomu výsledok projektu nemožno hodnotiť iba podľa toho, či sa podarilo Goose Loose poraziť. V rámci projektu sa podarilo vytvoriť kompletný tréningový a inferenčný systém pre Hungry Geese, čo je samo o sebe komplexná úloha.
 
@@ -143,6 +153,7 @@ Po piate, Hungry Geese je veľmi citlivá hra na bezpečnostné heuristiky. Niek
 
 Projekt prešiel výrazným vývojom od jednoduchej neurónovej siete až po komplexného Hungry Geese agenta s CNN policy-value modelom a MCTS. Počas práce bolo potrebné vyriešiť konfiguráciu prostredia, vytvoriť vlastný simulátor, navrhnúť encoder, implementovať tréning, self-play, replay buffer, evaluation systém, externé porovnávanie, lokálne vizualizácie a testy.
 
+<!-- TODO: aktualizovať konkrétne čísla (2.06, 0.0 atď.) po novom bežaní evaluácie -->
 Finálne externé výsledky ukázali, že môj agent zatiaľ nedokáže poraziť Goose Loose. V priamom dueli mal môj agent priemerné umiestnenie 2.06 oproti 1.00 pre Goose Loose a pairwise skóre 0.0. V balanced a stress setupoch bol rozdiel ešte výraznejší. To znamená, že Goose Loose bol vo finálnom porovnaní jednoznačne lepší.
 
 Napriek tomu projekt splnil svoj hlavný vzdelávací cieľ. Podarilo sa vytvoriť plnohodnotný AI systém, ktorý kombinuje moderné techniky používané v hernej umelej inteligencii: self-play, policy-value sieť, MCTS, replay buffer a systematické vyhodnocovanie. Projekt zároveň ukázal, aký veľký rozdiel je medzi funkčným agentom a skutočne špičkovým súťažným agentom. Poraziť silné Kaggle riešenie nestačí iba dobrým nápadom; vyžaduje to veľké množstvo tréningu, výpočtového výkonu, veľmi presnú simuláciu, množstvo špeciálnych heuristík a dlhodobé ladenie detailov.
