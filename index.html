@@ -152,7 +152,7 @@
       </div>
     </section>
 
-    <!-- Sekcia: Kaggle Hungry Geese – Fáza 2 -->
+    <!-- Sekcia: Kaggle Hungry Geese – Fáza 2 – Úvod -->
     <section class=”card”>
       <h2>Kaggle Hungry Geese – Fáza 2</h2>
 
@@ -169,11 +169,10 @@
         <a href=”https://www.kaggle.com/competitions/hungry-geese” target=”_blank” rel=”noopener”><strong>Kaggle Hungry Geese</strong></a>
         — 4 hráčsku verziu Snaku na toroidálnej mriežke 7 × 11. Hra vyžaduje
         modelovanie súperov, dlhodobé plánovanie a okamžitú reakciu na nebezpečné kolízie.
-        Vznikol vlastný simulátor herného prostredia, CNN policy-value sieť, vlastný
-        MCTS a self-play tréning s replay bufferom.
+        Vznikol vlastný simulátor herného prostredia, CNN policy-value sieť, vlastný MCTS
+        a self-play tréning s replay bufferom.
       </p>
 
-      <!-- KEY STATS -->
       <div class=”stat-grid”>
         <div class=”stat-card”>
           <span class=”sv”>65,7 h</span>
@@ -207,9 +206,13 @@
         a internú evaluáciu modelov (23 %). Model sa zlepšil iba v 10 z 102 iterácií (9,8 %) —
         typické pre self-play, kde väčšina iterácií iba potvrdzuje aktuálnu úroveň.
       </p>
+    </section>
 
-      <!-- ARCHITECTURE -->
-      <h3>Architektúra neurónovej siete</h3>
+    <!-- Sekcia: Kaggle – Architektúra a tréning -->
+    <section class=”card”>
+      <h2>Architektúra a tréning</h2>
+
+      <h3>Neurónová sieť</h3>
       <p>
         Model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong>.
         Predikuje pravdepodobnosti akcií (policy) aj hodnotu aktuálnej pozície (value),
@@ -217,7 +220,6 @@
       </p>
 
       <div class=”arch-timeline”>
-
         <div class=”arch-tl-item”>
           <div class=”arch-tl-aside”>
             <div class=”arch-tl-dot”></div>
@@ -231,7 +233,6 @@
             </div>
           </div>
         </div>
-
         <div class=”arch-tl-item”>
           <div class=”arch-tl-aside”>
             <div class=”arch-tl-dot”></div>
@@ -240,12 +241,11 @@
           <div class=”arch-tl-body”>
             <div class=”arch-tl-layer”>Konvolučné vrstvy</div>
             <div class=”arch-tl-box”>
-              Conv2d &ensp;6 → 32 filtre, 3×3, <em>circular padding</em> + ReLU<br>
+              Conv2d 6 → 32 filtre, 3×3, <em>circular padding</em> + ReLU<br>
               Conv2d 32 → 64 filtre, 3×3, circular padding + ReLU → <strong>Flatten (4 928)</strong>
             </div>
           </div>
         </div>
-
         <div class=”arch-tl-item”>
           <div class=”arch-tl-aside”>
             <div class=”arch-tl-dot”></div>
@@ -258,7 +258,6 @@
             </div>
           </div>
         </div>
-
         <div class=”arch-tl-item”>
           <div class=”arch-tl-aside”>
             <div class=”arch-tl-dot diamond”></div>
@@ -281,29 +280,26 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <p class=”note”>
         <strong>Prečo circular padding?</strong> Hracia plocha je toroidálna — pravý okraj
         nadväzuje na ľavý, horný na spodný. Circular convolutions toto priamo modelujú:
-        sieť vidí priestorové vzťahy cez okraje mapy rovnako ako vo vnútri, bez extra logiky.
+        sieť vidí vzťahy cez okraje mapy rovnako ako vo vnútri.
       </p>
 
-      <!-- MCTS -->
       <h3>Monte Carlo Tree Search</h3>
       <p>
         Samotný forward pass siete je krátkozraký — vyberie akciu bez predvídania dôsledkov.
-        <strong>MCTS</strong> sieť obalí a nechá ju simulovať desiatky ťahov dopredu pomocou PUCT
-        formuly, ktorá balancuje exploráciu nových vetiev a exploitáciu sľubných.
-        Policy head určuje, ktoré ťahy stoja za preskúmanie — väčšina nezmyselných vetiev sa preskočí.
-        Value head odhaduje výsledok pozície bez nutnosti dohrať hru. Súperove ťahy vo vnútri stromu
-        sú aproximované rule-based politikou. Počet simulácií sa líši podľa fázy: <strong>32</strong>
-        pri tréningu (rýchlosť), <strong>64</strong> pri evaluácii a <strong>128</strong> pri
-        finálnom submission (maximálna hracia sila v rámci časového limitu ~1 s/ťah).
+        <strong>MCTS</strong> sieť obalí a nechá ju simulovať desiatky ťahov dopredu pomocou
+        PUCT formuly, ktorá balancuje exploráciu nových vetiev a exploitáciu sľubných.
+        Policy head určuje, ktoré ťahy stoja za preskúmanie. Value head odhaduje výsledok
+        bez nutnosti dohrať hru. Súperove ťahy vo vnútri stromu sú aproximované rule-based
+        politikou. Počet simulácií sa líši podľa fázy: <strong>32</strong> pri tréningu
+        (rýchlosť), <strong>64</strong> pri evaluácii a <strong>128</strong> pri finálnom
+        submission (maximálna hracia sila v rámci časového limitu ~1 s/ťah).
       </p>
 
-      <!-- TRAINING PROGRESS -->
       <h3>Výsledky tréningu</h3>
 
       <div class=”before-after”>
@@ -322,9 +318,11 @@
           <div class=”ba-row”><span class=”ba-key”>Dĺžka husi</span><span class=”ba-val”>5,50 článkov</span></div>
         </div>
       </div>
+    </section>
 
-      <!-- EVAL -->
-      <h3>Externé hodnotenie vs. Goose Loose</h3>
+    <!-- Sekcia: Kaggle – Externé hodnotenie -->
+    <section class=”card”>
+      <h2>Externé hodnotenie vs. Goose Loose</h2>
       <p>
         Finálny agent bol porovnaný s verejným agentom <strong>Goose Loose</strong>
         v troch scenároch po 100 hrách s rotáciou pozícií.
@@ -347,39 +345,70 @@
         </tbody>
       </table>
       <p class=”note”>avg placement: nižšie = lepšie (1,0 = prvé miesto). win rate zahŕňa zdieľané víťazstvá.</p>
+    </section>
 
-      <!-- VIDEOS -->
-      <h3>Ukážky hier</h3>
-      <p>Záznamy hier finálneho agenta voči Goose Loose.</p>
+    <!-- Sekcia: Kaggle – Ukážky hier -->
+    <section class=”card”>
+      <h2>Ukážky hier – Hungry Geese</h2>
+      <p>
+        Záznamy hier finálneho agenta v rôznych herných scenároch,
+        nahrané lokálne pomocou pygame vizualizátora.
+      </p>
 
       <div class=”video-grid”>
         <div class=”video-card”>
-          <h3>Hra 1</h3>
+          <h3>Vývoj agenta — 4 iterácie naraz (Hry 1–4)</h3>
           <video controls playsinline width=”100%” preload=”metadata”>
-            <source src=”video/Final_Video1.mp4” type=”video/mp4”>
+            <source src=”https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Final_Video1.mp4” type=”video/mp4”>
             Váš prehliadač nepodporuje HTML5 video.
           </video>
+          <p class=”note”>
+            Štyri okná súčasne — rovnaký seed, rovnakí súperi (clever, smart, stupid bot), rôzna iterácia.
+            <strong>Ľavý horný:</strong> iter_0010 &nbsp;·&nbsp;
+            <strong>Pravý horný:</strong> iter_0030 &nbsp;·&nbsp;
+            <strong>Ľavý dolný:</strong> iter_0060 &nbsp;·&nbsp;
+            <strong>Pravý dolný:</strong> iter_0100.
+            Vidieť ako sa agent s každou iteráciou učí prežívať dlhšie a lepšie reagovať.
+          </p>
         </div>
+
         <div class=”video-card”>
-          <h3>Hra 2</h3>
+          <h3>Finálny agent vs. Goose Loose (Hra 5)</h3>
           <video controls playsinline width=”100%” preload=”metadata”>
-            <source src=”video/Final_Video2.mp4” type=”video/mp4”>
+            <source src=”https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Final_Video2.mp4” type=”video/mp4”>
             Váš prehliadač nepodporuje HTML5 video.
           </video>
+          <p class=”note”>
+            Finálny MCTS agent (submission.py) v priamom súboji so silným verejným agentom
+            <strong>Goose Loose</strong>. Ďalšie dve miesta obsadzujú smart_bot a stupid_bot.
+            Toto je najbližší variant k reálnemu Kaggle hodnoteniu.
+          </p>
         </div>
+
         <div class=”video-card”>
-          <h3>Hra 3</h3>
+          <h3>MCTS vs. NN agenti (Hra 6)</h3>
           <video controls playsinline width=”100%” preload=”metadata”>
-            <source src=”video/Final_Video3.mp4” type=”video/mp4”>
+            <source src=”https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Final_Video3.mp4” type=”video/mp4”>
             Váš prehliadač nepodporuje HTML5 video.
           </video>
+          <p class=”note”>
+            Jeden MCTS agent (submission.py) proti trom lacným NN agentom bez stromového
+            prehľadávania. Obe strany používajú <strong>tú istú neurónovú sieť</strong> —
+            rozdiel je iba v tom, či sieť dostane čas na MCTS, alebo rozhoduje priamym forward passom.
+          </p>
         </div>
+
         <div class=”video-card”>
-          <h3>Hra 4</h3>
+          <h3>MCTS vs. MCTS (Hra 7)</h3>
           <video controls playsinline width=”100%” preload=”metadata”>
-            <source src=”video/Final_Video4.mp4” type=”video/mp4”>
+            <source src=”https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Final_Video4.mp4” type=”video/mp4”>
             Váš prehliadač nepodporuje HTML5 video.
           </video>
+          <p class=”note”>
+            Štyri kópie finálneho agenta hrajú navzájom — čistý self-play scenár.
+            Všetci štyria používajú plný MCTS s 128 simuláciami.
+            Hra ukazuje správanie agenta keď čelí rovnako silným protivníkom.
+          </p>
         </div>
       </div>
     </section>
