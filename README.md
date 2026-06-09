@@ -741,24 +741,6 @@ winning_agent/kaggle_public_agent.py
 clever/smart baseline botov
 ```
 
-Dôležité metriky:
-
-```text
-pairwise_score_my_vs_goose
-avg_placement_my
-avg_placement_goose
-fractional_win_rate_my
-fractional_win_rate_goose
-```
-
-Interpretácia `pairwise_score_my_vs_goose`:
-
-```text
-> 0.50  môj agent je v danej zostave lepší
-≈ 0.50  agenti sú približne rovnako silní
-< 0.50  Goose Loose je lepší
-```
-
 Príklad:
 
 ```bash
