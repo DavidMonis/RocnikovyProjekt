@@ -195,98 +195,228 @@ a:hover{
    Kaggle Hungry Geese – Fáza 2
    ====================================================== */
 
+/* Stat grid – 3×2 veľké čísla */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.stat-card {
+  background: rgba(106, 169, 255, 0.06);
+  border: 1px solid rgba(106, 169, 255, 0.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.stat-card .sv {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.stat-card .sl {
+  display: block;
+  font-size: 0.77rem;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* Architecture – timeline s bodkami a vertikálnou čiarou */
+.arch-timeline {
+  margin: 18px 0;
+}
+
+.arch-tl-item {
+  display: flex;
+  gap: 14px;
+}
+
+.arch-tl-aside {
+  width: 16px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.arch-tl-dot {
+  width: 13px;
+  height: 13px;
+  background: var(--accent-2);
+  border-radius: 50%;
+  opacity: 0.8;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.arch-tl-dot.diamond {
+  border-radius: 3px;
+  transform: rotate(45deg);
+  width: 11px;
+  height: 11px;
+  background: var(--accent);
+  opacity: 1;
+  margin-top: 8px;
+}
+
+.arch-tl-line {
+  width: 2px;
+  background: rgba(162, 107, 255, 0.2);
+  flex: 1;
+  min-height: 14px;
+}
+
+.arch-tl-body {
+  flex: 1;
+  padding-bottom: 10px;
+}
+
+.arch-tl-layer {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.arch-tl-box {
+  background: rgba(162, 107, 255, 0.05);
+  border: 1px solid rgba(162, 107, 255, 0.17);
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Dve výstupné hlavy vedľa seba */
+.arch-tl-heads {
+  display: flex;
+  gap: 10px;
+}
+
+.arch-tl-head {
+  flex: 1;
+  background: rgba(106, 169, 255, 0.06);
+  border: 1px solid rgba(106, 169, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.arch-tl-head strong {
+  display: block;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
 /* Tabuľky */
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   margin: 14px 0;
 }
+
 .data-table th {
   text-align: left;
   color: var(--muted);
   font-weight: 600;
   padding: 7px 10px;
   border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
+
 .data-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(35,38,45,0.5);
-  vertical-align: top;
-  line-height: 1.45;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(35, 38, 45, 0.5);
+  line-height: 1.4;
 }
+
+.data-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.018);
+}
+
 .data-table tr:last-child td {
   border-bottom: none;
 }
+
 .data-table td:first-child {
   color: var(--muted);
-  white-space: nowrap;
 }
 
-/* Štatistické kartičky */
-.stat-chips {
-  display: flex;
-  flex-wrap: wrap;
+/* Before / After porovnanie tréningu */
+.before-after {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 14px 0;
-}
-.stat-chip {
-  background: rgba(106,169,255,0.07);
-  border: 1px solid rgba(106,169,255,0.16);
-  border-radius: 10px;
-  padding: 10px 16px;
-  min-width: 108px;
-}
-.stat-chip .sv {
-  display: block;
-  font-size: 1.22rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1.2;
-}
-.stat-chip .sl {
-  display: block;
-  font-size: 0.77rem;
-  color: var(--muted);
-  margin-top: 3px;
-  line-height: 1.35;
+  font-size: 0.88rem;
 }
 
-/* Diagram architektúry siete */
-.arch-flow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  margin: 18px auto;
-  max-width: 540px;
-  font-size: 0.875rem;
-  text-align: center;
+.ba-col {
+  border-radius: 10px;
+  padding: 13px 15px;
 }
-.arch-box {
-  width: 100%;
-  background: rgba(162,107,255,0.07);
-  border: 1px solid rgba(162,107,255,0.2);
-  border-radius: 8px;
-  padding: 9px 14px;
-  line-height: 1.45;
+
+.ba-col.ba-before {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
 }
-.arch-arrow {
+
+.ba-col.ba-after {
+  background: rgba(106, 169, 255, 0.06);
+  border: 1px solid rgba(106, 169, 255, 0.2);
+}
+
+.ba-col h4 {
+  margin: 0 0 10px;
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--muted);
-  font-size: 0.95rem;
-  padding: 4px 0;
-  line-height: 1.2;
 }
-.arch-split {
+
+.ba-row {
   display: flex;
-  width: 100%;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  gap: 6px;
 }
-.arch-split .arch-box {
-  flex: 1;
-  background: rgba(106,169,255,0.07);
-  border-color: rgba(106,169,255,0.2);
+
+.ba-row:last-child {
+  border-bottom: none;
+}
+
+.ba-key {
+  color: var(--muted);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.ba-val {
+  font-weight: 600;
+  text-align: right;
+}
+
+.ba-after .ba-val {
+  color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 580px) {
+  .stat-grid        { grid-template-columns: repeat(2, 1fr); }
+  .before-after     { grid-template-columns: 1fr; }
+  .arch-tl-heads    { flex-direction: column; }
 }
