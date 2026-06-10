@@ -6,35 +6,23 @@ in several match setups.
 
 Main interpretation:
 
-1. pairwise_score_my_vs_goose
-   - This is the most important metric in the direct duel setup.
-   - It compares only your agent and Goose Loose inside the same game.
-   - Your agent gets:
-       1.0 point  if your placement is better than Goose Loose
-       0.5 point  if both have the same placement
-       0.0 point  if Goose Loose has better placement
-   - Interpretation:
-       > 0.50  your agent is better in this setup
-       ~ 0.50  roughly equal strength
-       < 0.50  Goose Loose is better in this setup
-
-2. avg_placement_my / avg_placement_goose
+1. avg_placement_my / avg_placement_goose
    - Lower is better.
    - 1.0 means average first place.
    - 4.0 means average last place.
    - If your avg placement is lower than Goose Loose, your agent performed better.
 
-3. fractional_win_rate_my / fractional_win_rate_goose
+2. fractional_win_rate_my / fractional_win_rate_goose
    - Counts wins with tie handling.
    - If two agents tie for first place, each gets 0.5 win.
    - If four agents tie for first place, each gets 0.25 win.
    - Higher is better.
 
-Recommended reading:
-- For direct_duel_with_smart_baseline, focus mostly on pairwise_score_my_vs_goose.
-- For balanced_2_my_2_goose, focus on avg_placement_my vs avg_placement_goose.
-- For stress_1_my_3_goose, if your avg_placement is below 2.5 or win rate above 0.25,
-  that is a very good sign.
+3. kaggle_env_score_my / kaggle_env_score_goose
+   - Raw Kaggle reward: (step + 1) * 100 + body_length.
+   - Higher means longer survival and/or bigger body.
+   - Useful as a secondary signal alongside avg_placement.
+
 """
 
 from __future__ import annotations
@@ -58,7 +46,7 @@ MY_AGENT = "submission.py"
 # Public strong external agent.
 GOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
 
-# Your stronger handcrafted baseline bot.
+# handcrafted baseline bot.
 SMART_BOT = "bots/bot.py"
 
 
@@ -192,6 +180,7 @@ def run_one_game(agents: list[str],name, seed: int | None = None) -> dict:
     Run one Hungry Geese game with the given list of 4 agents.
 
     The agents are file paths or built-in Kaggle agent names.
+    name is used as part of the replay filename saved to replays/.
     """
     if seed is not None:
         random.seed(seed)
@@ -200,7 +189,7 @@ def run_one_game(agents: list[str],name, seed: int | None = None) -> dict:
     env = make("hungry_geese", debug=False)
     env.run(agents)
 
-    #delete later
+    #JSON replay
     import json, os
     os.makedirs("replays", exist_ok=True)
 
@@ -303,6 +292,7 @@ def evaluate_setup(
 
         # Pairwise score is meaningful mainly when there is exactly
         # one copy of your agent and one copy of Goose Loose.
+        # not using anymore
         if len(my_seats) == 1 and len(goose_seats) == 1:
             my_place = placements[my_seats[0]]
             goose_place = placements[goose_seats[0]]

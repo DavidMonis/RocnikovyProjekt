@@ -873,25 +873,42 @@ a:hover{
       <p>
         Finálny agent bol porovnaný s verejným agentom <strong>Goose Loose</strong>
         v troch scenároch po 100 hrách s rotáciou pozícií.
-        <em>Výsledky budú doplnené po novom bežaní evaluácie.</em>
       </p>
       <table class="data-table">
         <thead>
           <tr>
             <th>Scenár</th>
-            <th>avg placement (my)</th>
-            <th>avg placement (goose)</th>
-            <th>win rate (my)</th>
-            <th>kaggle score (my)</th>
+            <th>Avg place (môj)</th>
+            <th>Avg place (Goose)</th>
+            <th>Win rate (môj)</th>
+            <th>Win rate (Goose)</th>
+            <th>Kaggle skóre (môj)</th>
+            <th>Kaggle skóre (Goose)</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>direct duel + 2 boty</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>balanced (2 my + 2 Goose)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>stress (1 my + 3 Goose)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>direct duel + 2 boty</td><td>1,695</td><td>1,370</td><td>0,365</td><td>0,630</td><td>12 423,8</td><td>12 488,4</td></tr>
+          <tr><td>balanced (2 my + 2 Goose)</td><td>3,168</td><td>1,833</td><td>0,153</td><td>0,847</td><td>12 650,6</td><td>17 144,2</td></tr>
+          <tr><td>stress (1 my + 3 Goose)</td><td>3,600</td><td>2,133</td><td>0,013</td><td>0,987</td><td>11 004,6</td><td>17 316,3</td></tr>
         </tbody>
       </table>
-      <p class="note">avg placement: nižšie = lepšie (1,0 = prvé miesto). win rate zahŕňa zdieľané víťazstvá.</p>
+      <p class="note">Avg placement: nižšie = lepšie (1,0 = prvé miesto). Win rate zahŕňa zdieľané víťazstvá a je normalizovaný na počet hier, nie na počet kópií agenta.</p>
+
+      <p>
+        Výsledky potvrdzujú, že Goose Loose konzistentne prevyšuje môjho agenta
+        vo všetkých troch scenároch. Miera rozdielu rastie úmerne s podielom Goose Loose
+        agentov v hre: v scenári <strong>direct duel</strong> obaja súperia primárne
+        proti slabším rule-based botom, čo vedie k tesnejším umiestneniam (1,695 vs 1,370).
+        V <strong>balanced</strong> scenári nahradia Goose Loose agenti oba boty a
+        konkurenčný tlak sa zdvojnásobí — priemerné umiestnenie môjho agenta klesá na 3,168.
+        V <strong>stress</strong> scenári stojí jeden môj agent proti trom kópiám
+        Goose Loose; pre akéhokoľvek jednotlivého agenta čeliaceho trom silnejším súperom
+        súčasne je umiestnenie blízko 4,0 štatisticky predvídateľný výsledok — môj agent
+        dosiahol 3,60. Kaggle skóre (surová odmena kódujúca prežité kroky a dĺžku tela)
+        potvrdzuje rovnaký trend: kým Goose Loose si drží stabilne vysoké hodnoty naprieč
+        všetkými scenármi, skóre môjho agenta v stress scenári výrazne klesá, čo odráža
+        skôr skrátené prežitie než zhoršenú kvalitu hry.
+      </p>
     </section>
 
     <!-- Sekcia: Kaggle – Ukážky hier -->
@@ -965,9 +982,9 @@ a:hover{
       </div>
     </section>
 
-    <!-- Sekcia: Záver a výhľad -->
+    <!-- Sekcia: Záver -->
     <section class="card">
-      <h2>Záver a výhľad</h2>
+      <h2>Záver</h2>
       <p>
         Finálny MCTS agent nedokázal prekonať <strong>Goose Loose</strong> — agenta, ktorý
         získal zlatú medailu v Kaggle súťaži Hungry Geese a bol vyvinutý tímom 5 skúsených

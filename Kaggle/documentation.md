@@ -1028,14 +1028,6 @@ Important metrics:
 * `fractional_win_rate_my` / `fractional_win_rate_goose`
   Higher is better; ties are split fractionally.
 
-Interpretation of pairwise score:
-
-```text
-> 0.50  candidate is better in that setup
-≈ 0.50  roughly equal
-< 0.50  Goose Loose is better in that setup
-```
-
 External evaluation is slower than internal simulation because it runs through Kaggle’s environment wrapper and may load heavy agents.
 
 ---
