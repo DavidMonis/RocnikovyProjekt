@@ -591,50 +591,42 @@ a:hover{
         <span class="badge">MCTS</span>
         <span class="badge">Self-play</span>
         <span class="badge">PyTorch · CUDA</span>
-        <span class="badge">102 iterácií · 65,7 h</span>
+
       </div>
 
       <p>
         Druhá fáza projektu nahradila DQN agenta kompletným AI pipeline pre
         <a href="https://www.kaggle.com/competitions/hungry-geese" target="_blank" rel="noopener"><strong>Kaggle Hungry Geese</strong></a>
-        — 4 hráčsku verziu Snaku na toroidálnej mriežke 7 × 11. Hra vyžaduje
+        – verziu hry Snake pre štyroch hráčov, v ktorej sa po opustení jedného okraja hracej plochy hráč objaví na opačnej strane. Hra vyžaduje
         modelovanie súperov, dlhodobé plánovanie a okamžitú reakciu na nebezpečné kolízie.
         Vznikol vlastný simulátor herného prostredia, CNN policy-value sieť, vlastný MCTS
         a self-play tréning s replay bufferom.
       </p>
 
-      <div class="stat-grid">
+      <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr);">
         <div class="stat-card">
           <span class="sv">65,7 h</span>
-          <span class="sl">Celkový čas tréningu (~2,7 dňa)</span>
+          <span class="sl">Celkový čas self-play tréningu (102 iterácií)</span>
         </div>
         <div class="stat-card">
           <span class="sv">1,74 M</span>
           <span class="sl">Vygenerovaných tréningových pozícií</span>
         </div>
         <div class="stat-card">
-          <span class="sv">10 200</span>
-          <span class="sl">Self-play hier (100 za iteráciu)</span>
+          <span class="sv">&gt; 10 000</span>
+          <span class="sl">Odohraných self-play hier (100 za iteráciu)</span>
         </div>
         <div class="stat-card">
-          <span class="sv">10 / 102</span>
-          <span class="sl">Iterácií, kde sa model zlepšil</span>
-        </div>
-        <div class="stat-card">
-          <span class="sv">11 651</span>
-          <span class="sl">Riadkov Python kódu (47 súborov)</span>
-        </div>
-        <div class="stat-card">
-          <span class="sv">&lt; 1 %</span>
-          <span class="sl">Čas samotného trénovania siete</span>
+          <span class="sv">100+ h</span>
+          <span class="sl">Externá evaluácia agenta (4+ dní)</span>
         </div>
       </div>
 
       <p class="note">
-        <strong>Zaujímavosť:</strong> Samotný gradient tréning siete zaberá len 0,2 h z 65,7 h —
-        menej ako 1 % celkového času. Väčšina šla na generovanie self-play hier (77 %)
-        a internú evaluáciu modelov (23 %). Model sa zlepšil iba v 10 z 102 iterácií (9,8 %) —
-        typické pre self-play, kde väčšina iterácií iba potvrdzuje aktuálnu úroveň.
+        <strong>Zaujímavosť:</strong> Samotný gradient tréning siete zaberá len 0,2 h z celkových 65,7 h —
+        teda menej ako 1 % celkového času. Väčšina šla na generovanie self-play hier (77 %)
+        a internú evaluáciu checkpointov (23 %). Toto rozloženie je typické pre self-play systémy,
+        kde je generovanie dát rádovo nákladnejšie ako aktualizácia váh siete.
       </p>
     </section>
 
@@ -642,9 +634,26 @@ a:hover{
     <section class="card">
       <h2>Architektúra a tréning</h2>
 
+      <h3>Vývoj architektúry</h3>
+      <p>
+        Finálna podoba siete nevznikla naraz — prešla niekoľkými výrazne odlišnými generáciami.
+        Na začiatku stála jednoduchá plne prepojená sieť s jednou skrytou vrstvou, určená na
+        overenie, či model vôbec dokáže spracovať vstup a vrátiť použiteľné akcie.
+        Ukázalo sa, že to funguje, no hra Hungry Geese je priestorový problém — a plne prepojená
+        vrstva priestorové vzťahy nevyužíva efektívne.
+      </p>
+      <p>
+        Preto sa architektúra vyvíjala postupne: pribudla druhá skrytá vrstva pre zachytenie
+        zložitejších vzťahov, potom konvolučné vrstvy (CNN) pre priestorové príznaky mriežky,
+        neskôr sa za CNN pridala <em>flatten</em> vrstva kombinujúca priestorové príznaky
+        so skalárnym vstupom. Posledným a najdôležitejším krokom bolo rozdelenie výstupnej časti
+        na <strong>dve nezávislé hlavy</strong> — policy a value — čo umožnilo plnohodnotnú
+        integráciu s MCTS a zásadne zvýšilo kvalitu tréningu.
+      </p>
+
       <h3>Neurónová sieť</h3>
       <p>
-        Model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong>.
+        Finálny model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong>.
         Predikuje pravdepodobnosti akcií (policy) aj hodnotu aktuálnej pozície (value),
         čo umožňuje efektívne kombinovanie s MCTS bez nutnosti dohrávať každú hru do konca.
       </p>
@@ -656,10 +665,30 @@ a:hover{
             <div class="arch-tl-line"></div>
           </div>
           <div class="arch-tl-body">
-            <div class="arch-tl-layer">Vstup</div>
+            <div class="arch-tl-layer">Vstup — priestorový</div>
             <div class="arch-tl-box">
-              <strong>6 kanálov × 7 × 11</strong> — vlastné telo · hlavy súperov · telá súperov · chvosty · jedlo · nebezpečné polia<br>
-              <span style="color:var(--muted); font-size:0.83rem;">+ 13 skalárov: dĺžky husí, alive flagy, hunger tick, krok hry, posledná akcia</span>
+              <strong>6 kanálov × 7 × 11</strong> — každý kanál je binárna maska hernej plochy:<br>
+              <span style="color:var(--muted); font-size:0.83rem;">
+                vlastné telo · hlavy súperov · telá súperov · chvosty súperov · jedlo ·
+                nebezpečné polia (políčka, kam môže v ďalšom kroku vstúpiť hlava súpera)
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="arch-tl-item">
+          <div class="arch-tl-aside">
+            <div class="arch-tl-dot"></div>
+            <div class="arch-tl-line"></div>
+          </div>
+          <div class="arch-tl-body">
+            <div class="arch-tl-layer">Vstup — skalárny (13 hodnôt)</div>
+            <div class="arch-tl-box">
+              Dĺžky všetkých 4 husí · alive flagy 3 súperov · hunger tick (krokov do hladovej smrti) ·
+              aktuálny krok hry · posledná akcia agenta (one-hot, 4 hodnoty)<br>
+              <span style="color:var(--muted); font-size:0.83rem;">
+                Tieto hodnoty nie sú kódovateľné do mriežky — nesú globálny kontext hry.
+                Vstupujú priamo do dense vrstvy po zkonkatenovaní s výstupom CNN.
+              </span>
             </div>
           </div>
         </div>
@@ -671,8 +700,14 @@ a:hover{
           <div class="arch-tl-body">
             <div class="arch-tl-layer">Konvolučné vrstvy</div>
             <div class="arch-tl-box">
-              Conv2d 6 → 32 filtre, 3×3, <em>circular padding</em> + ReLU<br>
-              Conv2d 32 → 64 filtre, 3×3, circular padding + ReLU → <strong>Flatten (4 928)</strong>
+              Conv2d 6 → 32, 3×3, <em>circular padding</em> + ReLU<br>
+              Conv2d 32 → 64, 3×3, circular padding + ReLU → <strong>Flatten (4 928)</strong><br>
+              <span style="color:var(--muted); font-size:0.83rem;">
+                Circular padding odráža toroidálnu topológiu hracej plochy: pravý okraj susedí
+                s ľavým, horný so spodným. Bežný zero-padding by na okrajoch vytváral falošné
+                „steny", ktoré v hre neexistujú. Circular convolutions toto priamo modelujú —
+                sieť vidí vzťahy cez okraje mapy rovnako ako vo vnútri mriežky.
+              </span>
             </div>
           </div>
         </div>
@@ -684,7 +719,8 @@ a:hover{
           <div class="arch-tl-body">
             <div class="arch-tl-layer">Dense vrstva</div>
             <div class="arch-tl-box">
-              <strong>4 941 → 256, ReLU</strong> &ensp;— concat CNN výstup (4 928) + 13 skalárov
+              <strong>4 941 → 256, ReLU</strong> — vstup tvorí concat CNN výstupu (4 928) a 13 skalárov.
+              Táto vrstva kombinuje priestorové príznaky z konvolúcií s globálnym kontextom hry.
             </div>
           </div>
         </div>
@@ -699,7 +735,7 @@ a:hover{
                 <strong>Policy head</strong>
                 256 → 4, Softmax<br>
                 P(N) · P(S) · P(E) · P(W)<br>
-                <small style="color:var(--muted)">Cross-entropy loss vs. MCTS visit counts</small>
+                <small style="color:var(--muted)">Cross-entropy loss vs. počty návštev MCTS</small>
               </div>
               <div class="arch-tl-head">
                 <strong>Value head</strong>
@@ -712,22 +748,107 @@ a:hover{
         </div>
       </div>
 
-      <p class="note">
-        <strong>Prečo circular padding?</strong> Hracia plocha je toroidálna — pravý okraj
-        nadväzuje na ľavý, horný na spodný. Circular convolutions toto priamo modelujú:
-        sieť vidí vzťahy cez okraje mapy rovnako ako vo vnútri.
+      <h4 style="margin-top:20px;">Výstupné hlavy — výber loss funkcií</h4>
+      <p>
+        <strong>Policy head</strong> predikuje distribúciu pravdepodobností nad 4 akciami:
+        P(N) — sever, P(S) — juh, P(E) — východ, P(W) — západ. Trénovacím cieľom sú
+        normalizované počty návštev z MCTS (tzv. soft targets) — sieť sa učí napodobniť
+        rozhodnutia plánovacej fázy MCTS, nie len okamžitú akciu. Na tréning distribúcie
+        je prirodzenou voľbou <strong>cross-entropy loss</strong>, ktorá priamo penalizuje
+        každú odchýlku od cieľovej distribúcie a je štandardom pri klasifikačných úlohách.
+      </p>
+      <p>
+        <strong>Value head</strong> predikuje skalárnu hodnotu pozície v rozsahu [−1, 1],
+        kde −1 zodpovedá najhoršiemu umiestneniu (prvý vypadnutý) a +1 víťazstvu.
+        Keďže ide o regresnú úlohu s jednou výstupnou hodnotou, <strong>MSE loss</strong>
+        je prirodzenou voľbou — penalizuje odchýlky na druhú mocninu, vďaka čomu sú
+        veľké chyby trestané výrazne silnejšie ako malé, a funguje symetricky pre
+        príliš optimistické aj príliš pesimistické odhady.
       </p>
 
       <h3>Monte Carlo Tree Search</h3>
       <p>
-        Samotný forward pass siete je krátkozraký — vyberie akciu bez predvídania dôsledkov.
-        <strong>MCTS</strong> sieť obalí a nechá ju simulovať desiatky ťahov dopredu pomocou
-        PUCT formuly, ktorá balancuje exploráciu nových vetiev a exploitáciu sľubných.
-        Policy head určuje, ktoré ťahy stoja za preskúmanie. Value head odhaduje výsledok
-        bez nutnosti dohrať hru. Súperove ťahy vo vnútri stromu sú aproximované rule-based
-        politikou. Počet simulácií sa líši podľa fázy: <strong>32</strong> pri tréningu
-        (rýchlosť), <strong>64</strong> pri evaluácii a <strong>128</strong> pri finálnom
-        submission (maximálna hracia sila v rámci časového limitu ~1 s/ťah).
+        Samotný forward pass siete je krátkozraký — na základe aktuálneho stavu hry vráti
+        distribúciu akcií bez akéhokoľvek pohľadu do budúcnosti. Práve tu nastupuje
+        <strong>MCTS</strong>: nad sieťou sa stavia implicitný prehľadávací strom,
+        kde každý uzol reprezentuje stav hry a každá hrana jednu z možných akcií.
+      </p>
+      <p>
+        Prehľadávanie riadi <strong>PUCT formula</strong>, ktorá balancuje exploráciu nových
+        vetiev (prioritizovanú na základe policy headu) a exploitáciu sľubných línií
+        (na základe doterajších výsledkov simulácií). Na listových uzloch sa pozícia
+        ohodnotí pomocou <strong>value headu</strong> — bez nutnosti dohrávať hru až do konca.
+        Súperove ťahy vo vnútri stromu sú aproximované jednou politikou — počas
+        tréningu a submission NN politikou, pri internej evaluácii rule-based agentom.
+      </p>
+      <p>
+        MCTS plní v projekte dvojitú rolu. Počas tréningu generuje kvalitnejšie tréningové
+        dáta než čisto greedy policy — agent sa učí z plánovaných rozhodnutí, nie len
+        z okamžitých reakcií siete. Pri inferencii poskytuje reálny lookahead, ktorý
+        výrazne zvyšuje hraciu silu oproti samotnému forward passu. Práve preto bolo
+        rozdelenie siete na dve hlavy nevyhnutné: policy head dáva MCTS informované priory
+        pre výber vetiev stromu, value head hodnotí pozície na listoch — spolu vytvárajú
+        základ pre efektívne plánovanie bez explicitného dohrávanie hier do konca.
+        Počet simulácií sa líši podľa kontextu: <strong>32</strong> pri generovaní tréningových
+        hier (rýchlosť), <strong>64</strong> pri internej evaluácii a <strong>128</strong>
+        pri finálnom submission (maximálna hracia sila v rámci ~1 s na ťah).
+      </p>
+
+      <h3>Priebeh tréningu</h3>
+      <p>
+        Tréning prebiehal v niekoľkých postupne náročnejších fázach, pričom cieľom bolo
+        vybudovať agenta schopného čeliť rôznorodým súperom — od jednoduchých pravidlových
+        botov až po plnohodnotné MCTS agenty.
+      </p>
+
+      <h4>Fáza 1 — Základ na botoch</h4>
+      <p>
+        Prvé iterácie prebiehali výhradne proti jednoduchým rule-based botom
+        (stupid_bot, clever_bot, smart_bot). Tento prístup bol zámerný: sieť musela
+        najskôr zvládnuť základné prežitie, navigáciu a zbieranie jedla predtým, než
+        dostala silnejších súperov. Výsledky raných iterácií to potvrdzujú — agent
+        sa naučil hrať solídne práve v prostredí jednoduchých botov.
+      </p>
+
+      <h4>Fáza 2 — Postupné zvyšovanie obťažnosti</h4>
+      <p>
+        Postupne sa pridávali silnejší boti a neskôr NN agenty reprezentované staršími
+        checkpointmi z predchádzajúcich tréningových iterácií. Dôležitou súčasťou bola
+        <strong>rotácia hráčskych pozícií</strong>: každý agent hral zo všetkých 4 pozícií
+        na mriežke, čím sa zabránilo naučeniu pozičných predsudkov. Podiel NN agentov sa
+        postupne zvyšoval na úkor botov, no rule-based boti nikdy nevymizli úplne —
+        ich prítomnosť bránila katastrofickému zabudaniu základných stratégií
+        naučených v prvej fáze.
+      </p>
+
+      <h4>Fáza 3 — Self-play s MCTS</h4>
+      <p>
+        V záverečnej fáze tvorili väčšinu súperov MCTS agenty z novších iterácií,
+        doplnené NN agentmi a malým podielom botov. Batch size bol nastavený na
+        <strong>50 000 tréningových vzoriek</strong>. Každá iterácia mala pevné poradie:
+        najprv sa odohral celý blok self-play hier, nové vzorky sa zaradili do replay
+        buffra a až potom prebehla tréningová fáza na aktualizovanom buffri.
+        Sieť sa tak každú iteráciu učila na najčerstvejších dostupných skúsenostiach.
+      </p>
+      <p>
+        Takýto postup je efektívny z niekoľkých dôvodov. Curriculum learning — postupné
+        zvyšovanie obťažnosti — zabezpečuje, že sieť nezačína v prostredí, kde dostáva
+        výhradne negatívnu spätnú väzbu a nemá sa z čoho učiť. Diverzita súperov bráni
+        preoptimalizovaniu na jeden typ správania a buduje robustnejšiu stratégiu.
+        Self-play garantuje, že agent sa vždy cvičí proti protivníkovi na porovnateľnej
+        úrovni, čo je oveľa efektívnejšie ako fixní boti.
+      </p>
+
+      <h4>Evaluácia</h4>
+      <p>
+        Interná evaluácia — porovnávanie nových checkpointov so staršími navzájom —
+        tvorila 23 % celkového tréningového času. Finálna externá evaluácia
+        (porovnanie proti Goose Loose v troch scenároch, každý po 100 hrách s rotáciou
+        pozícií) trvala <strong>viac ako 100 hodín</strong> nepretržitého behu (viac ako 4 dni
+        vkuse; jedno kompletné bežanie všetkých troch scenárov trvalo v priemere ~36 hodín).
+        Spoľahlivá validácia v stochastickej multi-agentovej hre vyžaduje veľký počet
+        hier, aby výsledky neboli skreslené štatistickým šumom. Tréning bol výpočtovo
+        náročný, no časovo najnákladnejšou etapou projektu bola práve evaluácia.
       </p>
 
       <h3>Výsledky tréningu</h3>
@@ -735,15 +856,11 @@ a:hover{
       <div class="before-after">
         <div class="ba-col ba-before">
           <h4>Iterácia 1 — začiatok</h4>
-          <div class="ba-row"><span class="ba-key">Celková loss</span><span class="ba-val">1,3765</span></div>
-          <div class="ba-row"><span class="ba-key">Policy loss</span><span class="ba-val">1,1915</span></div>
           <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">79 krokov</span></div>
           <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">1,25 článkov</span></div>
         </div>
         <div class="ba-col ba-after">
           <h4>Iterácia 102 — koniec</h4>
-          <div class="ba-row"><span class="ba-key">Celková loss</span><span class="ba-val">0,5082 &thinsp;−63 %</span></div>
-          <div class="ba-row"><span class="ba-key">Policy loss</span><span class="ba-val">0,2267 &thinsp;−81 %</span></div>
           <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">177 krokov</span></div>
           <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">5,50 článkov</span></div>
         </div>
@@ -793,7 +910,7 @@ a:hover{
             Váš prehliadač nepodporuje HTML5 video.
           </video>
           <p class="note">
-            Štyri okná súčasne — rovnaký seed, rovnakí súperi (clever, smart, stupid bot), rôzna iterácia.
+            Štyri okná súčasne — rovnaký seed, rovnakí súperi (clever: 1 (zelený), smart: 2 (žltý), stupid bot: 3 (ružový)), rôzna iterácia.
             <strong>Ľavý horný:</strong> iter_0010 &nbsp;·&nbsp;
             <strong>Pravý horný:</strong> iter_0030 &nbsp;·&nbsp;
             <strong>Ľavý dolný:</strong> iter_0060 &nbsp;·&nbsp;
@@ -841,6 +958,56 @@ a:hover{
           </p>
         </div>
       </div>
+    </section>
+
+    <!-- Sekcia: Záver a výhľad -->
+    <section class="card">
+      <h2>Záver a výhľad</h2>
+      <p>
+        Finálny MCTS agent nedokázal prekonať <strong>Goose Loose</strong> — agenta, ktorý
+        získal zlatú medailu v Kaggle súťaži Hungry Geese a bol vyvinutý tímom 5 skúsených
+        špecialistov. Ak sa však pozriem na finančné, vedomostné a časové zdroje, ktoré
+        som mal k dispozícii, výsledok je pozoruhodne blízko tomu, čo vytvorila odborná
+        skupina s oveľa väčšou infraštruktúrou. Tento projekt ukazuje, ako ďaleko sa
+        dá zájsť s dôslednou metodikou, aj keď pracujete sami a s obmedzenými prostriedkami.
+        Rozsah projektu hovorí za seba: 4 754 riadkov čistého produkčného kódu v 24 Python súboroch,
+        k tomu 5 406 riadkov pokrytých testami v 18 testovacích súboroch — celkovo 13 400 riadkov,
+        všetko navrhnuté, implementované a odladené jednou osobou.
+      </p>
+      <p>
+        Najcennejším výsledkom nie je samotný výkon agenta, ale porozumenie celému procesu:
+        návrh architektúry a voľba loss funkcií, curriculum learning a self-play dynamika,
+        integrácia MCTS s neurónovou sieťou, metodológia evaluácie v stochastickej
+        multi-agentovej hre — to sú zručnosti a skúsenosti prenositeľné ďaleko za hranice
+        tejto konkrétnej súťaže. Projekt zároveň ukázal, aký zásadný je rozdiel medzi
+        funkčným agentom a skutočne špičkovým súťažným riešením: nestačí dobrý nápad,
+        vyžaduje to výpočtový výkon, veľké množstvo dát, precíznu simuláciu a dlhodobé
+        ladenie každého detailu.
+      </p>
+
+      <h3>Ďalšie smerovanie</h3>
+      <p>
+        Projekt má prirodzené pokračovanie v oblasti hernej AI: ďalšia Kaggle súťaž,
+        v ktorej by nazbierané skúsenosti — tréningová infraštruktúra, spôsob evaluácie,
+        vývoj architektúry — tvorili solídny štartovací bod oproti začínaniu od nuly.
+      </p>
+      <p>
+        Zaujímavejším a dnes prakticky relevantnejším smerom je posun k dominantnej oblasti
+        súčasného strojového učenia: <strong>veľkým jazykovým modelom (LLM)</strong>.
+        Open-source modely ako <strong>Llama</strong> alebo <strong>Qwen</strong> otvárajú
+        možnosť vlastného fine-tuningu — prispôsobenia predtrénovaného modelu na konkrétnu
+        úlohu alebo doménu. Vedomosti nazbierané v tomto projekte sú priamo prenositeľné:
+        pochopenie tréningových dynamík, dôležitosť kvality a rozmanitosti dát, návrh
+        a kombinácia loss funkcií, evaluačná disciplína a systematické opakovanie
+        experimentov. Všetky tieto princípy platia rovnako pri tréningu herného agenta
+        ako pri fine-tuningu jazykového modelu.
+      </p>
+      <p>
+        Bol by to prirodzený a logický krok: od zábavy a hernej časti neurónových sietí
+        k dnes prakticky najvyužívanejšej a najpopulárnejšej oblasti AI — a so základmi,
+        ktoré tento projekt poskytol, by bol taký posun oveľa menej strmý, než sa
+        zdá na prvý pohľad.
+      </p>
     </section>
 
   </main>
