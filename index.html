@@ -927,8 +927,9 @@ a:hover{
           </video>
           <p class="note">
             Finálny MCTS agent (submission.py) v priamom súboji so silným verejným agentom
-            <strong>Goose Loose</strong>. Ďalšie dve miesta obsadzujú smart_bot a stupid_bot.
-            Toto je najbližší variant k reálnemu Kaggle hodnoteniu.
+            <strong>Goose Loose</strong>. Toto je najbližší variant k reálnemu Kaggle hodnoteniu.
+            stupid_bot: 0 (modrý) &nbsp;·&nbsp; smart_bot: 1 (zelený) &nbsp;·&nbsp;
+            MCTS: 2 (žltý) &nbsp;·&nbsp; Goose Loose: 3 (ružový).
           </p>
         </div>
 
@@ -942,6 +943,8 @@ a:hover{
             Jeden MCTS agent (submission.py) proti trom lacným NN agentom bez stromového
             prehľadávania. Obe strany používajú <strong>tú istú neurónovú sieť</strong> —
             rozdiel je iba v tom, či sieť dostane čas na MCTS, alebo rozhoduje priamym forward passom.
+            MCTS: 0 (modrý) &nbsp;·&nbsp; NN priamy: 1 (zelený) &nbsp;·&nbsp;
+            NN priamy: 2 (žltý) &nbsp;·&nbsp; NN priamy: 3 (ružový).
           </p>
         </div>
 
@@ -955,6 +958,8 @@ a:hover{
             Štyri kópie finálneho agenta hrajú navzájom — čistý self-play scenár.
             Všetci štyria používajú plný MCTS s 128 simuláciami.
             Hra ukazuje správanie agenta keď čelí rovnako silným protivníkom.
+            MCTS: 0 (modrý) &nbsp;·&nbsp; MCTS: 1 (zelený) &nbsp;·&nbsp;
+            MCTS: 2 (žltý) &nbsp;·&nbsp; MCTS: 3 (ružový).
           </p>
         </div>
       </div>
@@ -970,9 +975,9 @@ a:hover{
         som mal k dispozícii, výsledok je pozoruhodne blízko tomu, čo vytvorila odborná
         skupina s oveľa väčšou infraštruktúrou. Tento projekt ukazuje, ako ďaleko sa
         dá zájsť s dôslednou metodikou, aj keď pracujete sami a s obmedzenými prostriedkami.
-        Rozsah projektu hovorí za seba: 4 754 riadkov čistého produkčného kódu v 24 Python súboroch,
-        k tomu 5 406 riadkov pokrytých testami v 18 testovacích súboroch — celkovo 13 400 riadkov,
-        všetko navrhnuté, implementované a odladené jednou osobou.
+        Napriek rozsahu projektu — 4 754 riadkov produkčného kódu v 24 súboroch,
+        5 406 riadkov testov v 18 testovacích súboroch, celkovo 13 400 riadkov — to nestačilo
+        na prekonanie expertných riešení s väčšou výpočtovou kapacitou a rokmi skúseností.
       </p>
       <p>
         Najcennejším výsledkom nie je samotný výkon agenta, ale porozumenie celému procesu:
