@@ -5,1184 +5,1427 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PyTorch Game Agent: Návrh, tréning a súťaženie</title>
   <meta name="description" content="Ročníkový projekt: tréning neurónovej siete v Pythone (PyTorch) pre hranie jednoduchej videohry a súťažné porovnanie (Kaggle).">
-  <style>
-:root{
-  --bg: #0e0f12;
-  --card: #16181d;
-  --text: #e8eaf0;
-  --muted: #adb3c0;
-  --accent: #6aa9ff;
-  --accent-2: #a26bff;
-  --border: #23262d;
-  --shadow: 0 10px 30px rgba(0,0,0,0.35);
-  --radius: 16px;
-}
-
-*{ box-sizing: border-box; }
-
-html, body{
-  margin: 0;
-  padding: 0;
-  background: radial-gradient(1200px 800px at 20% -10%, #182030 0%, var(--bg) 55%);
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-               "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
-               "Segoe UI Emoji", "Segoe UI Symbol";
-  line-height: 1.6;
-}
-
-.container{
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.site-header{
-  padding: 64px 0 36px;
-  background: linear-gradient(180deg, rgba(20,30,46,0.6), rgba(14,15,18,0));
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.project-title{
-  margin: 0 0 6px 0;
-  font-size: clamp(24px, 3vw, 36px);
-  letter-spacing: 0.2px;
-}
-
-.project-subtitle{
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.98rem;
-}
-
-.card{
-  background: linear-gradient(180deg, rgba(30,34,42,0.6), rgba(22,24,29,0.85));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 22px 22px;
-  margin-top: 22px;
-}
-
-.project-spec{
-  margin-top: 8px;
-}
-
-.spec-list{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px 24px;
-  margin: 0;
-}
-
-.spec-list dt{
-  font-weight: 600;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.spec-list dd{
-  margin: 4px 0 0 0;
-}
-
-/* ── Badges ── */
-.badges{
-  margin-top: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.badge{
-  display: inline-block;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: #121419;
-  font-size: 0.85rem;
-  color: var(--text);
-}
-
-/* ── Media grid ── */
-.media-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.media-grid figure{
-  margin: 0;
-  text-align: center;
-}
-
-.media-grid img{
-  max-width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.04);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-}
-
-.media-grid figcaption{
-  margin-top: 6px;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-/* ── Video grid ── */
-.video-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-top: 16px;
-}
-
-.video-card{
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.video-card h3{
-  margin: 0 0 10px;
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.video-card video{
-  display: block;
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: #000;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.45);
-}
-
-.note{
-  font-size: 0.88rem;
-  color: var(--muted);
-  margin: 10px 0 0;
-}
-
-/* ── Stat grid ── */
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 18px 0;
-}
-
-.stat-card {
-  background: rgba(106, 169, 255, 0.06);
-  border: 1px solid rgba(106, 169, 255, 0.15);
-  border-radius: 12px;
-  padding: 14px 16px;
-}
-
-.stat-card .sv {
-  display: block;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1.2;
-}
-
-.stat-card .sl {
-  display: block;
-  font-size: 0.77rem;
-  color: var(--muted);
-  margin-top: 4px;
-  line-height: 1.3;
-}
-
-/* ── Architecture timeline ── */
-.arch-timeline {
-  margin: 18px 0;
-}
-
-.arch-tl-item {
-  display: flex;
-  gap: 14px;
-}
-
-.arch-tl-aside {
-  width: 16px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.arch-tl-dot {
-  width: 13px;
-  height: 13px;
-  background: var(--accent-2);
-  border-radius: 50%;
-  opacity: 0.8;
-  flex-shrink: 0;
-  margin-top: 7px;
-}
-
-.arch-tl-dot.diamond {
-  border-radius: 3px;
-  transform: rotate(45deg);
-  width: 11px;
-  height: 11px;
-  background: var(--accent);
-  opacity: 1;
-  margin-top: 8px;
-}
-
-.arch-tl-line {
-  width: 2px;
-  background: rgba(162, 107, 255, 0.2);
-  flex: 1;
-  min-height: 14px;
-}
-
-.arch-tl-body {
-  flex: 1;
-  padding-bottom: 10px;
-}
-
-.arch-tl-layer {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.arch-tl-box {
-  background: rgba(162, 107, 255, 0.05);
-  border: 1px solid rgba(162, 107, 255, 0.17);
-  border-radius: 8px;
-  padding: 9px 13px;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.arch-tl-heads {
-  display: flex;
-  gap: 10px;
-}
-
-.arch-tl-head {
-  flex: 1;
-  background: rgba(106, 169, 255, 0.06);
-  border: 1px solid rgba(106, 169, 255, 0.2);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 0.85rem;
-  text-align: center;
-  line-height: 1.5;
-}
-
-.arch-tl-head strong {
-  display: block;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-
-/* ── Data table ── */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-  margin: 14px 0;
-}
-
-.data-table th {
-  text-align: left;
-  color: var(--muted);
-  font-weight: 600;
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.79rem;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.data-table td {
-  padding: 9px 10px;
-  border-bottom: 1px solid rgba(35, 38, 45, 0.5);
-  line-height: 1.4;
-}
-
-.data-table tbody tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.018);
-}
-
-.data-table tr:last-child td {
-  border-bottom: none;
-}
-
-.data-table td:first-child {
-  color: var(--muted);
-}
-
-/* ── Before / After ── */
-.before-after {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 14px 0;
-  font-size: 0.88rem;
-}
-
-.ba-col {
-  border-radius: 10px;
-  padding: 13px 15px;
-}
-
-.ba-col.ba-before {
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid var(--border);
-}
-
-.ba-col.ba-after {
-  background: rgba(106, 169, 255, 0.06);
-  border: 1px solid rgba(106, 169, 255, 0.2);
-}
-
-.ba-col h4 {
-  margin: 0 0 10px;
-  font-size: 0.73rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-}
-
-.ba-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  gap: 6px;
-}
-
-.ba-row:last-child {
-  border-bottom: none;
-}
-
-.ba-key {
-  color: var(--muted);
-  font-size: 0.82rem;
-  flex-shrink: 0;
-}
-
-.ba-val {
-  font-weight: 600;
-  text-align: right;
-}
-
-.ba-after .ba-val {
-  color: var(--accent);
-}
-
-/* ── Links ── */
-a,
-a:link,
-a:visited,
-a:hover,
-a:active,
-a:focus,
-a[href],
-a[href^="mailto"],
-a[href^="http"]{
-  color: var(--text) !important;
-  text-decoration: underline;
-  text-decoration-color: rgba(255,255,255,0.25);
-  text-underline-offset: 3px;
-}
-
-a:hover{
-  text-decoration-color: var(--accent);
-}
-
-.card a{
-  font-weight: 500;
-}
-
-/* ── Footer ── */
-.site-footer{
-  margin-top: 48px;
-  padding: 28px 0;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-/* ── Responsive ── */
-@media (min-width: 720px){
-  .spec-list{
-    grid-template-columns: 220px 1fr;
-    gap: 10px 28px;
-  }
-  .spec-list > div{
-    display: contents;
-  }
-  .media-grid{
-    grid-template-columns: 1fr 1fr;
-  }
-  .video-grid{
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 580px) {
-  .stat-grid        { grid-template-columns: repeat(2, 1fr); }
-  .before-after     { grid-template-columns: 1fr; }
-  .arch-tl-heads    { flex-direction: column; }
-}
-  </style>
+  <meta property="og:title" content="PyTorch Game Agent: Návrh, tréning a súťaženie">
+  <meta property="og:description" content="Reinforcement learning a neurónové siete — od DQN agenta pre Snake po CNN + MCTS pipeline v súťaži Kaggle Hungry Geese.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <h1 class="project-title">PyTorch Game Agent: Návrh, tréning a súťaženie</h1>
-      <p class="project-subtitle">Ročníkový projekt – FMFI UK</p>
+
+  <!-- Background FX -->
+  <div class="bg-fx" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- Scroll progress -->
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="mainNav">
+    <div class="container nav-inner">
+      <a href="#top" class="nav-brand">
+        <span class="nav-logo">DM</span>
+        <span>PyTorch Game Agent</span>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#specifikacia">Projekt</a></li>
+        <li><a href="#hra">Hra</a></li>
+        <li><a href="#kaggle">Kaggle</a></li>
+        <li><a href="#architektura">Architektúra</a></li>
+        <li><a href="#hodnotenie">Hodnotenie</a></li>
+        <li><a href="#zaver">Záver</a></li>
+      </ul>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <a class="nav-gh" href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="top">
+    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="container hero-content">
+      <span class="hero-eyebrow">Ročníkový projekt · FMFI UK</span>
+      <h1 class="hero-title">
+        PyTorch Game Agent
+        <span class="hero-title-sub grad-text">Návrh, tréning a súťaženie</span>
+      </h1>
+      <p class="hero-sub">
+        Reinforcement learning a neurónové siete aplikované na hranie jednoduchej videohry —
+        od DQN agenta pre Snake až po kompletný CNN&nbsp;+&nbsp;MCTS self-play pipeline
+        v súťažnom prostredí Kaggle Hungry Geese.
+      </p>
+      <div class="hero-badges">
+        <span class="badge">PyTorch · CUDA</span>
+        <span class="badge">DQN</span>
+        <span class="badge">CNN Policy-Value</span>
+        <span class="badge">MCTS</span>
+        <span class="badge">Self-play</span>
+        <span class="badge">Kaggle</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          Zdrojový kód
+        </a>
+        <a class="btn btn-ghost" href="#hodnotenie">Pozrieť výsledky</a>
+      </div>
+      <div class="hero-quickstats">
+        <span><strong>102</strong> iterácií self-play</span>
+        <span><strong>1,74 M</strong> tréningových pozícií</span>
+        <span><strong>65,7 h</strong> tréningu</span>
+        <span><strong>13 400</strong> riadkov kódu</span>
+      </div>
+    </div>
+    <a class="scroll-hint" href="#specifikacia" aria-label="Posunúť nižšie">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </a>
   </header>
 
   <main class="container">
 
     <!-- Sekcia: Základné info -->
-    <section class="card project-spec">
-      <h2>Špecifikácia projektu</h2>
-      <dl class="spec-list">
+    <section class="section reveal" id="specifikacia">
+      <div class="section-head">
+        <span class="section-num">01</span>
         <div>
-          <dt>Názov projektu</dt>
-          <dd>PyTorch Game Agent: Návrh, tréning a súťažné porovnanie</dd>
+          <span class="section-eyebrow">Projekt</span>
+          <h2>Špecifikácia projektu</h2>
         </div>
-        <div>
-          <dt>Študent</dt>
-          <dd>Dávid Moniš &middot; <a href="mailto:david5.monis@gmail.com">david5.monis@gmail.com</a></dd>
-        </div>
-        <div>
-          <dt>Školiteľ</dt>
-          <dd>RNDr. Andrej Lúčny, PhD. &middot; <a href="mailto:lucny@fmph.uniba.sk">lucny@fmph.uniba.sk</a></dd>
-        </div>
-        <div>
-          <dt>Téma</dt>
-          <dd>Reinforcement learning a neurónové siete aplikované na hranie jednoduchej videohry so súťažením na Kaggle.</dd>
-        </div>
-        <div>
-          <dt>Špecifikácia (Cieľ)</dt>
-          <dd>
-            Projekt je rozdelený do dvoch nadväzujúcich fáz.
-            Prvá fáza sa zameriava na návrh a implementáciu DQN agenta pre hru Snake vrátane kompletného tréningového ekosystému v PyTorch.
-            Druhá fáza nadväzuje rozšírením riešenia na multi-agentové prostredie Kaggle Hungry Geese,
-            kde je cieľom adaptovať agenta na nové pravidlá a dosiahnuť merateľné výsledky v súťažnom hodnotení.
-          </dd>
-        </div>
-        <div>
-          <dt>Zdrojový kód projektu</dt>
-          <dd>
-            <a href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">
-            GitHub – DavidMonis / RocnikovyProjekt
-            </a>
-          </dd>
-        </div>
-        <div>
-          <dt>README</dt>
-          <dd>
-            <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md" target="_blank" rel="noopener">
-              Návod na spustenie tréningu a testovania
-            </a>
-          </dd>
-        </div>
-      </dl>
+      </div>
+      <div class="card">
+        <dl class="spec-list">
+          <div>
+            <dt>Názov projektu</dt>
+            <dd>PyTorch Game Agent: Návrh, tréning a súťažné porovnanie</dd>
+          </div>
+          <div>
+            <dt>Študent</dt>
+            <dd>Dávid Moniš &middot; <a href="mailto:david5.monis@gmail.com">david5.monis@gmail.com</a></dd>
+          </div>
+          <div>
+            <dt>Školiteľ</dt>
+            <dd>RNDr. Andrej Lúčny, PhD. &middot; <a href="mailto:lucny@fmph.uniba.sk">lucny@fmph.uniba.sk</a></dd>
+          </div>
+          <div>
+            <dt>Téma</dt>
+            <dd>Reinforcement learning a neurónové siete aplikované na hranie jednoduchej videohry so súťažením na Kaggle.</dd>
+          </div>
+          <div>
+            <dt>Špecifikácia (Cieľ)</dt>
+            <dd>
+              Projekt je rozdelený do dvoch nadväzujúcich fáz.
+              Prvá fáza sa zameriava na návrh a implementáciu DQN agenta pre hru Snake vrátane kompletného tréningového ekosystému v PyTorch.
+              Druhá fáza nadväzuje rozšírením riešenia na multi-agentové prostredie Kaggle Hungry Geese,
+              kde je cieľom adaptovať agenta na nové pravidlá a dosiahnuť merateľné výsledky v súťažnom hodnotení.
+            </dd>
+          </div>
+          <div>
+            <dt>Zdrojový kód projektu</dt>
+            <dd>
+              <a href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">
+                GitHub – DavidMonis / RocnikovyProjekt
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt>README</dt>
+            <dd>
+              <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md" target="_blank" rel="noopener">
+                Návod na spustenie tréningu a testovania
+              </a>
+            </dd>
+          </div>
+        </dl>
+      </div>
     </section>
 
     <!-- Sekcia: Stručný opis hry -->
-    <section class="card">
-      <h2>Krátky opis hry</h2>
-      <p>
-        Hra je variácia klasického Snake, navrhnutá ako prostredie pre reinforcement learning.
-        Agent sa v každom kroku rozhoduje na základe lokálnych informácií o nebezpečenstve,
-        aktuálnom smere pohybu a relatívnej polohe potravy. Jeho cieľom je efektívne navigovať
-        mriežku, vyhýbať sa kolíziám so stenami a vlastným telom a dlhodobo maximalizovať skóre.
-      </p>
-      <p>
-        Správanie hada nie je explicitne naprogramované – agent sa učí stratégiu postupne
-        prostredníctvom skúseností, odmien a penalizácií. Pomocou Deep Q-Learningu dokáže
-        plánovať pohyb, prispôsobovať sa rastúcej dĺžke tela a zlepšovať svoje rozhodnutia
-        s narastajúcim počtom odohraných epizód.
-      </p>
-      <p>
-        Projekt nepredstavuje len výslednú hru, ale kompletný tréningový ekosystém zahŕňajúci
-        definíciu stavového priestoru, množinu akcií, návrh reward funkcie, neurónovú sieť,
-        tréningovú logiku, ukladanie modelov a vizualizáciu učenia v reálnom čase.
-      </p>
-      <div class="media-grid">
-        <figure>
-          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/1.png" alt="Screenshot 1" />
-          <figcaption>Herné rozhranie počas behu agenta</figcaption>
-        </figure>
-        <figure>
-          <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/2.png" alt="Screenshot 2" />
-          <figcaption>Prostredie určené pre reinforcement learning</figcaption>
-        </figure>
+    <section class="section reveal" id="hra">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <div>
+          <span class="section-eyebrow">Fáza 1 · Snake</span>
+          <h2>Krátky opis hry</h2>
+        </div>
+      </div>
+      <div class="card">
+        <p>
+          Hra je variácia klasického Snake, navrhnutá ako prostredie pre reinforcement learning.
+          Agent sa v každom kroku rozhoduje na základe lokálnych informácií o nebezpečenstve,
+          aktuálnom smere pohybu a relatívnej polohe potravy. Jeho cieľom je efektívne navigovať
+          mriežku, vyhýbať sa kolíziám so stenami a vlastným telom a dlhodobo maximalizovať skóre.
+        </p>
+        <p>
+          Správanie hada nie je explicitne naprogramované – agent sa učí stratégiu postupne
+          prostredníctvom skúseností, odmien a penalizácií. Pomocou Deep Q-Learningu dokáže
+          plánovať pohyb, prispôsobovať sa rastúcej dĺžke tela a zlepšovať svoje rozhodnutia
+          s narastajúcim počtom odohraných epizód.
+        </p>
+        <p>
+          Projekt nepredstavuje len výslednú hru, ale kompletný tréningový ekosystém zahŕňajúci
+          definíciu stavového priestoru, množinu akcií, návrh reward funkcie, neurónovú sieť,
+          tréningovú logiku, ukladanie modelov a vizualizáciu učenia v reálnom čase.
+        </p>
+        <div class="media-grid">
+          <figure>
+            <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/1.png" alt="Screenshot 1" loading="lazy" />
+            <figcaption>Herné rozhranie počas behu agenta</figcaption>
+          </figure>
+          <figure>
+            <img src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/image/2.png" alt="Screenshot 2" loading="lazy" />
+            <figcaption>Prostredie určené pre reinforcement learning</figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 
     <!-- Sekcia: Čo je hotové -->
-    <section class="card">
-      <h2>Čo je už hotové</h2>
-      <ul>
-        <li>Plne funkčná manuálna verzia hry Snake v knižnici pygame.</li>
-        <li>Samostatné RL prostredie s definovaným stavovým priestorom, akciami a reward funkciou.</li>
-        <li>Implementácia DQN neurónovej siete v PyTorch (Linear_QNet).</li>
-        <li>Tréningová logika s oddeleným short/long memory tréningom.</li>
-        <li>Ukladanie a opätovné načítanie natrénovaných váh modelu.</li>
-        <li>Vizualizácia priebehu učenia – skóre a priemerné skóre v čase.</li>
-        <li>Skripty na testovanie a kontrolu uložených modelov.</li>
-        <li>Vygenerované videá porovnania agentov a timelapse tréningu.</li>
-        <li>Pripravené podklady pre rozšírenie na súťažné prostredie Kaggle.</li>
-      </ul>
+    <section class="section reveal" id="hotove">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <div>
+          <span class="section-eyebrow">Stav projektu</span>
+          <h2>Čo je už hotové</h2>
+        </div>
+      </div>
+      <div class="card">
+        <ul class="checklist">
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Plne funkčná manuálna verzia hry Snake v knižnici pygame.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Samostatné RL prostredie s definovaným stavovým priestorom, akciami a reward funkciou.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Implementácia DQN neurónovej siete v PyTorch (Linear_QNet).</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Tréningová logika s oddeleným short/long memory tréningom.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Ukladanie a opätovné načítanie natrénovaných váh modelu.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Vizualizácia priebehu učenia – skóre a priemerné skóre v čase.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Skripty na testovanie a kontrolu uložených modelov.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Vygenerované videá porovnania agentov a timelapse tréningu.</li>
+          <li><span class="check-ico"><svg viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></svg></span>Pripravené podklady pre rozšírenie na súťažné prostredie Kaggle.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- Sekcia: Evidencia / výsledky -->
-    <section class="card">
-      <h2>Evidencia a výsledky</h2>
-      <p>
-        Nižšie sú ukážky výsledkov tréningu. Videá demonštrujú rozdiely medzi
-        natrénovaným agentom v rôznych fázach učenia a časový priebeh tréningu.
-      </p>
-      <div class="video-grid">
-        <div class="video-card">
-          <h3>Porovnanie 3 úrovní hadov</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Comparison1.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
+    <section class="section reveal" id="vysledky">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <div>
+          <span class="section-eyebrow">Fáza 1 · Výstupy</span>
+          <h2>Evidencia a výsledky</h2>
         </div>
-        <div class="video-card">
-          <h3>TimeLapse tréningu</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/TimeLapse1.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
-        </div>
-        <div class="video-card">
-          <h3>Uložené váhy modelu</h3>
-          <p>
-            <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/Snake/model/smartSnake.pth" target="_blank" rel="noopener">
-              smartSnake.pth (GitHub)
-            </a>
-          </p>
+      </div>
+      <div class="card">
+        <p>
+          Nižšie sú ukážky výsledkov tréningu. Videá demonštrujú rozdiely medzi
+          natrénovaným agentom v rôznych fázach učenia a časový priebeh tréningu.
+        </p>
+        <div class="video-grid">
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>Porovnanie 3 úrovní hadov</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/Comparison1.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+          </div>
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>TimeLapse tréningu</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://raw.githubusercontent.com/DavidMonis/RocnikovyProjekt/main/video/TimeLapse1.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+          </div>
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>Uložené váhy modelu</h3>
+            <p style="margin:0;">
+              <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/Snake/model/smartSnake.pth" target="_blank" rel="noopener">
+                smartSnake.pth (GitHub)
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Sekcia: Kaggle Hungry Geese – Fáza 2 – Úvod -->
-    <section class="card">
-      <h2>Kaggle Hungry Geese – Fáza 2</h2>
-
-      <div class="badges">
-        <span class="badge">CNN Policy-Value</span>
-        <span class="badge">MCTS</span>
-        <span class="badge">Self-play</span>
-        <span class="badge">PyTorch · CUDA</span>
-
-      </div>
-
-      <p>
-        Druhá fáza projektu nahradila DQN agenta kompletným AI pipeline pre
-        <a href="https://www.kaggle.com/competitions/hungry-geese" target="_blank" rel="noopener"><strong>Kaggle Hungry Geese</strong></a>
-        – verziu hry Snake pre štyroch hráčov, v ktorej sa po opustení jedného okraja hracej plochy hráč objaví na opačnej strane. Hra vyžaduje
-        modelovanie súperov, dlhodobé plánovanie a okamžitú reakciu na nebezpečné kolízie.
-        Vznikol vlastný simulátor herného prostredia, CNN policy-value sieť, vlastný MCTS
-        a self-play tréning s replay bufferom.
-      </p>
-
-      <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="stat-card">
-          <span class="sv">65,7 h</span>
-          <span class="sl">Celkový čas self-play tréningu (102 iterácií)</span>
-        </div>
-        <div class="stat-card">
-          <span class="sv">1,74 M</span>
-          <span class="sl">Vygenerovaných tréningových pozícií</span>
-        </div>
-        <div class="stat-card">
-          <span class="sv">&gt; 10 000</span>
-          <span class="sl">Odohraných self-play hier (100 za iteráciu)</span>
-        </div>
-        <div class="stat-card">
-          <span class="sv">100+ h</span>
-          <span class="sl">Externá evaluácia agenta (4+ dní)</span>
+    <section class="section reveal" id="kaggle">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <div>
+          <span class="section-eyebrow">Fáza 2 · Súťaž</span>
+          <h2>Kaggle Hungry Geese</h2>
         </div>
       </div>
+      <div class="card">
+        <div class="badges" style="margin-top:0; margin-bottom:18px;">
+          <span class="badge">CNN Policy-Value</span>
+          <span class="badge">MCTS</span>
+          <span class="badge">Self-play</span>
+          <span class="badge">PyTorch · CUDA</span>
+        </div>
 
-      <p class="note">
-        <strong>Zaujímavosť:</strong> Samotný gradient tréning siete zaberá len 0,2 h z celkových 65,7 h —
-        teda menej ako 1 % celkového času. Väčšina šla na generovanie self-play hier (77 %)
-        a internú evaluáciu checkpointov (23 %). Toto rozloženie je typické pre self-play systémy,
-        kde je generovanie dát rádovo nákladnejšie ako aktualizácia váh siete.
-      </p>
+        <p>
+          Druhá fáza projektu nahradila DQN agenta kompletným AI pipeline pre
+          <a href="https://www.kaggle.com/competitions/hungry-geese" target="_blank" rel="noopener"><strong>Kaggle Hungry Geese</strong></a>
+          – verziu hry Snake pre štyroch hráčov, v ktorej sa po opustení jedného okraja hracej plochy hráč objaví na opačnej strane. Hra vyžaduje
+          modelovanie súperov, dlhodobé plánovanie a okamžitú reakciu na nebezpečné kolízie.
+          Vznikol vlastný simulátor herného prostredia, CNN policy-value sieť, vlastný MCTS
+          a self-play tréning s replay bufferom.
+        </p>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="sv" data-count="65.7" data-dec="1" data-suffix=" h">0 h</span>
+            <span class="sl">Celkový čas self-play tréningu (102 iterácií)</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="1.74" data-dec="2" data-suffix=" M">0 M</span>
+            <span class="sl">Vygenerovaných tréningových pozícií</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="10000" data-prefix="&gt; ">0</span>
+            <span class="sl">Odohraných self-play hier (100 za iteráciu)</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="100" data-suffix="+ h">0 h</span>
+            <span class="sl">Externá evaluácia agenta (4+ dní)</span>
+          </div>
+        </div>
+
+        <div class="split-donut">
+          <div class="donut-wrap">
+            <canvas id="timeChart" class="chart" width="280" height="280" style="cursor:default;"></canvas>
+            <ul class="donut-legend" id="timeLegend">
+              <li data-seg="0"><span class="dl-dot" style="background:#6aa9ff;"></span>Generovanie self-play hier<span class="dl-val">77 %</span></li>
+              <li data-seg="1"><span class="dl-dot" style="background:#a26bff;"></span>Interná evaluácia checkpointov<span class="dl-val">23 %</span></li>
+              <li data-seg="2"><span class="dl-dot" style="background:#34d399;"></span>Gradient tréning siete<span class="dl-val">&lt; 1 %</span></li>
+            </ul>
+          </div>
+          <p class="note" style="margin:0;">
+            <strong>Zaujímavosť:</strong> Samotný gradient tréning siete zaberá len 0,2 h z celkových 65,7 h —
+            teda menej ako 1 % celkového času. Väčšina šla na generovanie self-play hier (77 %)
+            a internú evaluáciu checkpointov (23 %). Toto rozloženie je typické pre self-play systémy,
+            kde je generovanie dát rádovo nákladnejšie ako aktualizácia váh siete.
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- Sekcia: Kaggle – Architektúra a tréning -->
-    <section class="card">
-      <h2>Architektúra a tréning</h2>
+    <section class="section reveal" id="architektura">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <div>
+          <span class="section-eyebrow">Fáza 2 · Pipeline</span>
+          <h2>Architektúra a tréning</h2>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;">Vývoj architektúry</h3>
+        <p>
+          Finálna podoba siete nevznikla naraz — prešla niekoľkými výrazne odlišnými generáciami.
+          Na začiatku stála jednoduchá plne prepojená sieť s jednou skrytou vrstvou, určená na
+          overenie, či model vôbec dokáže spracovať vstup a vrátiť použiteľné akcie.
+          Ukázalo sa, že to funguje, no hra Hungry Geese je priestorový problém — a plne prepojená
+          vrstva priestorové vzťahy nevyužíva efektívne.
+        </p>
+        <p>
+          Preto sa architektúra vyvíjala postupne: pribudla druhá skrytá vrstva pre zachytenie
+          zložitejších vzťahov, potom konvolučné vrstvy (CNN) pre priestorové príznaky mriežky,
+          neskôr sa za CNN pridala <em>flatten</em> vrstva kombinujúca priestorové príznaky
+          so skalárnym vstupom. Posledným a najdôležitejším krokom bolo rozdelenie výstupnej časti
+          na <strong>dve nezávislé hlavy</strong> — policy a value — čo umožnilo plnohodnotnú
+          integráciu s MCTS a zásadne zvýšilo kvalitu tréningu.
+        </p>
 
-      <h3>Vývoj architektúry</h3>
-      <p>
-        Finálna podoba siete nevznikla naraz — prešla niekoľkými výrazne odlišnými generáciami.
-        Na začiatku stála jednoduchá plne prepojená sieť s jednou skrytou vrstvou, určená na
-        overenie, či model vôbec dokáže spracovať vstup a vrátiť použiteľné akcie.
-        Ukázalo sa, že to funguje, no hra Hungry Geese je priestorový problém — a plne prepojená
-        vrstva priestorové vzťahy nevyužíva efektívne.
-      </p>
-      <p>
-        Preto sa architektúra vyvíjala postupne: pribudla druhá skrytá vrstva pre zachytenie
-        zložitejších vzťahov, potom konvolučné vrstvy (CNN) pre priestorové príznaky mriežky,
-        neskôr sa za CNN pridala <em>flatten</em> vrstva kombinujúca priestorové príznaky
-        so skalárnym vstupom. Posledným a najdôležitejším krokom bolo rozdelenie výstupnej časti
-        na <strong>dve nezávislé hlavy</strong> — policy a value — čo umožnilo plnohodnotnú
-        integráciu s MCTS a zásadne zvýšilo kvalitu tréningu.
-      </p>
+        <h3>Neurónová sieť</h3>
+        <p>
+          Finálny model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong>.
+          Predikuje pravdepodobnosti akcií (policy) aj hodnotu aktuálnej pozície (value),
+          čo umožňuje efektívne kombinovanie s MCTS bez nutnosti dohrávať každú hru do konca.
+        </p>
 
-      <h3>Neurónová sieť</h3>
-      <p>
-        Finálny model je <strong>CNN policy-value sieť s dvoma výstupnými hlavami</strong>.
-        Predikuje pravdepodobnosti akcií (policy) aj hodnotu aktuálnej pozície (value),
-        čo umožňuje efektívne kombinovanie s MCTS bez nutnosti dohrávať každú hru do konca.
-      </p>
-
-      <div class="arch-timeline">
-        <div class="arch-tl-item">
-          <div class="arch-tl-aside">
-            <div class="arch-tl-dot"></div>
-            <div class="arch-tl-line"></div>
-          </div>
-          <div class="arch-tl-body">
-            <div class="arch-tl-layer">Vstup — priestorový</div>
-            <div class="arch-tl-box">
-              <strong>6 kanálov × 7 × 11</strong> — každý kanál je binárna maska hernej plochy:<br>
-              <span style="color:var(--muted); font-size:0.83rem;">
-                vlastné telo · hlavy súperov · telá súperov · chvosty súperov · jedlo ·
-                nebezpečné polia (políčka, kam môže v ďalšom kroku vstúpiť hlava súpera)
-              </span>
+        <div class="arch-timeline">
+          <div class="arch-tl-item">
+            <div class="arch-tl-aside">
+              <div class="arch-tl-dot"></div>
+              <div class="arch-tl-line"></div>
             </div>
-          </div>
-        </div>
-        <div class="arch-tl-item">
-          <div class="arch-tl-aside">
-            <div class="arch-tl-dot"></div>
-            <div class="arch-tl-line"></div>
-          </div>
-          <div class="arch-tl-body">
-            <div class="arch-tl-layer">Vstup — skalárny (13 hodnôt)</div>
-            <div class="arch-tl-box">
-              Dĺžky všetkých 4 husí · alive flagy 3 súperov · hunger tick (krokov do hladovej smrti) ·
-              aktuálny krok hry · posledná akcia agenta (one-hot, 4 hodnoty)<br>
-              <span style="color:var(--muted); font-size:0.83rem;">
-                Tieto hodnoty nie sú kódovateľné do mriežky — nesú globálny kontext hry.
-                Vstupujú priamo do dense vrstvy po zkonkatenovaní s výstupom CNN.
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="arch-tl-item">
-          <div class="arch-tl-aside">
-            <div class="arch-tl-dot"></div>
-            <div class="arch-tl-line"></div>
-          </div>
-          <div class="arch-tl-body">
-            <div class="arch-tl-layer">Konvolučné vrstvy</div>
-            <div class="arch-tl-box">
-              Conv2d 6 → 32, 3×3, <em>circular padding</em> + ReLU<br>
-              Conv2d 32 → 64, 3×3, circular padding + ReLU → <strong>Flatten (4 928)</strong><br>
-              <span style="color:var(--muted); font-size:0.83rem;">
-                Circular padding odráža toroidálnu topológiu hracej plochy: pravý okraj susedí
-                s ľavým, horný so spodným. Bežný zero-padding by na okrajoch vytváral falošné
-                „steny", ktoré v hre neexistujú. Circular convolutions toto priamo modelujú —
-                sieť vidí vzťahy cez okraje mapy rovnako ako vo vnútri mriežky.
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="arch-tl-item">
-          <div class="arch-tl-aside">
-            <div class="arch-tl-dot"></div>
-            <div class="arch-tl-line"></div>
-          </div>
-          <div class="arch-tl-body">
-            <div class="arch-tl-layer">Dense vrstva</div>
-            <div class="arch-tl-box">
-              <strong>4 941 → 256, ReLU</strong> — vstup tvorí concat CNN výstupu (4 928) a 13 skalárov.
-              Táto vrstva kombinuje priestorové príznaky z konvolúcií s globálnym kontextom hry.
-            </div>
-          </div>
-        </div>
-        <div class="arch-tl-item">
-          <div class="arch-tl-aside">
-            <div class="arch-tl-dot diamond"></div>
-          </div>
-          <div class="arch-tl-body">
-            <div class="arch-tl-layer">Výstupné hlavy</div>
-            <div class="arch-tl-heads">
-              <div class="arch-tl-head">
-                <strong>Policy head</strong>
-                256 → 4, Softmax<br>
-                P(N) · P(S) · P(E) · P(W)<br>
-                <small style="color:var(--muted)">Cross-entropy loss vs. počty návštev MCTS</small>
-              </div>
-              <div class="arch-tl-head">
-                <strong>Value head</strong>
-                256 → 1, Tanh<br>
-                Hodnota pozície [−1, 1]<br>
-                <small style="color:var(--muted)">MSE loss vs. finálne umiestnenie</small>
+            <div class="arch-tl-body">
+              <div class="arch-tl-layer">Vstup — priestorový</div>
+              <div class="arch-tl-box">
+                <strong>6 kanálov × 7 × 11</strong> — každý kanál je binárna maska hernej plochy:<br>
+                <span class="arch-tl-sub">
+                  vlastné telo · hlavy súperov · telá súperov · chvosty súperov · jedlo ·
+                  nebezpečné polia (políčka, kam môže v ďalšom kroku vstúpiť hlava súpera)
+                </span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <h4 style="margin-top:20px;">Výstupné hlavy — výber loss funkcií</h4>
-      <p>
-        <strong>Policy head</strong> predikuje distribúciu pravdepodobností nad 4 akciami:
-        P(N) — sever, P(S) — juh, P(E) — východ, P(W) — západ. Trénovacím cieľom sú
-        normalizované počty návštev z MCTS (tzv. soft targets) — sieť sa učí napodobniť
-        rozhodnutia plánovacej fázy MCTS, nie len okamžitú akciu. Na tréning distribúcie
-        je prirodzenou voľbou <strong>cross-entropy loss</strong>, ktorá priamo penalizuje
-        každú odchýlku od cieľovej distribúcie a je štandardom pri klasifikačných úlohách.
-      </p>
-      <p>
-        <strong>Value head</strong> predikuje skalárnu hodnotu pozície v rozsahu [−1, 1],
-        kde −1 zodpovedá najhoršiemu umiestneniu (prvý vypadnutý) a +1 víťazstvu.
-        Keďže ide o regresnú úlohu s jednou výstupnou hodnotou, <strong>MSE loss</strong>
-        je prirodzenou voľbou — penalizuje odchýlky na druhú mocninu, vďaka čomu sú
-        veľké chyby trestané výrazne silnejšie ako malé, a funguje symetricky pre
-        príliš optimistické aj príliš pesimistické odhady.
-      </p>
-
-      <h3>Monte Carlo Tree Search</h3>
-      <p>
-        Samotný forward pass siete je krátkozraký — na základe aktuálneho stavu hry vráti
-        distribúciu akcií bez akéhokoľvek pohľadu do budúcnosti. Práve tu nastupuje
-        <strong>MCTS</strong>: nad sieťou sa stavia implicitný prehľadávací strom,
-        kde každý uzol reprezentuje stav hry a každá hrana jednu z možných akcií.
-      </p>
-      <p>
-        Prehľadávanie riadi <strong>PUCT formula</strong>, ktorá balancuje exploráciu nových
-        vetiev (prioritizovanú na základe policy headu) a exploitáciu sľubných línií
-        (na základe doterajších výsledkov simulácií). Na listových uzloch sa pozícia
-        ohodnotí pomocou <strong>value headu</strong> — bez nutnosti dohrávať hru až do konca.
-        Súperove ťahy vo vnútri stromu sú aproximované jednou politikou — počas
-        tréningu a submission NN politikou, pri internej evaluácii rule-based agentom.
-      </p>
-      <p>
-        MCTS plní v projekte dvojitú rolu. Počas tréningu generuje kvalitnejšie tréningové
-        dáta než čisto greedy policy — agent sa učí z plánovaných rozhodnutí, nie len
-        z okamžitých reakcií siete. Pri inferencii poskytuje reálny lookahead, ktorý
-        výrazne zvyšuje hraciu silu oproti samotnému forward passu. Práve preto bolo
-        rozdelenie siete na dve hlavy nevyhnutné: policy head dáva MCTS informované priory
-        pre výber vetiev stromu, value head hodnotí pozície na listoch — spolu vytvárajú
-        základ pre efektívne plánovanie bez explicitného dohrávanie hier do konca.
-        Počet simulácií sa líši podľa kontextu: <strong>32</strong> pri generovaní tréningových
-        hier (rýchlosť), <strong>64</strong> pri internej evaluácii a <strong>128</strong>
-        pri finálnom submission (maximálna hracia sila v rámci ~1 s na ťah).
-      </p>
-
-      <h3>Priebeh tréningu</h3>
-      <p>
-        Tréning prebiehal v niekoľkých postupne náročnejších fázach, pričom cieľom bolo
-        vybudovať agenta schopného čeliť rôznorodým súperom — od jednoduchých pravidlových
-        botov až po plnohodnotné MCTS agenty.
-      </p>
-
-      <h4>Fáza 1 — Základ na botoch</h4>
-      <p>
-        Prvé iterácie prebiehali výhradne proti jednoduchým rule-based botom
-        (stupid_bot, clever_bot, smart_bot). Tento prístup bol zámerný: sieť musela
-        najskôr zvládnuť základné prežitie, navigáciu a zbieranie jedla predtým, než
-        dostala silnejších súperov. Výsledky raných iterácií to potvrdzujú — agent
-        sa naučil hrať solídne práve v prostredí jednoduchých botov.
-      </p>
-
-      <h4>Fáza 2 — Postupné zvyšovanie obťažnosti</h4>
-      <p>
-        Postupne sa pridávali silnejší boti a neskôr NN agenty reprezentované staršími
-        checkpointmi z predchádzajúcich tréningových iterácií. Dôležitou súčasťou bola
-        <strong>rotácia hráčskych pozícií</strong>: každý agent hral zo všetkých 4 pozícií
-        na mriežke, čím sa zabránilo naučeniu pozičných predsudkov. Podiel NN agentov sa
-        postupne zvyšoval na úkor botov, no rule-based boti nikdy nevymizli úplne —
-        ich prítomnosť bránila katastrofickému zabudaniu základných stratégií
-        naučených v prvej fáze.
-      </p>
-
-      <h4>Fáza 3 — Self-play s MCTS</h4>
-      <p>
-        V záverečnej fáze tvorili väčšinu súperov MCTS agenty z novších iterácií,
-        doplnené NN agentmi a malým podielom botov. Batch size bol nastavený na
-        <strong>50 000 tréningových vzoriek</strong>. Každá iterácia mala pevné poradie:
-        najprv sa odohral celý blok self-play hier, nové vzorky sa zaradili do replay
-        buffra a až potom prebehla tréningová fáza na aktualizovanom buffri.
-        Sieť sa tak každú iteráciu učila na najčerstvejších dostupných skúsenostiach.
-      </p>
-      <p>
-        Takýto postup je efektívny z niekoľkých dôvodov. Curriculum learning — postupné
-        zvyšovanie obťažnosti — zabezpečuje, že sieť nezačína v prostredí, kde dostáva
-        výhradne negatívnu spätnú väzbu a nemá sa z čoho učiť. Diverzita súperov bráni
-        preoptimalizovaniu na jeden typ správania a buduje robustnejšiu stratégiu.
-        Self-play garantuje, že agent sa vždy cvičí proti protivníkovi na porovnateľnej
-        úrovni, čo je oveľa efektívnejšie ako fixní boti.
-      </p>
-
-      <h4>Evaluácia</h4>
-      <p>
-        Interná evaluácia — porovnávanie nových checkpointov so staršími navzájom —
-        tvorila 23 % celkového tréningového času. Finálna externá evaluácia
-        (porovnanie proti Goose Loose v troch scenároch, každý po 100 hrách s rotáciou
-        pozícií) trvala <strong>viac ako 100 hodín</strong> nepretržitého behu (viac ako 4 dni
-        vkuse; jedno kompletné bežanie všetkých troch scenárov trvalo v priemere ~36 hodín).
-        Spoľahlivá validácia v stochastickej multi-agentovej hre vyžaduje veľký počet
-        hier, aby výsledky neboli skreslené štatistickým šumom. Tréning bol výpočtovo
-        náročný, no časovo najnákladnejšou etapou projektu bola práve evaluácia.
-      </p>
-
-      <h3>Výsledky tréningu</h3>
-
-      <div style="position:relative; margin:18px 0; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-          <span style="font-size:0.79rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Priebeh tréningu · 102 iterácií</span>
-          <div style="display:flex; gap:16px; font-size:0.8rem; color:var(--muted);">
-            <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:20px;height:2.5px;background:#6aa9ff;border-radius:2px;"></span>Prežitie (kroky)</span>
-            <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:20px;height:2.5px;background:#a26bff;border-radius:2px;"></span>Dĺžka husi</span>
+          <div class="arch-tl-item">
+            <div class="arch-tl-aside">
+              <div class="arch-tl-dot"></div>
+              <div class="arch-tl-line"></div>
+            </div>
+            <div class="arch-tl-body">
+              <div class="arch-tl-layer">Vstup — skalárny (13 hodnôt)</div>
+              <div class="arch-tl-box">
+                Dĺžky všetkých 4 husí · alive flagy 3 súperov · hunger tick (krokov do hladovej smrti) ·
+                aktuálny krok hry · posledná akcia agenta (one-hot, 4 hodnoty)<br>
+                <span class="arch-tl-sub">
+                  Tieto hodnoty nie sú kódovateľné do mriežky — nesú globálny kontext hry.
+                  Vstupujú priamo do dense vrstvy po zkonkatenovaní s výstupom CNN.
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="arch-tl-item">
+            <div class="arch-tl-aside">
+              <div class="arch-tl-dot"></div>
+              <div class="arch-tl-line"></div>
+            </div>
+            <div class="arch-tl-body">
+              <div class="arch-tl-layer">Konvolučné vrstvy</div>
+              <div class="arch-tl-box">
+                Conv2d 6 → 32, 3×3, <em>circular padding</em> + ReLU<br>
+                Conv2d 32 → 64, 3×3, circular padding + ReLU → <strong>Flatten (4 928)</strong><br>
+                <span class="arch-tl-sub">
+                  Circular padding odráža toroidálnu topológiu hracej plochy: pravý okraj susedí
+                  s ľavým, horný so spodným. Bežný zero-padding by na okrajoch vytváral falošné
+                  „steny", ktoré v hre neexistujú. Circular convolutions toto priamo modelujú —
+                  sieť vidí vzťahy cez okraje mapy rovnako ako vo vnútri mriežky.
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="arch-tl-item">
+            <div class="arch-tl-aside">
+              <div class="arch-tl-dot"></div>
+              <div class="arch-tl-line"></div>
+            </div>
+            <div class="arch-tl-body">
+              <div class="arch-tl-layer">Dense vrstva</div>
+              <div class="arch-tl-box">
+                <strong>4 941 → 256, ReLU</strong> — vstup tvorí concat CNN výstupu (4 928) a 13 skalárov.
+                Táto vrstva kombinuje priestorové príznaky z konvolúcií s globálnym kontextom hry.
+              </div>
+            </div>
+          </div>
+          <div class="arch-tl-item">
+            <div class="arch-tl-aside">
+              <div class="arch-tl-dot diamond"></div>
+            </div>
+            <div class="arch-tl-body">
+              <div class="arch-tl-layer">Výstupné hlavy</div>
+              <div class="arch-tl-heads">
+                <div class="arch-tl-head">
+                  <strong>Policy head</strong>
+                  256 → 4, Softmax<br>
+                  P(N) · P(S) · P(E) · P(W)<br>
+                  <small>Cross-entropy loss vs. počty návštev MCTS</small>
+                </div>
+                <div class="arch-tl-head">
+                  <strong>Value head</strong>
+                  256 → 1, Tanh<br>
+                  Hodnota pozície [−1, 1]<br>
+                  <small>MSE loss vs. finálne umiestnenie</small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <canvas id="trainingChart" height="260" style="width:100%; display:block; cursor:crosshair;"></canvas>
-        <div id="trainingTooltip" style="display:none; position:absolute; background:rgba(16,18,22,0.97); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.8rem; pointer-events:none; line-height:1.7;"></div>
-      </div>
-      <div class="before-after">
-        <div class="ba-col ba-before">
-          <h4>Iterácia 1 — začiatok</h4>
-          <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">79 krokov</span></div>
-          <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">1,25 článkov</span></div>
+
+        <h4 style="margin-top:24px;">Výstupné hlavy — výber loss funkcií</h4>
+        <p>
+          <strong>Policy head</strong> predikuje distribúciu pravdepodobností nad 4 akciami:
+          P(N) — sever, P(S) — juh, P(E) — východ, P(W) — západ. Trénovacím cieľom sú
+          normalizované počty návštev z MCTS (tzv. soft targets) — sieť sa učí napodobniť
+          rozhodnutia plánovacej fázy MCTS, nie len okamžitú akciu. Na tréning distribúcie
+          je prirodzenou voľbou <strong>cross-entropy loss</strong>, ktorá priamo penalizuje
+          každú odchýlku od cieľovej distribúcie a je štandardom pri klasifikačných úlohách.
+        </p>
+        <p>
+          <strong>Value head</strong> predikuje skalárnu hodnotu pozície v rozsahu [−1, 1],
+          kde −1 zodpovedá najhoršiemu umiestneniu (prvý vypadnutý) a +1 víťazstvu.
+          Keďže ide o regresnú úlohu s jednou výstupnou hodnotou, <strong>MSE loss</strong>
+          je prirodzenou voľbou — penalizuje odchýlky na druhú mocninu, vďaka čomu sú
+          veľké chyby trestané výrazne silnejšie ako malé, a funguje symetricky pre
+          príliš optimistické aj príliš pesimistické odhady.
+        </p>
+
+        <h3>Monte Carlo Tree Search</h3>
+        <p>
+          Samotný forward pass siete je krátkozraký — na základe aktuálneho stavu hry vráti
+          distribúciu akcií bez akéhokoľvek pohľadu do budúcnosti. Práve tu nastupuje
+          <strong>MCTS</strong>: nad sieťou sa stavia implicitný prehľadávací strom,
+          kde každý uzol reprezentuje stav hry a každá hrana jednu z možných akcií.
+        </p>
+        <p>
+          Prehľadávanie riadi <strong>PUCT formula</strong>, ktorá balancuje exploráciu nových
+          vetiev (prioritizovanú na základe policy headu) a exploitáciu sľubných línií
+          (na základe doterajších výsledkov simulácií). Na listových uzloch sa pozícia
+          ohodnotí pomocou <strong>value headu</strong> — bez nutnosti dohrávať hru až do konca.
+          Súperove ťahy vo vnútri stromu sú aproximované jednou politikou — počas
+          tréningu a submission NN politikou, pri internej evaluácii rule-based agentom.
+        </p>
+        <p>
+          MCTS plní v projekte dvojitú rolu. Počas tréningu generuje kvalitnejšie tréningové
+          dáta než čisto greedy policy — agent sa učí z plánovaných rozhodnutí, nie len
+          z okamžitých reakcií siete. Pri inferencii poskytuje reálny lookahead, ktorý
+          výrazne zvyšuje hraciu silu oproti samotnému forward passu. Práve preto bolo
+          rozdelenie siete na dve hlavy nevyhnutné: policy head dáva MCTS informované priory
+          pre výber vetiev stromu, value head hodnotí pozície na listoch — spolu vytvárajú
+          základ pre efektívne plánovanie bez explicitného dohrávanie hier do konca.
+          Počet simulácií sa líši podľa kontextu: <strong>32</strong> pri generovaní tréningových
+          hier (rýchlosť), <strong>64</strong> pri internej evaluácii a <strong>128</strong>
+          pri finálnom submission (maximálna hracia sila v rámci ~1 s na ťah).
+        </p>
+
+        <h3>Priebeh tréningu</h3>
+        <p>
+          Tréning prebiehal v niekoľkých postupne náročnejších fázach, pričom cieľom bolo
+          vybudovať agenta schopného čeliť rôznorodým súperom — od jednoduchých pravidlových
+          botov až po plnohodnotné MCTS agenty.
+        </p>
+
+        <h4>Fáza 1 — Základ na botoch</h4>
+        <p>
+          Prvé iterácie prebiehali výhradne proti jednoduchým rule-based botom
+          (stupid_bot, clever_bot, smart_bot). Tento prístup bol zámerný: sieť musela
+          najskôr zvládnuť základné prežitie, navigáciu a zbieranie jedla predtým, než
+          dostala silnejších súperov. Výsledky raných iterácií to potvrdzujú — agent
+          sa naučil hrať solídne práve v prostredí jednoduchých botov.
+        </p>
+
+        <h4>Fáza 2 — Postupné zvyšovanie obťažnosti</h4>
+        <p>
+          Postupne sa pridávali silnejší boti a neskôr NN agenty reprezentované staršími
+          checkpointmi z predchádzajúcich tréningových iterácií. Dôležitou súčasťou bola
+          <strong>rotácia hráčskych pozícií</strong>: každý agent hral zo všetkých 4 pozícií
+          na mriežke, čím sa zabránilo naučeniu pozičných predsudkov. Podiel NN agentov sa
+          postupne zvyšoval na úkor botov, no rule-based boti nikdy nevymizli úplne —
+          ich prítomnosť bránila katastrofickému zabudaniu základných stratégií
+          naučených v prvej fáze.
+        </p>
+
+        <h4>Fáza 3 — Self-play s MCTS</h4>
+        <p>
+          V záverečnej fáze tvorili väčšinu súperov MCTS agenty z novších iterácií,
+          doplnené NN agentmi a malým podielom botov. Batch size bol nastavený na
+          <strong>50 000 tréningových vzoriek</strong>. Každá iterácia mala pevné poradie:
+          najprv sa odohral celý blok self-play hier, nové vzorky sa zaradili do replay
+          buffra a až potom prebehla tréningová fáza na aktualizovanom buffri.
+          Sieť sa tak každú iteráciu učila na najčerstvejších dostupných skúsenostiach.
+        </p>
+        <p>
+          Takýto postup je efektívny z niekoľkých dôvodov. Curriculum learning — postupné
+          zvyšovanie obťažnosti — zabezpečuje, že sieť nezačína v prostredí, kde dostáva
+          výhradne negatívnu spätnú väzbu a nemá sa z čoho učiť. Diverzita súperov bráni
+          preoptimalizovaniu na jeden typ správania a buduje robustnejšiu stratégiu.
+          Self-play garantuje, že agent sa vždy cvičí proti protivníkovi na porovnateľnej
+          úrovni, čo je oveľa efektívnejšie ako fixní boti.
+        </p>
+
+        <h4>Evaluácia</h4>
+        <p>
+          Interná evaluácia — porovnávanie nových checkpointov so staršími navzájom —
+          tvorila 23 % celkového tréningového času. Finálna externá evaluácia
+          (porovnanie proti Goose Loose v troch scenároch, každý po 100 hrách s rotáciou
+          pozícií) trvala <strong>viac ako 100 hodín</strong> nepretržitého behu (viac ako 4 dni
+          vkuse; jedno kompletné bežanie všetkých troch scenárov trvalo v priemere ~36 hodín).
+          Spoľahlivá validácia v stochastickej multi-agentovej hre vyžaduje veľký počet
+          hier, aby výsledky neboli skreslené štatistickým šumom. Tréning bol výpočtovo
+          náročný, no časovo najnákladnejšou etapou projektu bola práve evaluácia.
+        </p>
+
+        <h3>Výsledky tréningu</h3>
+
+        <div class="chart-panel" id="trainingPanel">
+          <div class="chart-head">
+            <span class="chart-title">Priebeh tréningu · 102 iterácií</span>
+            <div class="chart-legend">
+              <button class="legend-btn" id="legendSurv" type="button">
+                <span class="lg-swatch" style="background:#6aa9ff;"></span>Prežitie (kroky)
+              </button>
+              <button class="legend-btn" id="legendLen" type="button">
+                <span class="lg-swatch" style="background:#a26bff;"></span>Dĺžka husi
+              </button>
+            </div>
+          </div>
+          <canvas id="trainingChart" class="chart" height="280"></canvas>
+          <div id="trainingTooltip" class="chart-tooltip"></div>
         </div>
-        <div class="ba-col ba-after">
-          <h4>Iterácia 102 — koniec</h4>
-          <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">177 krokov</span></div>
-          <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">5,50 článkov</span></div>
+
+        <div class="before-after">
+          <div class="ba-col ba-before">
+            <h4>Iterácia 1 — začiatok</h4>
+            <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">79 krokov</span></div>
+            <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">1,25 článkov</span></div>
+          </div>
+          <div class="ba-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+          <div class="ba-col ba-after">
+            <h4>Iterácia 102 — koniec</h4>
+            <div class="ba-row"><span class="ba-key">Priemerné prežitie</span><span class="ba-val">177 krokov</span></div>
+            <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">5,50 článkov</span></div>
+          </div>
         </div>
       </div>
-      <script>
-      (function () {
-        const survival = [79.2,89.6,89.4,109.4,106.7,105.5,122.6,123.5,104.3,111.4,134.5,110.0,111.3,123.7,130.9,123.0,98.2,87.2,115.8,111.0,106.0,89.2,110.8,152.2,108.2,111.8,111.8,87.5,128.5,110.8,128.9,122.8,120.7,117.3,113.5,118.7,135.8,132.8,116.4,139.5,127.5,120.2,68.0,92.5,94.5,132.0,164.2,122.2,102.5,128.5,65.2,111.7,23.2,184.5,50.8,94.8,119.0,57.5,111.2,154.0,91.0,154.2,24.2,135.5,108.8,161.9,176.4,128.7,120.9,123.8,155.3,144.9,149.8,165.6,143.5,160.6,178.1,164.6,132.8,169.8,150.8,152.1,138.8,165.6,118.2,155.2,144.5,150.7,153.8,167.1,166.7,159.7,166.2,153.3,166.1,176.8,153.0,171.6,176.4,157.8,183.2,177.5];
-        const length   = [1.25,1.33,1.50,2.92,3.17,5.58,3.67,5.25,3.08,2.92,3.00,2.42,3.50,2.92,4.50,3.42,1.75,1.50,3.25,5.50,5.25,4.25,5.75,7.00,5.00,3.50,3.75,4.75,2.50,1.00,5.35,4.38,5.88,5.17,5.40,4.35,5.53,5.47,4.60,5.65,5.85,5.67,0.60,0.30,0.80,1.50,1.25,4.50,1.00,0.50,1.00,1.20,0.25,2.50,0.00,1.20,1.25,0.00,3.50,4.75,0.25,1.75,0.00,0.50,0.75,3.04,3.42,1.80,1.60,1.30,1.90,1.80,1.30,2.10,3.10,1.90,2.50,2.80,1.40,2.60,5.70,2.70,2.20,2.40,2.90,3.00,4.20,2.28,3.30,4.75,5.60,3.65,5.85,3.55,4.55,4.65,2.55,5.85,5.60,3.75,3.70,5.50];
-
-        function rollingAvg(data, w) {
-          return data.map((_, i) => {
-            const s = Math.max(0, i - Math.floor(w / 2));
-            const e = Math.min(data.length, s + w);
-            const sl = data.slice(s, e);
-            return sl.reduce((a, b) => a + b, 0) / sl.length;
-          });
-        }
-
-        const survAvg = rollingAvg(survival, 9);
-        const lenAvg  = rollingAvg(length,   9);
-        const n = survival.length;
-
-        const canvas  = document.getElementById('trainingChart');
-        const tooltip = document.getElementById('trainingTooltip');
-
-        function draw() {
-          const dpr  = window.devicePixelRatio || 1;
-          const cssW = canvas.clientWidth;
-          const cssH = 260;
-          canvas.width  = cssW * dpr;
-          canvas.height = cssH * dpr;
-          const ctx = canvas.getContext('2d');
-          ctx.scale(dpr, dpr);
-
-          const W = cssW, H = cssH;
-          const pL = 46, pR = 46, pT = 14, pB = 34;
-          const pw = W - pL - pR, ph = H - pT - pB;
-
-          const sMax = 200, sMin = 0, lMax = 10, lMin = 0;
-
-          const xp  = i  => pL + (i / (n - 1)) * pw;
-          const yps = v  => pT + ph - ((v - sMin) / (sMax - sMin)) * ph;
-          const ypl = v  => pT + ph - ((v - lMin) / (lMax - lMin)) * ph;
-
-          ctx.clearRect(0, 0, W, H);
-
-          // horizontal grid
-          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-          ctx.lineWidth = 1;
-          [0, 50, 100, 150, 200].forEach(v => {
-            ctx.beginPath(); ctx.moveTo(pL, yps(v)); ctx.lineTo(W - pR, yps(v)); ctx.stroke();
-          });
-
-          // vertical grid
-          [1, 20, 40, 60, 80, 100].forEach(i => {
-            const x = xp(i - 1);
-            ctx.beginPath(); ctx.moveTo(x, pT); ctx.lineTo(x, pT + ph); ctx.stroke();
-          });
-
-          // Y labels left — survival
-          ctx.fillStyle = '#6aa9ff'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
-          [0, 50, 100, 150, 200].forEach(v => ctx.fillText(v, pL - 6, yps(v) + 4));
-
-          // Y labels right — length
-          ctx.fillStyle = '#a26bff'; ctx.textAlign = 'left';
-          [0, 2, 4, 6, 8, 10].forEach(v => ctx.fillText(v, W - pR + 6, ypl(v) + 4));
-
-          // X labels
-          ctx.fillStyle = 'rgba(173,179,192,0.65)'; ctx.textAlign = 'center';
-          [1, 20, 40, 60, 80, 100].forEach(i => ctx.fillText(i, xp(i - 1), H - pB + 17));
-
-          // X axis title
-          ctx.fillStyle = 'rgba(173,179,192,0.4)'; ctx.font = '10px system-ui';
-          ctx.fillText('Iterácia', pL + pw / 2, H - 2);
-
-          // Raw survival (ghost)
-          ctx.strokeStyle = 'rgba(106,169,255,0.18)'; ctx.lineWidth = 1;
-          ctx.beginPath();
-          survival.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.stroke();
-
-          // Raw length (ghost)
-          ctx.strokeStyle = 'rgba(162,107,255,0.18)'; ctx.lineWidth = 1;
-          ctx.beginPath();
-          length.forEach((v, i) => { const x = xp(i), y = ypl(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.stroke();
-
-          // Survival avg fill
-          const grad = ctx.createLinearGradient(0, pT, 0, pT + ph);
-          grad.addColorStop(0, 'rgba(106,169,255,0.12)');
-          grad.addColorStop(1, 'rgba(106,169,255,0)');
-          ctx.beginPath();
-          survAvg.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.lineTo(xp(n - 1), pT + ph); ctx.lineTo(xp(0), pT + ph); ctx.closePath();
-          ctx.fillStyle = grad; ctx.fill();
-
-          // Survival avg line
-          ctx.strokeStyle = '#6aa9ff'; ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          survAvg.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.stroke();
-
-          // Length avg line
-          ctx.strokeStyle = '#a26bff'; ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          lenAvg.forEach((v, i) => { const x = xp(i), y = ypl(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.stroke();
-
-          // Axes border
-          ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
-          ctx.strokeRect(pL, pT, pw, ph);
-        }
-
-        draw();
-        new ResizeObserver(draw).observe(canvas);
-
-        canvas.addEventListener('mousemove', e => {
-          const rect = canvas.getBoundingClientRect();
-          const cssW = canvas.clientWidth;
-          const pw = cssW - 46 - 46;
-          const idx = Math.round(((e.clientX - rect.left - 46) / pw) * (n - 1));
-          if (idx < 0 || idx >= n) { tooltip.style.display = 'none'; return; }
-          const tx = e.clientX - rect.left + 14;
-          const ty = e.clientY - rect.top - 10;
-          tooltip.style.display = 'block';
-          tooltip.style.left = tx + 'px';
-          tooltip.style.top  = ty + 'px';
-          tooltip.innerHTML =
-            `<strong style="color:var(--text)">Iterácia ${idx + 1}</strong><br>` +
-            `<span style="color:#6aa9ff">Prežitie: ${survival[idx].toFixed(1)} krokov</span><br>` +
-            `<span style="color:#a26bff">Dĺžka: ${length[idx].toFixed(2)} článkov</span>`;
-        });
-        canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-      })();
-      </script>
     </section>
 
     <!-- Sekcia: Kaggle – Externé hodnotenie -->
-    <section class="card">
-      <h2>Externé hodnotenie vs. Goose Loose</h2>
-      <p>
-        Finálny agent bol porovnaný s verejným agentom <strong>Goose Loose</strong>
-        v troch scenároch po 100 hrách s rotáciou pozícií.
-      </p>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Scenár</th>
-            <th>Avg place (môj)</th>
-            <th>Avg place (Goose)</th>
-            <th>Win rate (môj)</th>
-            <th>Win rate (Goose)</th>
-            <th>Kaggle skóre (môj)</th>
-            <th>Kaggle skóre (Goose)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>direct duel + 2 boty</td><td>1,695</td><td>1,370</td><td>0,365</td><td>0,630</td><td>12 423,8</td><td>12 488,4</td></tr>
-          <tr><td>balanced (2 my + 2 Goose)</td><td>3,168</td><td>1,833</td><td>0,153</td><td>0,847</td><td>12 650,6</td><td>17 144,2</td></tr>
-          <tr><td>stress (1 my + 3 Goose)</td><td>3,600</td><td>2,133</td><td>0,013</td><td>0,987</td><td>11 004,6</td><td>17 316,3</td></tr>
-        </tbody>
-      </table>
-      <p class="note">Avg placement: nižšie = lepšie (1,0 = prvé miesto). Win rate zahŕňa zdieľané víťazstvá a je normalizovaný na počet hier, nie na počet kópií agenta.</p>
+    <section class="section reveal" id="hodnotenie">
+      <div class="section-head">
+        <span class="section-num">07</span>
+        <div>
+          <span class="section-eyebrow">Fáza 2 · Benchmark</span>
+          <h2>Externé hodnotenie vs. Goose Loose</h2>
+        </div>
+      </div>
+      <div class="card">
+        <p>
+          Finálny agent bol porovnaný s verejným agentom <strong>Goose Loose</strong>
+          v troch scenároch po 100 hrách s rotáciou pozícií.
+        </p>
 
-      <p>
-        Výsledky potvrdzujú, že Goose Loose konzistentne prevyšuje môjho agenta
-        vo všetkých troch scenároch. Miera rozdielu rastie úmerne s podielom Goose Loose
-        agentov v hre: v scenári <strong>direct duel</strong> obaja súperia primárne
-        proti slabším rule-based botom, čo vedie k tesnejším umiestneniam (1,695 vs 1,370).
-        V <strong>balanced</strong> scenári nahradia Goose Loose agenti oba boty a
-        konkurenčný tlak sa zdvojnásobí — priemerné umiestnenie môjho agenta klesá na 3,168.
-        V <strong>stress</strong> scenári stojí jeden môj agent proti trom kópiám
-        Goose Loose; pre akéhokoľvek jednotlivého agenta čeliaceho trom silnejším súperom
-        súčasne je umiestnenie blízko 4,0 štatisticky predvídateľný výsledok — môj agent
-        dosiahol 3,60. Kaggle skóre (surová odmena kódujúca prežité kroky a dĺžku tela)
-        potvrdzuje rovnaký trend: kým Goose Loose si drží stabilne vysoké hodnoty naprieč
-        všetkými scenármi, skóre môjho agenta v stress scenári výrazne klesá, čo odráža
-        skôr skrátené prežitie než zhoršenú kvalitu hry.
-      </p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Scenár</th>
+                <th>Avg place (môj)</th>
+                <th>Avg place (Goose)</th>
+                <th>Win rate (môj)</th>
+                <th>Win rate (Goose)</th>
+                <th>Kaggle skóre (môj)</th>
+                <th>Kaggle skóre (Goose)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>direct duel + 2 boty</td><td>1,695</td><td>1,370</td><td class="td-win">0,365</td><td>0,630</td><td>12 423,8</td><td>12 488,4</td></tr>
+              <tr><td>balanced (2 my + 2 Goose)</td><td>3,168</td><td>1,833</td><td class="td-win">0,153</td><td>0,847</td><td>12 650,6</td><td>17 144,2</td></tr>
+              <tr><td>stress (1 my + 3 Goose)</td><td>3,600</td><td>2,133</td><td class="td-win">0,013</td><td>0,987</td><td>11 004,6</td><td>17 316,3</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chart-panel">
+          <div class="chart-head">
+            <span class="chart-title">Win rate podľa scenára</span>
+            <div class="chart-legend">
+              <span class="legend-static"><span class="lg-swatch" style="display:inline-block;width:18px;height:3px;border-radius:2px;background:#6aa9ff;"></span>Môj agent</span>
+              <span class="legend-static"><span class="lg-swatch" style="display:inline-block;width:18px;height:3px;border-radius:2px;background:#fbbf24;"></span>Goose Loose</span>
+            </div>
+          </div>
+          <canvas id="evalChart" class="chart" height="230" style="cursor:default;"></canvas>
+        </div>
+
+        <p class="note">Avg placement: nižšie = lepšie (1,0 = prvé miesto). Win rate zahŕňa zdieľané víťazstvá a je normalizovaný na počet hier, nie na počet kópií agenta.</p>
+
+        <p>
+          Výsledky potvrdzujú, že Goose Loose konzistentne prevyšuje môjho agenta
+          vo všetkých troch scenároch. Miera rozdielu rastie úmerne s podielom Goose Loose
+          agentov v hre: v scenári <strong>direct duel</strong> obaja súperia primárne
+          proti slabším rule-based botom, čo vedie k tesnejším umiestneniam (1,695 vs 1,370).
+          V <strong>balanced</strong> scenári nahradia Goose Loose agenti oba boty a
+          konkurenčný tlak sa zdvojnásobí — priemerné umiestnenie môjho agenta klesá na 3,168.
+          V <strong>stress</strong> scenári stojí jeden môj agent proti trom kópiám
+          Goose Loose; pre akéhokoľvek jednotlivého agenta čeliaceho trom silnejším súperom
+          súčasne je umiestnenie blízko 4,0 štatisticky predvídateľný výsledok — môj agent
+          dosiahol 3,60. Kaggle skóre (surová odmena kódujúca prežité kroky a dĺžku tela)
+          potvrdzuje rovnaký trend: kým Goose Loose si drží stabilne vysoké hodnoty naprieč
+          všetkými scenármi, skóre môjho agenta v stress scenári výrazne klesá, čo odráža
+          skôr skrátené prežitie než zhoršenú kvalitu hry.
+        </p>
+      </div>
     </section>
 
     <!-- Sekcia: Kaggle – Ukážky hier -->
-    <section class="card">
-      <h2>Ukážky hier – Hungry Geese</h2>
-      <p>
-        Záznamy hier finálneho agenta v rôznych herných scenároch,
-        nahrané lokálne pomocou pygame vizualizátora.
-      </p>
-
-      <div class="video-grid">
-        <div class="video-card">
-          <h3>Vývoj agenta — 4 iterácie naraz (Hry 1–4)</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video1.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
-          <p class="note">
-            Štyri okná súčasne — rovnaký seed, rovnakí súperi (clever: 1 (zelený), smart: 2 (žltý), stupid bot: 3 (ružový)), rôzna iterácia.
-            <strong>Ľavý horný:</strong> iter_0010 &nbsp;·&nbsp;
-            <strong>Pravý horný:</strong> iter_0030 &nbsp;·&nbsp;
-            <strong>Ľavý dolný:</strong> iter_0060 &nbsp;·&nbsp;
-            <strong>Pravý dolný:</strong> iter_0100.
-            Vidieť ako sa agent s každou iteráciou učí prežívať dlhšie a lepšie reagovať.
-          </p>
+    <section class="section reveal" id="ukazky">
+      <div class="section-head">
+        <span class="section-num">08</span>
+        <div>
+          <span class="section-eyebrow">Fáza 2 · Demo</span>
+          <h2>Ukážky hier – Hungry Geese</h2>
         </div>
+      </div>
+      <div class="card">
+        <p>
+          Záznamy hier finálneho agenta v rôznych herných scenároch,
+          nahrané lokálne pomocou pygame vizualizátora.
+        </p>
 
-        <div class="video-card">
-          <h3>Finálny agent vs. Goose Loose (Hra 5)</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video2.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
-          <p class="note">
-            Finálny MCTS agent (submission.py) v priamom súboji so silným verejným agentom
-            <strong>Goose Loose</strong>. Toto je najbližší variant k reálnemu Kaggle hodnoteniu.
-            stupid_bot: 0 (modrý) &nbsp;·&nbsp; smart_bot: 1 (zelený) &nbsp;·&nbsp;
-            MCTS: 2 (žltý) &nbsp;·&nbsp; Goose Loose: 3 (ružový).
-          </p>
-        </div>
+        <div class="video-grid">
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>Vývoj agenta — 4 iterácie naraz (Hry 1–4)</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video1.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+            <p class="note">
+              Štyri okná súčasne — rovnaký seed, rovnakí súperi (clever: 1 (zelený), smart: 2 (žltý), stupid bot: 3 (ružový)), rôzna iterácia.
+              <strong>Ľavý horný:</strong> iter_0010 &nbsp;·&nbsp;
+              <strong>Pravý horný:</strong> iter_0030 &nbsp;·&nbsp;
+              <strong>Ľavý dolný:</strong> iter_0060 &nbsp;·&nbsp;
+              <strong>Pravý dolný:</strong> iter_0100.
+              Vidieť ako sa agent s každou iteráciou učí prežívať dlhšie a lepšie reagovať.
+            </p>
+          </div>
 
-        <div class="video-card">
-          <h3>MCTS vs. NN agenti (Hra 6)</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video3.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
-          <p class="note">
-            Jeden MCTS agent (submission.py) proti trom lacným NN agentom bez stromového
-            prehľadávania. Obe strany používajú <strong>tú istú neurónovú sieť</strong> —
-            rozdiel je iba v tom, či sieť dostane čas na MCTS, alebo rozhoduje priamym forward passom.
-            MCTS: 0 (modrý) &nbsp;·&nbsp; NN priamy: 1 (zelený) &nbsp;·&nbsp;
-            NN priamy: 2 (žltý) &nbsp;·&nbsp; NN priamy: 3 (ružový).
-          </p>
-        </div>
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>Finálny agent vs. Goose Loose (Hra 5)</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video2.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+            <p class="note">
+              Finálny MCTS agent (submission.py) v priamom súboji so silným verejným agentom
+              <strong>Goose Loose</strong>. Toto je najbližší variant k reálnemu Kaggle hodnoteniu.
+              stupid_bot: 0 (modrý) &nbsp;·&nbsp; smart_bot: 1 (zelený) &nbsp;·&nbsp;
+              MCTS: 2 (žltý) &nbsp;·&nbsp; Goose Loose: 3 (ružový).
+            </p>
+          </div>
 
-        <div class="video-card">
-          <h3>MCTS vs. MCTS (Hra 7)</h3>
-          <video controls playsinline width="100%" preload="metadata">
-            <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video4.mp4" type="video/mp4">
-            Váš prehliadač nepodporuje HTML5 video.
-          </video>
-          <p class="note">
-            Štyri kópie finálneho agenta hrajú navzájom — čistý self-play scenár.
-            Všetci štyria používajú plný MCTS s 128 simuláciami.
-            Hra ukazuje správanie agenta keď čelí rovnako silným protivníkom.
-            MCTS: 0 (modrý) &nbsp;·&nbsp; MCTS: 1 (zelený) &nbsp;·&nbsp;
-            MCTS: 2 (žltý) &nbsp;·&nbsp; MCTS: 3 (ružový).
-          </p>
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>MCTS vs. NN agenti (Hra 6)</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video3.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+            <p class="note">
+              Jeden MCTS agent (submission.py) proti trom lacným NN agentom bez stromového
+              prehľadávania. Obe strany používajú <strong>tú istú neurónovú sieť</strong> —
+              rozdiel je iba v tom, či sieť dostane čas na MCTS, alebo rozhoduje priamym forward passom.
+              MCTS: 0 (modrý) &nbsp;·&nbsp; NN priamy: 1 (zelený) &nbsp;·&nbsp;
+              NN priamy: 2 (žltý) &nbsp;·&nbsp; NN priamy: 3 (ružový).
+            </p>
+          </div>
+
+          <div class="video-card">
+            <h3><span class="play-ico"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></span>MCTS vs. MCTS (Hra 7)</h3>
+            <video controls playsinline width="100%" preload="metadata">
+              <source src="https://github.com/DavidMonis/RocnikovyProjekt/raw/main/video/Final_Video4.mp4" type="video/mp4">
+              Váš prehliadač nepodporuje HTML5 video.
+            </video>
+            <p class="note">
+              Štyri kópie finálneho agenta hrajú navzájom — čistý self-play scenár.
+              Všetci štyria používajú plný MCTS s 128 simuláciami.
+              Hra ukazuje správanie agenta keď čelí rovnako silným protivníkom.
+              MCTS: 0 (modrý) &nbsp;·&nbsp; MCTS: 1 (zelený) &nbsp;·&nbsp;
+              MCTS: 2 (žltý) &nbsp;·&nbsp; MCTS: 3 (ružový).
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Sekcia: Záver -->
-    <section class="card">
-      <h2>Záver</h2>
-      <p>
-        Finálny MCTS agent nedokázal prekonať <strong>Goose Loose</strong> — agenta, ktorý
-        získal zlatú medailu v Kaggle súťaži Hungry Geese a bol vyvinutý tímom 5 skúsených
-        špecialistov. Ak sa však pozriem na finančné, vedomostné a časové zdroje, ktoré
-        som mal k dispozícii, výsledok je pozoruhodne blízko tomu, čo vytvorila odborná
-        skupina s oveľa väčšou infraštruktúrou. Tento projekt ukazuje, ako ďaleko sa
-        dá zájsť s dôslednou metodikou, aj keď pracujete sami a s obmedzenými prostriedkami.
-        Napriek rozsahu projektu — 4 754 riadkov produkčného kódu v 24 súboroch,
-        5 406 riadkov testov v 18 testovacích súboroch, celkovo 13 400 riadkov — to nestačilo
-        na prekonanie expertných riešení s väčšou výpočtovou kapacitou a rokmi skúseností.
-      </p>
-      <p>
-        Najcennejším výsledkom nie je samotný výkon agenta, ale porozumenie celému procesu:
-        návrh architektúry a voľba loss funkcií, curriculum learning a self-play dynamika,
-        integrácia MCTS s neurónovou sieťou, metodológia evaluácie v stochastickej
-        multi-agentovej hre — to sú zručnosti a skúsenosti prenositeľné ďaleko za hranice
-        tejto konkrétnej súťaže. Projekt zároveň ukázal, aký zásadný je rozdiel medzi
-        funkčným agentom a skutočne špičkovým súťažným riešením: nestačí dobrý nápad,
-        vyžaduje to výpočtový výkon, veľké množstvo dát, precíznu simuláciu a dlhodobé
-        ladenie každého detailu.
-      </p>
+    <section class="section reveal" id="zaver">
+      <div class="section-head">
+        <span class="section-num">09</span>
+        <div>
+          <span class="section-eyebrow">Zhrnutie</span>
+          <h2>Záver</h2>
+        </div>
+      </div>
+      <div class="card">
+        <p>
+          Finálny MCTS agent nedokázal prekonať <strong>Goose Loose</strong> — agenta, ktorý
+          získal zlatú medailu v Kaggle súťaži Hungry Geese a bol vyvinutý tímom 5 skúsených
+          špecialistov. Ak sa však pozriem na finančné, vedomostné a časové zdroje, ktoré
+          som mal k dispozícii, výsledok je pozoruhodne blízko tomu, čo vytvorila odborná
+          skupina s oveľa väčšou infraštruktúrou. Tento projekt ukazuje, ako ďaleko sa
+          dá zájsť s dôslednou metodikou, aj keď pracujete sami a s obmedzenými prostriedkami.
+          Napriek rozsahu projektu — 4 754 riadkov produkčného kódu v 24 súboroch,
+          5 406 riadkov testov v 18 testovacích súboroch, celkovo 13 400 riadkov — to nestačilo
+          na prekonanie expertných riešení s väčšou výpočtovou kapacitou a rokmi skúseností.
+        </p>
 
-      <h3>Ďalšie smerovanie</h3>
-      <p>
-        Projekt má prirodzené pokračovanie v oblasti hernej AI: ďalšia Kaggle súťaž,
-        v ktorej by nazbierané skúsenosti — tréningová infraštruktúra, spôsob evaluácie,
-        vývoj architektúry — tvorili solídny štartovací bod oproti začínaniu od nuly.
-      </p>
-      <p>
-        Zaujímavejším a dnes prakticky relevantnejším smerom je posun k dominantnej oblasti
-        súčasného strojového učenia: <strong>veľkým jazykovým modelom (LLM)</strong>.
-        Open-source modely ako <strong>Llama</strong> alebo <strong>Qwen</strong> otvárajú
-        možnosť vlastného fine-tuningu — prispôsobenia predtrénovaného modelu na konkrétnu
-        úlohu alebo doménu. Vedomosti nazbierané v tomto projekte sú priamo prenositeľné:
-        pochopenie tréningových dynamík, dôležitosť kvality a rozmanitosti dát, návrh
-        a kombinácia loss funkcií, evaluačná disciplína a systematické opakovanie
-        experimentov. Všetky tieto princípy platia rovnako pri tréningu herného agenta
-        ako pri fine-tuningu jazykového modelu.
-      </p>
-      <p>
-        Bol by to prirodzený a logický krok: od zábavy a hernej časti neurónových sietí
-        k dnes prakticky najvyužívanejšej a najpopulárnejšej oblasti AI — a so základmi,
-        ktoré tento projekt poskytol, by bol taký posun oveľa menej strmý, než sa
-        zdá na prvý pohľad.
-      </p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="sv" data-count="4754" data-dec="0">0</span>
+            <span class="sl">Riadkov produkčného kódu (24 súborov)</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="5406" data-dec="0">0</span>
+            <span class="sl">Riadkov testov (18 testovacích súborov)</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="13400" data-dec="0">0</span>
+            <span class="sl">Riadkov kódu celkovo</span>
+          </div>
+          <div class="stat-card">
+            <span class="sv" data-count="42" data-dec="0">0</span>
+            <span class="sl">Súborov v projekte</span>
+          </div>
+        </div>
+
+        <p>
+          Najcennejším výsledkom nie je samotný výkon agenta, ale porozumenie celému procesu:
+          návrh architektúry a voľba loss funkcií, curriculum learning a self-play dynamika,
+          integrácia MCTS s neurónovou sieťou, metodológia evaluácie v stochastickej
+          multi-agentovej hre — to sú zručnosti a skúsenosti prenositeľné ďaleko za hranice
+          tejto konkrétnej súťaže. Projekt zároveň ukázal, aký zásadný je rozdiel medzi
+          funkčným agentom a skutočne špičkovým súťažným riešením: nestačí dobrý nápad,
+          vyžaduje to výpočtový výkon, veľké množstvo dát, precíznu simuláciu a dlhodobé
+          ladenie každého detailu.
+        </p>
+
+        <h3>Ďalšie smerovanie</h3>
+        <p>
+          Projekt má prirodzené pokračovanie v oblasti hernej AI: ďalšia Kaggle súťaž,
+          v ktorej by nazbierané skúsenosti — tréningová infraštruktúra, spôsob evaluácie,
+          vývoj architektúry — tvorili solídny štartovací bod oproti začínaniu od nuly.
+        </p>
+        <p>
+          Zaujímavejším a dnes prakticky relevantnejším smerom je posun k dominantnej oblasti
+          súčasného strojového učenia: <strong>veľkým jazykovým modelom (LLM)</strong>.
+          Open-source modely ako <strong>Llama</strong> alebo <strong>Qwen</strong> otvárajú
+          možnosť vlastného fine-tuningu — prispôsobenia predtrénovaného modelu na konkrétnu
+          úlohu alebo doménu. Vedomosti nazbierané v tomto projekte sú priamo prenositeľné:
+          pochopenie tréningových dynamík, dôležitosť kvality a rozmanitosti dát, návrh
+          a kombinácia loss funkcií, evaluačná disciplína a systematické opakovanie
+          experimentov. Všetky tieto princípy platia rovnako pri tréningu herného agenta
+          ako pri fine-tuningu jazykového modelu.
+        </p>
+        <p>
+          Bol by to prirodzený a logický krok: od zábavy a hernej časti neurónových sietí
+          k dnes prakticky najvyužívanejšej a najpopulárnejšej oblasti AI — a so základmi,
+          ktoré tento projekt poskytol, by bol taký posun oveľa menej strmý, než sa
+          zdá na prvý pohľad.
+        </p>
+      </div>
     </section>
 
   </main>
 
+  <!-- Footer -->
   <footer class="site-footer">
-    <div class="container">
-      <p>&copy; <span id="year"></span> Dávid Moniš &middot; Ročníkový projekt pre FMFI UK</p>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        PyTorch Game Agent
+        <span>Ročníkový projekt · FMFI UK</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/DavidMonis/RocnikovyProjekt/blob/main/README.md" target="_blank" rel="noopener">README</a>
+        <a href="https://www.kaggle.com/competitions/hungry-geese" target="_blank" rel="noopener">Kaggle Hungry Geese</a>
+        <a href="mailto:david5.monis@gmail.com">Kontakt</a>
+      </div>
+      <div class="footer-copy">
+        <span>&copy; <span id="year"></span> Dávid Moniš &middot; Ročníkový projekt pre FMFI UK</span>
+        <span>Postavené s PyTorch 🔥 a vytrvalosťou</span>
+      </div>
     </div>
-    <script>
-      document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
   </footer>
+
+  <!-- Back to top -->
+  <button class="to-top" id="toTop" aria-label="Späť hore">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <script>
+  (function () {
+    'use strict';
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ── Rok vo footeri ───────────────────────────────────────────── */
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ── Scroll: progress bar, nav, back-to-top ───────────────────── */
+    const progressBar = document.getElementById('progressBar');
+    const nav = document.getElementById('mainNav');
+    const toTop = document.getElementById('toTop');
+
+    function onScroll() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progressBar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      nav.classList.toggle('scrolled', scrollY > 30);
+      toTop.classList.toggle('show', scrollY > 700);
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    toTop.addEventListener('click', () => scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' }));
+
+    /* ── Mobilné menu ─────────────────────────────────────────────── */
+    const navToggle = document.getElementById('navToggle');
+    navToggle.addEventListener('click', () => nav.classList.toggle('open'));
+    document.querySelectorAll('#navLinks a').forEach(a =>
+      a.addEventListener('click', () => nav.classList.remove('open')));
+
+    /* ── Aktívny odkaz v navigácii ────────────────────────────────── */
+    const navMap = {};
+    document.querySelectorAll('#navLinks a').forEach(a => {
+      navMap[a.getAttribute('href').slice(1)] = a;
+    });
+    const sectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting && navMap[en.target.id]) {
+          document.querySelectorAll('#navLinks a').forEach(a => a.classList.remove('active'));
+          navMap[en.target.id].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('main section[id]').forEach(s => sectionObserver.observe(s));
+
+    /* ── Reveal-on-scroll ─────────────────────────────────────────── */
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('visible');
+          revealObserver.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ── Count-up štatistiky ──────────────────────────────────────── */
+    function fmt(v, dec) {
+      return v.toLocaleString('sk-SK', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+    function countUp(el) {
+      const target = parseFloat(el.dataset.count);
+      const dec = parseInt(el.dataset.dec || '0', 10);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      if (prefersReduced) { el.innerHTML = prefix + fmt(target, dec) + suffix; return; }
+      const dur = 1600, t0 = performance.now();
+      (function tick(t) {
+        const p = Math.min((t - t0) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.innerHTML = prefix + fmt(target * eased, dec) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+    const countObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          countUp(en.target);
+          countObserver.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.sv[data-count]').forEach(el => countObserver.observe(el));
+
+    /* ── Spotlight na kartách ─────────────────────────────────────── */
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+
+    /* ── Hero: časticová neurónová sieť ───────────────────────────── */
+    (function heroParticles() {
+      const canvas = document.getElementById('heroCanvas');
+      if (!canvas || prefersReduced) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let W = 0, H = 0, parts = [], running = true;
+      const mouse = { x: null, y: null };
+
+      function resize() {
+        W = canvas.offsetWidth; H = canvas.offsetHeight;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const n = Math.min(85, Math.floor((W * H) / 16000));
+        parts = Array.from({ length: n }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          r: 1 + Math.random() * 1.6,
+          hue: Math.random() < 0.5 ? '106,169,255' : '162,107,255'
+        }));
+      }
+
+      function step() {
+        if (!running) return;
+        ctx.clearRect(0, 0, W, H);
+        const LINK = 130;
+
+        for (const p of parts) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < -10) p.x = W + 10; else if (p.x > W + 10) p.x = -10;
+          if (p.y < -10) p.y = H + 10; else if (p.y > H + 10) p.y = -10;
+
+          if (mouse.x !== null) {
+            const dx = p.x - mouse.x, dy = p.y - mouse.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < 110 * 110 && d2 > 0.01) {
+              const d = Math.sqrt(d2), f = (110 - d) / 110 * 0.35;
+              p.x += (dx / d) * f; p.y += (dy / d) * f;
+            }
+          }
+        }
+
+        for (let i = 0; i < parts.length; i++) {
+          for (let j = i + 1; j < parts.length; j++) {
+            const a = parts[i], b = parts[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < LINK * LINK) {
+              const alpha = (1 - Math.sqrt(d2) / LINK) * 0.14;
+              ctx.strokeStyle = 'rgba(126,140,255,' + alpha.toFixed(3) + ')';
+              ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            }
+          }
+        }
+
+        for (const p of parts) {
+          ctx.fillStyle = 'rgba(' + p.hue + ',0.65)';
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        }
+        requestAnimationFrame(step);
+      }
+
+      const hero = document.querySelector('.hero');
+      hero.addEventListener('pointermove', e => {
+        const r = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+      });
+      hero.addEventListener('pointerleave', () => { mouse.x = mouse.y = null; });
+
+      new IntersectionObserver(entries => {
+        const vis = entries[0].isIntersecting;
+        if (vis && !running) { running = true; step(); }
+        else if (!vis) running = false;
+      }).observe(hero);
+
+      addEventListener('resize', resize, { passive: true });
+      resize();
+      step();
+    })();
+
+    /* ── Graf priebehu tréningu ───────────────────────────────────── */
+    (function trainingChart() {
+      const survival = [79.2,89.6,89.4,109.4,106.7,105.5,122.6,123.5,104.3,111.4,134.5,110.0,111.3,123.7,130.9,123.0,98.2,87.2,115.8,111.0,106.0,89.2,110.8,152.2,108.2,111.8,111.8,87.5,128.5,110.8,128.9,122.8,120.7,117.3,113.5,118.7,135.8,132.8,116.4,139.5,127.5,120.2,68.0,92.5,94.5,132.0,164.2,122.2,102.5,128.5,65.2,111.7,23.2,184.5,50.8,94.8,119.0,57.5,111.2,154.0,91.0,154.2,24.2,135.5,108.8,161.9,176.4,128.7,120.9,123.8,155.3,144.9,149.8,165.6,143.5,160.6,178.1,164.6,132.8,169.8,150.8,152.1,138.8,165.6,118.2,155.2,144.5,150.7,153.8,167.1,166.7,159.7,166.2,153.3,166.1,176.8,153.0,171.6,176.4,157.8,183.2,177.5];
+      const length   = [1.25,1.33,1.50,2.92,3.17,5.58,3.67,5.25,3.08,2.92,3.00,2.42,3.50,2.92,4.50,3.42,1.75,1.50,3.25,5.50,5.25,4.25,5.75,7.00,5.00,3.50,3.75,4.75,2.50,1.00,5.35,4.38,5.88,5.17,5.40,4.35,5.53,5.47,4.60,5.65,5.85,5.67,0.60,0.30,0.80,1.50,1.25,4.50,1.00,0.50,1.00,1.20,0.25,2.50,0.00,1.20,1.25,0.00,3.50,4.75,0.25,1.75,0.00,0.50,0.75,3.04,3.42,1.80,1.60,1.30,1.90,1.80,1.30,2.10,3.10,1.90,2.50,2.80,1.40,2.60,5.70,2.70,2.20,2.40,2.90,3.00,4.20,2.28,3.30,4.75,5.60,3.65,5.85,3.55,4.55,4.65,2.55,5.85,5.60,3.75,3.70,5.50];
+
+      function rollingAvg(data, w) {
+        return data.map((_, i) => {
+          const s = Math.max(0, i - Math.floor(w / 2));
+          const e = Math.min(data.length, s + w);
+          const sl = data.slice(s, e);
+          return sl.reduce((a, b) => a + b, 0) / sl.length;
+        });
+      }
+
+      const survAvg = rollingAvg(survival, 9);
+      const lenAvg  = rollingAvg(length, 9);
+      const n = survival.length;
+
+      const canvas  = document.getElementById('trainingChart');
+      const tooltip = document.getElementById('trainingTooltip');
+      const panel   = document.getElementById('trainingPanel');
+      const btnSurv = document.getElementById('legendSurv');
+      const btnLen  = document.getElementById('legendLen');
+
+      const state = { progress: prefersReduced ? 1 : 0, hover: -1, showS: true, showL: true };
+      const PAD = { l: 48, r: 48, t: 16, b: 36 };
+      const CSS_H = 280;
+
+      function partialPath(ctx, data, yFn, xFn, prog) {
+        const maxIdx = prog * (n - 1);
+        const last = Math.floor(maxIdx);
+        ctx.beginPath();
+        for (let i = 0; i <= last; i++) {
+          const x = xFn(i), y = yFn(data[i]);
+          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        }
+        if (last < n - 1) {
+          const fr = maxIdx - last;
+          const xm = xFn(last) + (xFn(last + 1) - xFn(last)) * fr;
+          const ym = yFn(data[last]) + (yFn(data[last + 1]) - yFn(data[last])) * fr;
+          ctx.lineTo(xm, ym);
+        }
+      }
+
+      function draw() {
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth;
+        canvas.width = cssW * dpr;
+        canvas.height = CSS_H * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        const W = cssW, H = CSS_H;
+        const pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        const sMax = 200, lMax = 10;
+
+        const xp  = i => PAD.l + (i / (n - 1)) * pw;
+        const yps = v => PAD.t + ph - (v / sMax) * ph;
+        const ypl = v => PAD.t + ph - (v / lMax) * ph;
+
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        [0, 50, 100, 150, 200].forEach(v => {
+          ctx.beginPath(); ctx.moveTo(PAD.l, yps(v)); ctx.lineTo(W - PAD.r, yps(v)); ctx.stroke();
+        });
+        [1, 20, 40, 60, 80, 100].forEach(i => {
+          const x = xp(i - 1);
+          ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, PAD.t + ph); ctx.stroke();
+        });
+
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(106,169,255,0.85)'; ctx.textAlign = 'right';
+        [0, 50, 100, 150, 200].forEach(v => ctx.fillText(v, PAD.l - 7, yps(v) + 4));
+        ctx.fillStyle = 'rgba(162,107,255,0.85)'; ctx.textAlign = 'left';
+        [0, 2, 4, 6, 8, 10].forEach(v => ctx.fillText(v, W - PAD.r + 7, ypl(v) + 4));
+        ctx.fillStyle = 'rgba(152,161,181,0.6)'; ctx.textAlign = 'center';
+        [1, 20, 40, 60, 80, 100].forEach(i => ctx.fillText(i, xp(i - 1), H - PAD.b + 18));
+        ctx.fillStyle = 'rgba(152,161,181,0.4)'; ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText('Iterácia', PAD.l + pw / 2, H - 3);
+
+        const prog = state.progress;
+
+        if (state.showS) {
+          ctx.strokeStyle = 'rgba(106,169,255,0.16)'; ctx.lineWidth = 1;
+          partialPath(ctx, survival, yps, xp, prog); ctx.stroke();
+        }
+        if (state.showL) {
+          ctx.strokeStyle = 'rgba(162,107,255,0.16)'; ctx.lineWidth = 1;
+          partialPath(ctx, length, ypl, xp, prog); ctx.stroke();
+        }
+
+        if (state.showS) {
+          const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ph);
+          grad.addColorStop(0, 'rgba(106,169,255,0.14)');
+          grad.addColorStop(1, 'rgba(106,169,255,0)');
+          const maxIdx = prog * (n - 1);
+          partialPath(ctx, survAvg, yps, xp, prog);
+          ctx.lineTo(xp(maxIdx), PAD.t + ph);
+          ctx.lineTo(xp(0), PAD.t + ph);
+          ctx.closePath();
+          ctx.fillStyle = grad; ctx.fill();
+
+          ctx.strokeStyle = '#6aa9ff'; ctx.lineWidth = 2.5;
+          ctx.shadowColor = 'rgba(106,169,255,0.5)'; ctx.shadowBlur = 8;
+          partialPath(ctx, survAvg, yps, xp, prog); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        if (state.showL) {
+          ctx.strokeStyle = '#a26bff'; ctx.lineWidth = 2.5;
+          ctx.shadowColor = 'rgba(162,107,255,0.5)'; ctx.shadowBlur = 8;
+          partialPath(ctx, lenAvg, ypl, xp, prog); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        if (state.hover >= 0 && prog >= 1) {
+          const hx = xp(state.hover);
+          ctx.strokeStyle = 'rgba(233,236,245,0.22)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(hx, PAD.t); ctx.lineTo(hx, PAD.t + ph); ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (state.showS) {
+            ctx.fillStyle = '#6aa9ff';
+            ctx.beginPath(); ctx.arc(hx, yps(survAvg[state.hover]), 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#0a0c12'; ctx.lineWidth = 2; ctx.stroke();
+          }
+          if (state.showL) {
+            ctx.fillStyle = '#a26bff';
+            ctx.beginPath(); ctx.arc(hx, ypl(lenAvg[state.hover]), 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#0a0c12'; ctx.lineWidth = 2; ctx.stroke();
+          }
+        }
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+        ctx.strokeRect(PAD.l, PAD.t, pw, ph);
+      }
+
+      let animated = false;
+      function animate() {
+        if (animated || prefersReduced) { state.progress = 1; draw(); return; }
+        animated = true;
+        const dur = 1500, t0 = performance.now();
+        (function tick(t) {
+          const p = Math.min((t - t0) / dur, 1);
+          state.progress = 1 - Math.pow(1 - p, 4);
+          draw();
+          if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+      }
+
+      new IntersectionObserver((entries, obs) => {
+        if (entries[0].isIntersecting) { animate(); obs.disconnect(); }
+      }, { threshold: 0.3 }).observe(canvas);
+
+      new ResizeObserver(draw).observe(canvas);
+
+      btnSurv.addEventListener('click', () => {
+        state.showS = !state.showS;
+        btnSurv.classList.toggle('off', !state.showS);
+        draw();
+      });
+      btnLen.addEventListener('click', () => {
+        state.showL = !state.showL;
+        btnLen.classList.toggle('off', !state.showL);
+        draw();
+      });
+
+      canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        const pw = canvas.clientWidth - PAD.l - PAD.r;
+        const idx = Math.round(((e.clientX - rect.left - PAD.l) / pw) * (n - 1));
+        if (idx < 0 || idx >= n) {
+          tooltip.style.display = 'none';
+          if (state.hover !== -1) { state.hover = -1; draw(); }
+          return;
+        }
+        if (state.hover !== idx) { state.hover = idx; draw(); }
+        const panelRect = panel.getBoundingClientRect();
+        let tx = e.clientX - panelRect.left + 16;
+        const ty = e.clientY - panelRect.top - 14;
+        if (tx > panelRect.width - 190) tx -= 210;
+        tooltip.style.display = 'block';
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top  = ty + 'px';
+        tooltip.innerHTML =
+          '<strong style="color:var(--text)">Iterácia ' + (idx + 1) + '</strong><br>' +
+          '<span style="color:#6aa9ff">● Prežitie: ' + survival[idx].toFixed(1) + ' krokov</span><br>' +
+          '<span style="color:#a26bff">● Dĺžka: ' + length[idx].toFixed(2) + ' článkov</span>';
+      });
+      canvas.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+        state.hover = -1;
+        draw();
+      });
+
+      draw();
+    })();
+
+    /* ── Donut: rozloženie tréningového času ──────────────────────── */
+    (function timeChart() {
+      const canvas = document.getElementById('timeChart');
+      if (!canvas) return;
+      const legend = document.getElementById('timeLegend');
+      const segs = [
+        { label: 'Self-play hry', v: 77,   c: '#6aa9ff' },
+        { label: 'Interná evaluácia', v: 22.7, c: '#a26bff' },
+        { label: 'Gradient tréning', v: 0.3,  c: '#34d399' }
+      ];
+      const total = segs.reduce((a, s) => a + s.v, 0);
+      const state = { progress: prefersReduced ? 1 : 0, hover: -1 };
+
+      function draw() {
+        const dpr = window.devicePixelRatio || 1;
+        const size = canvas.clientWidth || 280;
+        canvas.width = size * dpr; canvas.height = size * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, size, size);
+
+        const cx = size / 2, cy = size / 2;
+        const R = size / 2 - 14, r = R * 0.62;
+        let start = -Math.PI / 2;
+        const sweepTotal = Math.PI * 2 * state.progress;
+
+        segs.forEach((s, i) => {
+          const frac = s.v / total;
+          const ang = frac * sweepTotal;
+          const isHover = state.hover === i;
+          const Ro = isHover ? R + 5 : R;
+          ctx.beginPath();
+          ctx.arc(cx, cy, Ro, start, start + ang);
+          ctx.arc(cx, cy, r, start + ang, start, true);
+          ctx.closePath();
+          ctx.fillStyle = s.c;
+          ctx.globalAlpha = state.hover === -1 || isHover ? 1 : 0.35;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          start += ang;
+        });
+
+        ctx.textAlign = 'center';
+        if (state.hover >= 0) {
+          const s = segs[state.hover];
+          ctx.fillStyle = s.c;
+          ctx.font = '600 22px "JetBrains Mono", monospace';
+          ctx.fillText((s.v < 1 ? '< 1' : Math.round(s.v)) + ' %', cx, cy - 2);
+          ctx.fillStyle = 'rgba(152,161,181,0.9)';
+          ctx.font = '11px Inter, sans-serif';
+          ctx.fillText(s.label, cx, cy + 18);
+        } else {
+          ctx.fillStyle = '#e9ecf5';
+          ctx.font = '600 26px "JetBrains Mono", monospace';
+          ctx.fillText('65,7 h', cx, cy - 2);
+          ctx.fillStyle = 'rgba(152,161,181,0.8)';
+          ctx.font = '11px Inter, sans-serif';
+          ctx.fillText('celkový čas tréningu', cx, cy + 18);
+        }
+      }
+
+      function hitTest(e) {
+        const rect = canvas.getBoundingClientRect();
+        const size = canvas.clientWidth;
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        const d = Math.sqrt(x * x + y * y);
+        const R = size / 2 - 14, r = R * 0.62;
+        if (d < r || d > R + 6) return -1;
+        let ang = Math.atan2(y, x) + Math.PI / 2;
+        if (ang < 0) ang += Math.PI * 2;
+        let acc = 0;
+        for (let i = 0; i < segs.length; i++) {
+          acc += (segs[i].v / total) * Math.PI * 2;
+          if (ang <= acc) return i;
+        }
+        return -1;
+      }
+
+      canvas.addEventListener('mousemove', e => {
+        const h = hitTest(e);
+        if (h !== state.hover) { state.hover = h; draw(); }
+        canvas.style.cursor = h >= 0 ? 'pointer' : 'default';
+      });
+      canvas.addEventListener('mouseleave', () => { state.hover = -1; draw(); });
+
+      legend.querySelectorAll('li').forEach(li => {
+        li.addEventListener('mouseenter', () => { state.hover = +li.dataset.seg; draw(); });
+        li.addEventListener('mouseleave', () => { state.hover = -1; draw(); });
+      });
+
+      let animated = false;
+      function animate() {
+        if (animated || prefersReduced) { state.progress = 1; draw(); return; }
+        animated = true;
+        const dur = 1200, t0 = performance.now();
+        (function tick(t) {
+          const p = Math.min((t - t0) / dur, 1);
+          state.progress = 1 - Math.pow(1 - p, 3);
+          draw();
+          if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+      }
+
+      new IntersectionObserver((entries, obs) => {
+        if (entries[0].isIntersecting) { animate(); obs.disconnect(); }
+      }, { threshold: 0.4 }).observe(canvas);
+
+      new ResizeObserver(draw).observe(canvas);
+      draw();
+    })();
+
+    /* ── Bar graf: win rate podľa scenára ─────────────────────────── */
+    (function evalChart() {
+      const canvas = document.getElementById('evalChart');
+      if (!canvas) return;
+      const rows = [
+        { name: 'direct duel + 2 boty',  mine: 36.5, goose: 63.0 },
+        { name: 'balanced (2 + 2)',      mine: 15.3, goose: 84.7 },
+        { name: 'stress (1 vs 3)',       mine: 1.3,  goose: 98.7 }
+      ];
+      const state = { progress: prefersReduced ? 1 : 0 };
+      const CSS_H = 230;
+
+      function draw() {
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth;
+        canvas.width = cssW * dpr; canvas.height = CSS_H * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, cssW, CSS_H);
+
+        const narrow = cssW < 560;
+        const labelW = narrow ? 0 : 175;
+        const padR = 56, padT = narrow ? 8 : 10;
+        const chartW = cssW - labelW - padR;
+        const groupH = (CSS_H - padT * 2) / rows.length;
+        const barH = narrow ? 13 : 15;
+        const gap = 7;
+
+        rows.forEach((row, gi) => {
+          const gy = padT + gi * groupH;
+          const labelExtra = narrow ? 16 : 0;
+          const cy = gy + (groupH - (barH * 2 + gap)) / 2 + labelExtra / 2;
+
+          ctx.fillStyle = 'rgba(233,236,245,0.85)';
+          ctx.font = (narrow ? '11px' : '12px') + ' Inter, sans-serif';
+          if (narrow) {
+            ctx.textAlign = 'left';
+            ctx.fillText(row.name, 0, gy + 12);
+          } else {
+            ctx.textAlign = 'right';
+            ctx.fillText(row.name, labelW - 16, cy + barH);
+          }
+
+          const bars = [
+            { v: row.mine,  c: '#6aa9ff', y: cy },
+            { v: row.goose, c: '#fbbf24', y: cy + barH + gap }
+          ];
+
+          bars.forEach(b => {
+            const w = Math.max((b.v / 100) * chartW * state.progress, 0);
+            ctx.fillStyle = 'rgba(255,255,255,0.04)';
+            roundRect(ctx, labelW, b.y, chartW, barH, 5); ctx.fill();
+            const grd = ctx.createLinearGradient(labelW, 0, labelW + chartW, 0);
+            grd.addColorStop(0, b.c);
+            grd.addColorStop(1, b.c + 'bb');
+            ctx.fillStyle = grd;
+            if (w > 1) { roundRect(ctx, labelW, b.y, w, barH, 5); ctx.fill(); }
+            ctx.fillStyle = 'rgba(233,236,245,0.9)';
+            ctx.font = '600 11px "JetBrains Mono", monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(
+              (b.v * state.progress).toLocaleString('sk-SK', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %',
+              labelW + w + 8, b.y + barH - 3.5
+            );
+          });
+        });
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
+      }
+
+      let animated = false;
+      function animate() {
+        if (animated || prefersReduced) { state.progress = 1; draw(); return; }
+        animated = true;
+        const dur = 1300, t0 = performance.now();
+        (function tick(t) {
+          const p = Math.min((t - t0) / dur, 1);
+          state.progress = 1 - Math.pow(1 - p, 3);
+          draw();
+          if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+      }
+
+      new IntersectionObserver((entries, obs) => {
+        if (entries[0].isIntersecting) { animate(); obs.disconnect(); }
+      }, { threshold: 0.4 }).observe(canvas);
+
+      new ResizeObserver(draw).observe(canvas);
+      draw();
+    })();
+
+  })();
+  </script>
 </body>
 </html>
