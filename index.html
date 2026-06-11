@@ -853,6 +853,17 @@ a:hover{
 
       <h3>Výsledky tréningu</h3>
 
+      <div style="position:relative; margin:18px 0; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <span style="font-size:0.79rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Priebeh tréningu · 102 iterácií</span>
+          <div style="display:flex; gap:16px; font-size:0.8rem; color:var(--muted);">
+            <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:20px;height:2.5px;background:#6aa9ff;border-radius:2px;"></span>Prežitie (kroky)</span>
+            <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:20px;height:2.5px;background:#a26bff;border-radius:2px;"></span>Dĺžka husi</span>
+          </div>
+        </div>
+        <canvas id="trainingChart" height="260" style="width:100%; display:block; cursor:crosshair;"></canvas>
+        <div id="trainingTooltip" style="display:none; position:absolute; background:rgba(16,18,22,0.97); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.8rem; pointer-events:none; line-height:1.7;"></div>
+      </div>
       <div class="before-after">
         <div class="ba-col ba-before">
           <h4>Iterácia 1 — začiatok</h4>
@@ -865,6 +876,137 @@ a:hover{
           <div class="ba-row"><span class="ba-key">Dĺžka husi</span><span class="ba-val">5,50 článkov</span></div>
         </div>
       </div>
+      <script>
+      (function () {
+        const survival = [79.2,89.6,89.4,109.4,106.7,105.5,122.6,123.5,104.3,111.4,134.5,110.0,111.3,123.7,130.9,123.0,98.2,87.2,115.8,111.0,106.0,89.2,110.8,152.2,108.2,111.8,111.8,87.5,128.5,110.8,128.9,122.8,120.7,117.3,113.5,118.7,135.8,132.8,116.4,139.5,127.5,120.2,68.0,92.5,94.5,132.0,164.2,122.2,102.5,128.5,65.2,111.7,23.2,184.5,50.8,94.8,119.0,57.5,111.2,154.0,91.0,154.2,24.2,135.5,108.8,161.9,176.4,128.7,120.9,123.8,155.3,144.9,149.8,165.6,143.5,160.6,178.1,164.6,132.8,169.8,150.8,152.1,138.8,165.6,118.2,155.2,144.5,150.7,153.8,167.1,166.7,159.7,166.2,153.3,166.1,176.8,153.0,171.6,176.4,157.8,183.2,177.5];
+        const length   = [1.25,1.33,1.50,2.92,3.17,5.58,3.67,5.25,3.08,2.92,3.00,2.42,3.50,2.92,4.50,3.42,1.75,1.50,3.25,5.50,5.25,4.25,5.75,7.00,5.00,3.50,3.75,4.75,2.50,1.00,5.35,4.38,5.88,5.17,5.40,4.35,5.53,5.47,4.60,5.65,5.85,5.67,0.60,0.30,0.80,1.50,1.25,4.50,1.00,0.50,1.00,1.20,0.25,2.50,0.00,1.20,1.25,0.00,3.50,4.75,0.25,1.75,0.00,0.50,0.75,3.04,3.42,1.80,1.60,1.30,1.90,1.80,1.30,2.10,3.10,1.90,2.50,2.80,1.40,2.60,5.70,2.70,2.20,2.40,2.90,3.00,4.20,2.28,3.30,4.75,5.60,3.65,5.85,3.55,4.55,4.65,2.55,5.85,5.60,3.75,3.70,5.50];
+
+        function rollingAvg(data, w) {
+          return data.map((_, i) => {
+            const s = Math.max(0, i - Math.floor(w / 2));
+            const e = Math.min(data.length, s + w);
+            const sl = data.slice(s, e);
+            return sl.reduce((a, b) => a + b, 0) / sl.length;
+          });
+        }
+
+        const survAvg = rollingAvg(survival, 9);
+        const lenAvg  = rollingAvg(length,   9);
+        const n = survival.length;
+
+        const canvas  = document.getElementById('trainingChart');
+        const tooltip = document.getElementById('trainingTooltip');
+
+        function draw() {
+          const dpr  = window.devicePixelRatio || 1;
+          const cssW = canvas.clientWidth;
+          const cssH = 260;
+          canvas.width  = cssW * dpr;
+          canvas.height = cssH * dpr;
+          const ctx = canvas.getContext('2d');
+          ctx.scale(dpr, dpr);
+
+          const W = cssW, H = cssH;
+          const pL = 46, pR = 46, pT = 14, pB = 34;
+          const pw = W - pL - pR, ph = H - pT - pB;
+
+          const sMax = 200, sMin = 0, lMax = 10, lMin = 0;
+
+          const xp  = i  => pL + (i / (n - 1)) * pw;
+          const yps = v  => pT + ph - ((v - sMin) / (sMax - sMin)) * ph;
+          const ypl = v  => pT + ph - ((v - lMin) / (lMax - lMin)) * ph;
+
+          ctx.clearRect(0, 0, W, H);
+
+          // horizontal grid
+          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+          ctx.lineWidth = 1;
+          [0, 50, 100, 150, 200].forEach(v => {
+            ctx.beginPath(); ctx.moveTo(pL, yps(v)); ctx.lineTo(W - pR, yps(v)); ctx.stroke();
+          });
+
+          // vertical grid
+          [1, 20, 40, 60, 80, 100].forEach(i => {
+            const x = xp(i - 1);
+            ctx.beginPath(); ctx.moveTo(x, pT); ctx.lineTo(x, pT + ph); ctx.stroke();
+          });
+
+          // Y labels left — survival
+          ctx.fillStyle = '#6aa9ff'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+          [0, 50, 100, 150, 200].forEach(v => ctx.fillText(v, pL - 6, yps(v) + 4));
+
+          // Y labels right — length
+          ctx.fillStyle = '#a26bff'; ctx.textAlign = 'left';
+          [0, 2, 4, 6, 8, 10].forEach(v => ctx.fillText(v, W - pR + 6, ypl(v) + 4));
+
+          // X labels
+          ctx.fillStyle = 'rgba(173,179,192,0.65)'; ctx.textAlign = 'center';
+          [1, 20, 40, 60, 80, 100].forEach(i => ctx.fillText(i, xp(i - 1), H - pB + 17));
+
+          // X axis title
+          ctx.fillStyle = 'rgba(173,179,192,0.4)'; ctx.font = '10px system-ui';
+          ctx.fillText('Iterácia', pL + pw / 2, H - 2);
+
+          // Raw survival (ghost)
+          ctx.strokeStyle = 'rgba(106,169,255,0.18)'; ctx.lineWidth = 1;
+          ctx.beginPath();
+          survival.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+          ctx.stroke();
+
+          // Raw length (ghost)
+          ctx.strokeStyle = 'rgba(162,107,255,0.18)'; ctx.lineWidth = 1;
+          ctx.beginPath();
+          length.forEach((v, i) => { const x = xp(i), y = ypl(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+          ctx.stroke();
+
+          // Survival avg fill
+          const grad = ctx.createLinearGradient(0, pT, 0, pT + ph);
+          grad.addColorStop(0, 'rgba(106,169,255,0.12)');
+          grad.addColorStop(1, 'rgba(106,169,255,0)');
+          ctx.beginPath();
+          survAvg.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+          ctx.lineTo(xp(n - 1), pT + ph); ctx.lineTo(xp(0), pT + ph); ctx.closePath();
+          ctx.fillStyle = grad; ctx.fill();
+
+          // Survival avg line
+          ctx.strokeStyle = '#6aa9ff'; ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          survAvg.forEach((v, i) => { const x = xp(i), y = yps(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+          ctx.stroke();
+
+          // Length avg line
+          ctx.strokeStyle = '#a26bff'; ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          lenAvg.forEach((v, i) => { const x = xp(i), y = ypl(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+          ctx.stroke();
+
+          // Axes border
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+          ctx.strokeRect(pL, pT, pw, ph);
+        }
+
+        draw();
+        new ResizeObserver(draw).observe(canvas);
+
+        canvas.addEventListener('mousemove', e => {
+          const rect = canvas.getBoundingClientRect();
+          const cssW = canvas.clientWidth;
+          const pw = cssW - 46 - 46;
+          const idx = Math.round(((e.clientX - rect.left - 46) / pw) * (n - 1));
+          if (idx < 0 || idx >= n) { tooltip.style.display = 'none'; return; }
+          const tx = e.clientX - rect.left + 14;
+          const ty = e.clientY - rect.top - 10;
+          tooltip.style.display = 'block';
+          tooltip.style.left = tx + 'px';
+          tooltip.style.top  = ty + 'px';
+          tooltip.innerHTML =
+            `<strong style="color:var(--text)">Iterácia ${idx + 1}</strong><br>` +
+            `<span style="color:#6aa9ff">Prežitie: ${survival[idx].toFixed(1)} krokov</span><br>` +
+            `<span style="color:#a26bff">Dĺžka: ${length[idx].toFixed(2)} článkov</span>`;
+        });
+        canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+      })();
+      </script>
     </section>
 
     <!-- Sekcia: Kaggle – Externé hodnotenie -->
