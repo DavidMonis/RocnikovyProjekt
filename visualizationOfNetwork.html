@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PolicyValueNet — vizualizácia siete s reálnymi váhami</title>
+  <meta name="description" content="Interaktívna vizualizácia neurónovej siete PolicyValueNet s reálnymi hodnotami váh z checkpointu latest.pt.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Stránkové štýly vizualizácie ── */
+    /* Na tejto stránke je obsah roztiahnutý na celú šírku obrazovky */
+    main.viz-page,
+    .nav-inner,
+    .site-footer .footer-inner{
+      max-width: 1740px;
+    }
+
+    .viz-page{ padding-top: 110px; }
+
+    .viz-head{ margin-bottom: 26px; }
+
+    .viz-head h1{
+      font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+      margin: 10px 0 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .viz-sub{
+      color: var(--muted);
+      max-width: 760px;
+      margin: 0 0 18px;
+    }
+
+    .viz-chips{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .viz-chip{
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 12px;
+      background: rgba(18, 21, 29, 0.7);
+    }
+
+    .viz-chip b{ color: var(--accent); font-weight: 600; }
+
+    .viz-layout{
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      align-items: start;
+      margin-top: 22px;
+    }
+
+    .viz-layout > *{ min-width: 0; }
+
+    @media (max-width: 1500px){
+      .viz-layout{ grid-template-columns: 1fr 300px; }
+    }
+
+    .viz-canvas-card{
+      position: relative;
+      background: rgba(10, 12, 18, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .viz-scroll{ overflow-x: auto; }
+
+    #netCanvas{
+      display: block;
+      min-width: 940px;
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      cursor: crosshair;
+    }
+
+    .viz-controls{
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+
+    .viz-controls label{
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .viz-controls input[type="checkbox"]{ accent-color: var(--accent); }
+
+    .viz-legend{
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .legend-grad{
+      width: 110px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #232c45, #6aa9ff, #d8b4fe);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .legend-sign{ display:inline-flex; align-items:center; gap:5px; }
+    .legend-sign i{ display:inline-block; width:14px; height:3px; border-radius:2px; }
+
+    /* Info panel */
+    .viz-panel{
+      position: sticky;
+      top: 96px;
+      background: var(--card);
+      -webkit-backdrop-filter: blur(14px);
+              backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      min-height: 420px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .viz-panel h2{
+      font-size: 1.05rem;
+      margin: 0 0 4px;
+      color: var(--accent);
+    }
+
+    .viz-panel .vp-layer{
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+    }
+
+    .viz-panel p{ font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    .vp-stats{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin: 14px 0;
+    }
+
+    .vp-stat{
+      background: rgba(106, 169, 255, 0.05);
+      border: 1px solid rgba(106, 169, 255, 0.14);
+      border-radius: 10px;
+      padding: 8px 11px;
+    }
+
+    .vp-stat .k{
+      display: block;
+      font-size: 0.66rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-family: var(--font-mono);
+    }
+
+    .vp-stat .v{
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .vp-table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      margin: 8px 0 14px;
+      font-family: var(--font-mono);
+    }
+
+    .vp-table th{
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .vp-table td{
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(148, 163, 200, 0.06);
+    }
+
+    .vp-table tr:hover td{ background: rgba(106, 169, 255, 0.05); }
+
+    .w-pos{ color: #34d399; }
+    .w-neg{ color: #f87171; }
+
+    .vp-kernels{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .vp-kernel{ text-align: center; }
+
+    .vp-kernel canvas{
+      display: block;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .vp-kernel span{
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .vp-section{
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin: 16px 0 6px;
+    }
+
+    .vp-reset{
+      margin-top: 10px;
+      width: 100%;
+      padding: 9px;
+      background: rgba(106, 169, 255, 0.08);
+      border: 1px solid rgba(106, 169, 255, 0.3);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .vp-reset:hover{ background: rgba(106,169,255,0.16); border-color: var(--accent); }
+
+    .vp-summary li{
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .vp-summary b{ color: var(--text); font-family: var(--font-mono); font-weight: 600; }
+
+    .viz-error{
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1080px){
+      .viz-layout{ grid-template-columns: 1fr; }
+      .viz-panel{ position: static; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-fx" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <nav class="nav scrolled">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="nav-logo">DM</span>
+        <span>PyTorch Game Agent</span>
+      </a>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <a class="nav-gh" href="index.html#architektura"><span>← Späť na projekt</span></a>
+        <a class="nav-gh" href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container viz-page">
+    <header class="viz-head">
+      <span class="section-eyebrow">PolicyValueNet · checkpoint latest.pt</span>
+      <h1>Vizualizácia siete <span class="grad-text">s reálnymi váhami</span></h1>
+      <p class="viz-sub">
+        Každý uzol na schéme zodpovedá skutočnému neurónu / príznaku siete a jeho farba aj hodnoty
+        pochádzajú priamo z natrénovaného checkpointu. Prejdite kurzorom po uzloch — kliknutím výber
+        pripnete a uvidíte reálne váhy, normy a najsilnejšie prepojenia.
+      </p>
+      <div class="viz-chips" id="vizChips"></div>
+    </header>
+
+    <div class="viz-layout">
+      <div>
+        <div class="viz-canvas-card">
+          <div class="viz-controls">
+            <label><input type="checkbox" id="edgeToggle" checked> Predvolené prepojenia (najsilnejšie váhy)</label>
+            <div class="viz-legend">
+              <span>slabé</span><span class="legend-grad"></span><span>silné · ‖w‖</span>
+              <span class="legend-sign"><i style="background:#34d399"></i>+ váha</span>
+              <span class="legend-sign"><i style="background:#f87171"></i>− váha</span>
+            </div>
+          </div>
+          <div class="viz-scroll">
+            <canvas id="netCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <aside class="viz-panel" id="vizPanel"></aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        PolicyValueNet
+        <span>Vizualizácia z Kaggle/checkpoints/latest.pt · vygenerované cez export_network_weights.py</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Hlavná stránka</a>
+        <a href="https://github.com/DavidMonis/RocnikovyProjekt" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="Kaggle/other/network_weights.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    const panel = document.getElementById('vizPanel');
+    const chipsEl = document.getElementById('vizChips');
+    const canvas = document.getElementById('netCanvas');
+
+    if (!window.NET) {
+      panel.innerHTML = '<div class="viz-error">Súbor <code>network_weights.js</code> sa nenačítal.<br>Vygenerujte ho: <code>python export_network_weights.py</code></div>';
+      return;
+    }
+
+    const NET = window.NET;
+    const fmt = (v, d = 4) => Number(v).toLocaleString('sk-SK', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+    const fmtW = v => (v >= 0 ? '+' : '') + Number(v).toLocaleString('sk-SK', { maximumFractionDigits: 4, minimumFractionDigits: 4 });
+
+    /* ── Konštanty siete ─────────────────────────────────────────── */
+    const ROWS = 7, COLS = 11, CELLS = ROWS * COLS; // 77
+    const CH_NAMES = ['vlastné telo', 'hlavy súperov', 'telá súperov', 'chvosty súperov', 'jedlo', 'nebezpečné polia'];
+    const SCALAR_NAMES = [
+      'dĺžka mojej husi', 'dĺžka súpera 1', 'dĺžka súpera 2', 'dĺžka súpera 3',
+      'alive súper 1', 'alive súper 2', 'alive súper 3',
+      'hunger tick', 'krok hry',
+      'akcia N', 'akcia S', 'akcia E', 'akcia W'
+    ];
+    const ACTION_NAMES = ['N — sever', 'S — juh', 'E — východ', 'W — západ'];
+
+    /* ── Prístup k váham ─────────────────────────────────────────── */
+    const c1w = NET.conv1.w, c1b = NET.conv1.b;   // [32][6][3][3], [32]
+    const c2w = NET.conv2.w, c2b = NET.conv2.b;   // [64][32][3][3], [64]
+    const pw = NET.policy.w, pb = NET.policy.b;   // [4][256], [4]
+    const vw = NET.value.w,  vb = NET.value.b;    // [1][256], [1]
+
+    const k1 = (f, ch, i, j) => c1w[((f * 6 + ch) * 3 + i) * 3 + j];
+    const k2 = (g, f, i, j) => c2w[((g * 32 + f) * 3 + i) * 3 + j];
+
+    function kernelNorm1(f, ch) {
+      let s = 0;
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { const w = k1(f, ch, i, j); s += w * w; }
+      return Math.sqrt(s);
+    }
+    function kernelNorm2(g, f) {
+      let s = 0;
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { const w = k2(g, f, i, j); s += w * w; }
+      return Math.sqrt(s);
+    }
+
+    /* Odvodené metriky */
+    const conv1Norm = [], conv1Pair = [];          // [32], [32][6]
+    for (let f = 0; f < 32; f++) {
+      let s = 0; const row = [];
+      for (let ch = 0; ch < 6; ch++) { const n = kernelNorm1(f, ch); row.push(n); s += n * n; }
+      conv1Pair.push(row); conv1Norm.push(Math.sqrt(s));
+    }
+    const chanNorm = [];                           // [6] dôležitosť vstupného kanála
+    for (let ch = 0; ch < 6; ch++) {
+      let s = 0;
+      for (let f = 0; f < 32; f++) s += conv1Pair[f][ch] ** 2;
+      chanNorm.push(Math.sqrt(s));
+    }
+    const conv2Norm = [], conv2Pair = [];          // [64], [64][32]
+    for (let g = 0; g < 64; g++) {
+      let s = 0; const row = [];
+      for (let f = 0; f < 32; f++) { const n = kernelNorm2(g, f); row.push(n); s += n * n; }
+      conv2Pair.push(row); conv2Norm.push(Math.sqrt(s));
+    }
+    const policyNorm = [0, 1, 2, 3].map(a => Math.sqrt(pw.slice(a * 256, a * 256 + 256).reduce((s, w) => s + w * w, 0)));
+    const valueNorm = Math.sqrt(vw.reduce((s, w) => s + w * w, 0));
+
+    const stat = arr => {
+      let mn = Infinity, mx = -Infinity, sum = 0;
+      arr.forEach(v => { if (v < mn) mn = v; if (v > mx) mx = v; sum += v; });
+      return { min: mn, max: mx, mean: sum / arr.length };
+    };
+    const S = {
+      chan: stat(chanNorm), sc: stat(NET.fcColNorm.slice(4928)),
+      c1: stat(conv1Norm), c2: stat(conv2Norm),
+      fl: stat(NET.fcColNorm.slice(0, 4928)), fc: stat(NET.fc.inNorm),
+      pv: stat([...policyNorm, valueNorm])
+    };
+    const norm01 = (v, s) => s.max > s.min ? (v - s.min) / (s.max - s.min) : 0.5;
+
+    /* Farebná škála: tmavá → modrá → svetlofialová */
+    function ramp(t) {
+      t = Math.max(0, Math.min(1, t));
+      const stops = [[35, 44, 69], [106, 169, 255], [216, 180, 254]];
+      const x = t * 2, i = Math.min(1, Math.floor(x)), f = x - i;
+      const a = stops[i], b = stops[i + 1];
+      return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+    }
+    function diverge(t) { // -1..1 → červená..tmavá..zelená
+      t = Math.max(-1, Math.min(1, t));
+      if (t < 0) { const f = -t; return `rgb(${Math.round(40 + 208 * f)},${Math.round(46 + 67 * f)},${Math.round(60 + 53 * f)})`; }
+      const f = t; return `rgb(${Math.round(40 + 12 * f)},${Math.round(46 + 165 * f)},${Math.round(60 + 93 * f)})`;
+    }
+
+    /* ── Geometria (virtuálne 1180 × 760) ────────────────────────── */
+    const VW = 1180, VH = 760;
+    const nodes = []; // {x, y, r, layer, idx}
+
+    // 1) board: 6 mriežok 7×11
+    const B = { x0: 34, pitch: 7, cell: 5, gridH: 49, gap: 26, y0: 170 };
+    const boardGridY = ch => B.y0 + ch * (B.gridH + B.gap);
+    for (let ch = 0; ch < 6; ch++)
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          nodes.push({ x: B.x0 + c * B.pitch, y: boardGridY(ch) + r * B.pitch, r: 3, layer: 'board', idx: ch * CELLS + r * COLS + c });
+
+    // 2) skaláry
+    const SC = { x: 186, y0: 216, pitch: 26 };
+    for (let i = 0; i < 13; i++) nodes.push({ x: SC.x, y: SC.y0 + i * SC.pitch, r: 4.5, layer: 'scalar', idx: i });
+
+    // 3) conv1
+    const C1 = { x: 312, y0: 130, pitch: 16 };
+    for (let f = 0; f < 32; f++) nodes.push({ x: C1.x, y: C1.y0 + f * C1.pitch, r: 5.5, layer: 'conv1', idx: f });
+
+    // 4) conv2
+    const C2 = { x: 452, y0: 85, pitch: 9.45 };
+    for (let g = 0; g < 64; g++) nodes.push({ x: C2.x, y: C2.y0 + g * C2.pitch, r: 3.6, layer: 'conv2', idx: g });
+
+    // 5) flatten: riadok g (zarovnaný s conv2), 77 stĺpcov
+    const FL = { x0: 568, pitch: 2.85 };
+    for (let g = 0; g < 64; g++)
+      for (let c = 0; c < CELLS; c++)
+        nodes.push({ x: FL.x0 + c * FL.pitch, y: C2.y0 + g * C2.pitch, r: 1.4, layer: 'flatten', idx: g * CELLS + c });
+
+    // 6) fc: 4 stĺpce × 64
+    const FC = { x0: 884, colPitch: 11, y0: 85, pitch: 9.45 };
+    for (let i = 0; i < 256; i++)
+      nodes.push({ x: FC.x0 + Math.floor(i / 64) * FC.colPitch, y: FC.y0 + (i % 64) * FC.pitch, r: 3.4, layer: 'fc', idx: i });
+
+    // 7) hlavy
+    const PY = [240, 310, 380, 450], PX = 1075, VY = 590;
+    for (let a = 0; a < 4; a++) nodes.push({ x: PX, y: PY[a], r: 9, layer: 'policy', idx: a });
+    nodes.push({ x: PX, y: VY, r: 9, layer: 'value', idx: 0 });
+
+    const nodeAt = (layer, idx) => nodes.find(n => n.layer === layer && n.idx === idx);
+    const flPos = idx => ({ x: FL.x0 + (idx % CELLS) * FL.pitch, y: C2.y0 + Math.floor(idx / CELLS) * C2.pitch });
+    const fcPos = i => ({ x: FC.x0 + Math.floor(i / 64) * FC.colPitch, y: FC.y0 + (i % 64) * FC.pitch });
+    const colPos = j => j < 4928 ? flPos(j) : { x: SC.x, y: SC.y0 + (j - 4928) * SC.pitch };
+    const colLabel = j => j < 4928 ? `f${Math.floor(j / CELLS)}·(${Math.floor((j % CELLS) / COLS)},${(j % CELLS) % COLS})` : SCALAR_NAMES[j - 4928];
+
+    function nodeColor(n) {
+      switch (n.layer) {
+        case 'board':  return ramp(norm01(chanNorm[Math.floor(n.idx / CELLS)], S.chan));
+        case 'scalar': return ramp(norm01(NET.fcColNorm[4928 + n.idx], S.sc));
+        case 'conv1':  return ramp(norm01(conv1Norm[n.idx], S.c1));
+        case 'conv2':  return ramp(norm01(conv2Norm[n.idx], S.c2));
+        case 'flatten':return ramp(norm01(NET.fcColNorm[n.idx], S.fl));
+        case 'fc':     return ramp(norm01(NET.fc.inNorm[n.idx], S.fc));
+        case 'policy': return ramp(norm01(policyNorm[n.idx], S.pv));
+        case 'value':  return ramp(norm01(valueNorm, S.pv));
+      }
+    }
+
+    /* ── Predvolené hrany ────────────────────────────────────────── */
+    const staticEdges = [];
+    (function buildEdges() {
+      // board kanál → conv1 (192, sila = norma jadra)
+      const maxP1 = Math.max(...conv1Pair.flat());
+      for (let f = 0; f < 32; f++) for (let ch = 0; ch < 6; ch++)
+        staticEdges.push({ x1: B.x0 + (COLS - 1) * B.pitch + 5, y1: boardGridY(ch) + 21, x2: C1.x - 7, y2: C1.y0 + f * C1.pitch, a: 0.02 + 0.13 * (conv1Pair[f][ch] / maxP1), c: '#6aa9ff' });
+      // conv1 → conv2: top 300 párov
+      const pairs2 = [];
+      for (let g = 0; g < 64; g++) for (let f = 0; f < 32; f++) pairs2.push([conv2Pair[g][f], f, g]);
+      pairs2.sort((a, b) => b[0] - a[0]);
+      const maxP2 = pairs2[0][0];
+      pairs2.slice(0, 300).forEach(([n, f, g]) =>
+        staticEdges.push({ x1: C1.x + 7, y1: C1.y0 + f * C1.pitch, x2: C2.x - 5, y2: C2.y0 + g * C2.pitch, a: 0.02 + 0.12 * (n / maxP2), c: '#6aa9ff' }));
+      // conv2 → flatten riadok (štrukturálne)
+      for (let g = 0; g < 64; g++)
+        staticEdges.push({ x1: C2.x + 5, y1: C2.y0 + g * C2.pitch, x2: FL.x0 - 4, y2: C2.y0 + g * C2.pitch, a: 0.05, c: '#98a1b5' });
+      // flatten/skaláry → fc: top-3 z top-8 každého neurónu
+      NET.fc.top.forEach((tops, i) => {
+        const t = fcPos(i);
+        tops.slice(0, 3).forEach(([j, w]) => {
+          const s = colPos(j);
+          staticEdges.push({ x1: s.x + 3, y1: s.y, x2: t.x - 4, y2: t.y, a: 0.05, c: w >= 0 ? '#34d399' : '#f87171' });
+        });
+      });
+      // fc → hlavy: top 220 podľa |w|
+      const hp = [];
+      for (let a = 0; a < 4; a++) for (let i = 0; i < 256; i++) hp.push([Math.abs(pw[a * 256 + i]), i, a, pw[a * 256 + i]]);
+      for (let i = 0; i < 256; i++) hp.push([Math.abs(vw[i]), i, 4, vw[i]]);
+      hp.sort((a, b) => b[0] - a[0]);
+      hp.slice(0, 220).forEach(([, i, h, w]) => {
+        const s = fcPos(i);
+        staticEdges.push({ x1: s.x + 4, y1: s.y, x2: PX - 10, y2: h < 4 ? PY[h] : VY, a: 0.03 + 0.12 * (Math.abs(w) / hp[0][0]), c: w >= 0 ? '#34d399' : '#f87171' });
+      });
+    })();
+
+    /* ── Render ──────────────────────────────────────────────────── */
+    const ctx = canvas.getContext('2d');
+    let scale = 1, hovered = null, pinned = null, showEdges = true;
+    let intro = 0;
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const staticCv = document.createElement('canvas');
+
+    const LAYER_ORDER = { board: 0, scalar: 0, conv1: 1, conv2: 2, flatten: 3, fc: 4, policy: 5, value: 5 };
+
+    function drawStatic(c2d, alphaPerStage) {
+      c2d.clearRect(0, 0, VW, VH);
+
+      // nadpisy vrstiev
+      c2d.font = '600 11px "JetBrains Mono", monospace';
+      c2d.fillStyle = 'rgba(152,161,181,0.75)';
+      c2d.textAlign = 'center';
+      const heads = [[B.x0 + 38, 'VSTUP 6×7×11'], [SC.x, 'SKALÁRY 13'], [C1.x, 'CONV1 · 32'], [C2.x, 'CONV2 · 64'], [FL.x0 + 108, 'FLATTEN · 4 928'], [FC.x0 + 16, 'FC · 256'], [PX, 'HLAVY']];
+      heads.forEach(([x, t]) => c2d.fillText(t, x, 40));
+
+      // hrany
+      if (showEdges) {
+        staticEdges.forEach(e => {
+          const st = Math.min(LAYER_ORDER[hovered ? 'value' : 'value'], 5); // placeholder, alpha set below
+          c2d.globalAlpha = e.a * (alphaPerStage ? alphaPerStage[5] : 1);
+          c2d.strokeStyle = e.c;
+          c2d.lineWidth = 1;
+          c2d.beginPath(); c2d.moveTo(e.x1, e.y1); c2d.lineTo(e.x2, e.y2); c2d.stroke();
+        });
+        c2d.globalAlpha = 1;
+      }
+
+      // uzly
+      nodes.forEach(n => {
+        const a = alphaPerStage ? alphaPerStage[LAYER_ORDER[n.layer]] : 1;
+        if (a <= 0) return;
+        c2d.globalAlpha = a;
+        c2d.fillStyle = nodeColor(n);
+        if (n.layer === 'board') {
+          c2d.fillRect(n.x - 2.5, n.y - 2.5, 5, 5);
+        } else if (n.layer === 'flatten') {
+          c2d.fillRect(n.x - 1.2, n.y - 1.2, 2.4, 2.4);
+        } else {
+          c2d.beginPath(); c2d.arc(n.x, n.y, n.r, 0, Math.PI * 2); c2d.fill();
+        }
+      });
+      c2d.globalAlpha = 1;
+
+      // popisky kanálov a hláv
+      c2d.font = '10px "JetBrains Mono", monospace';
+      c2d.fillStyle = 'rgba(152,161,181,0.7)';
+      c2d.textAlign = 'right';
+      for (let ch = 0; ch < 6; ch++) c2d.fillText('K' + ch, B.x0 - 9, boardGridY(ch) + 25);
+      c2d.textAlign = 'left';
+      c2d.font = '600 12px "JetBrains Mono", monospace';
+      ['P(N)', 'P(S)', 'P(E)', 'P(W)'].forEach((t, a) => { c2d.fillStyle = '#9cc3ff'; c2d.fillText(t, PX + 16, PY[a] + 4); });
+      c2d.fillStyle = '#c4a8f7'; c2d.fillText('V', PX + 16, VY + 4);
+      c2d.font = '10px "JetBrains Mono", monospace';
+      c2d.fillStyle = 'rgba(152,161,181,0.6)';
+      c2d.fillText('softmax', PX + 16, PY[3] + 22);
+      c2d.fillText('tanh', PX + 16, VY + 22);
+    }
+
+    function rebuildStatic() {
+      staticCv.width = VW; staticCv.height = VH;
+      drawStatic(staticCv.getContext('2d'), null);
+    }
+
+    function highlightEdge(c, x1, y1, x2, y2, w, label) {
+      c.strokeStyle = w >= 0 ? '#34d399' : '#f87171';
+      c.lineWidth = 1.6;
+      c.globalAlpha = 0.85;
+      c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+      c.globalAlpha = 1;
+      if (label) {
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        c.font = '600 9.5px "JetBrains Mono", monospace';
+        c.fillStyle = w >= 0 ? '#6ee7b7' : '#fca5a5';
+        c.fillText(fmtW(w), mx + 4, my - 3);
+      }
+    }
+
+    function drawHover(c, n) {
+      // zvýraznenie samotného uzla
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = 1.6;
+      c.beginPath(); c.arc(n.x, n.y, Math.max(n.r + 3.5, 5), 0, Math.PI * 2); c.stroke();
+
+      if (n.layer === 'conv1') {
+        const f = n.idx;
+        for (let ch = 0; ch < 6; ch++)
+          highlightEdge(c, B.x0 + (COLS - 1) * B.pitch + 5, boardGridY(ch) + 21, n.x - 7, n.y, conv1Pair[f][ch], false);
+        // top-10 výstupov do conv2
+        const outs = [];
+        for (let g = 0; g < 64; g++) outs.push([conv2Pair[g][f], g]);
+        outs.sort((a, b) => b[0] - a[0]);
+        outs.slice(0, 10).forEach(([nm, g]) => highlightEdge(c, n.x + 7, n.y, C2.x - 5, C2.y0 + g * C2.pitch, nm, false));
+      } else if (n.layer === 'conv2') {
+        const g = n.idx;
+        const ins = [];
+        for (let f = 0; f < 32; f++) ins.push([conv2Pair[g][f], f]);
+        ins.sort((a, b) => b[0] - a[0]);
+        ins.slice(0, 10).forEach(([nm, f]) => highlightEdge(c, C1.x + 7, C1.y0 + f * C1.pitch, n.x - 5, n.y, nm, false));
+        highlightEdge(c, n.x + 5, n.y, FL.x0 - 4, n.y, 1, false);
+      } else if (n.layer === 'flatten' || n.layer === 'scalar') {
+        const j = n.layer === 'flatten' ? n.idx : 4928 + n.idx;
+        NET.fcColTop[j].forEach(([i, w]) => {
+          const t = fcPos(i);
+          highlightEdge(c, n.x + 3, n.y, t.x - 4, t.y, w, true);
+        });
+        if (n.layer === 'flatten') highlightEdge(c, C2.x + 5, C2.y0 + Math.floor(n.idx / CELLS) * C2.pitch, n.x - 2, n.y, 1, false);
+      } else if (n.layer === 'fc') {
+        const i = n.idx;
+        NET.fc.top[i].forEach(([j, w]) => {
+          const s = colPos(j);
+          highlightEdge(c, s.x + 3, s.y, n.x - 4, n.y, w, false);
+        });
+        for (let a = 0; a < 4; a++) highlightEdge(c, n.x + 4, n.y, PX - 10, PY[a], pw[a * 256 + i], true);
+        highlightEdge(c, n.x + 4, n.y, PX - 10, VY, vw[i], true);
+      } else if (n.layer === 'policy' || n.layer === 'value') {
+        const row = n.layer === 'policy' ? pw.slice(n.idx * 256, n.idx * 256 + 256) : vw;
+        const tops = row.map((w, i) => [Math.abs(w), i, w]).sort((a, b) => b[0] - a[0]).slice(0, 40);
+        tops.forEach(([, i, w]) => { const s = fcPos(i); highlightEdge(c, s.x + 4, s.y, n.x - 10, n.y, w, false); });
+      } else if (n.layer === 'board') {
+        const ch = Math.floor(n.idx / CELLS);
+        for (let f = 0; f < 32; f++)
+          highlightEdge(c, B.x0 + (COLS - 1) * B.pitch + 5, boardGridY(ch) + 21, C1.x - 7, C1.y0 + f * C1.pitch, conv1Pair[f][ch], false);
+      }
+    }
+
+    function render() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const cssW = canvas.clientWidth;
+      scale = cssW / VW;
+      const cssH = VH * scale;
+      canvas.style.height = cssH + 'px';
+      canvas.width = cssW * dpr;
+      canvas.height = cssH * dpr;
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+
+      if (intro < 1) {
+        const stages = [];
+        for (let s = 0; s <= 5; s++) stages.push(Math.max(0, Math.min(1, intro * 7 - s)));
+        drawStatic(ctx, stages);
+        return;
+      }
+      ctx.clearRect(0, 0, VW, VH);
+      ctx.drawImage(staticCv, 0, 0, VW, VH);
+      const sel = pinned || hovered;
+      if (sel) drawHover(ctx, sel);
+    }
+
+    /* ── Info panel ──────────────────────────────────────────────── */
+    function statRow(k, v) { return `<div class="vp-stat"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
+
+    function kernelCanvas(f, ch, which) {
+      return `<div class="vp-kernel"><canvas width="62" height="62" data-k="${which},${f},${ch}"></canvas><span>K${ch} · ${CH_NAMES[ch].split(' ')[0]}</span></div>`;
+    }
+
+    function paintKernels() {
+      panel.querySelectorAll('canvas[data-k]').forEach(cv => {
+        const [which, a, b] = cv.dataset.k.split(',').map(Number);
+        const g = cv.getContext('2d');
+        const ker = (i, j) => which === 1 ? k1(a, b, i, j) : k2(a, b, i, j);
+        let mx = 0;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) mx = Math.max(mx, Math.abs(ker(i, j)));
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+          const w = ker(i, j);
+          g.fillStyle = diverge(mx ? w / mx : 0);
+          g.fillRect(j * 21, i * 21, 20, 20);
+          g.fillStyle = 'rgba(255,255,255,0.85)';
+          g.font = '7px "JetBrains Mono", monospace';
+          g.textAlign = 'center';
+          g.fillText(w.toFixed(2), j * 21 + 10, i * 21 + 13);
+        }
+      });
+    }
+
+    function topTable(rows, head) {
+      let h = `<table class="vp-table"><tr><th>${head[0]}</th><th>${head[1]}</th></tr>`;
+      rows.forEach(([l, w]) => { h += `<tr><td>${l}</td><td class="${w >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(w)}</td></tr>`; });
+      return h + '</table>';
+    }
+
+    function defaultPanel() {
+      const st = NET.meta.stats || {};
+      panel.innerHTML = `
+        <span class="vp-layer">PolicyValueNet · iterácia ${NET.meta.iteration}</span>
+        <h2>Celá sieť, reálne váhy</h2>
+        <p>Farba každého uzla zodpovedá <b>L2 norme jeho váh</b> z checkpointu — svetlejšie uzly majú v sieti väčší vplyv. Kliknutím uzol pripnete.</p>
+        <div class="vp-section">Vrstvy</div>
+        <ul class="vp-summary" style="list-style:none; padding:0; margin:0;">
+          <li><b>462</b> vstupných políčok (6 kanálov × 7 × 11)</li>
+          <li><b>13</b> skalárnych vstupov</li>
+          <li><b>32</b> filtrov Conv1 · 1 760 parametrov</li>
+          <li><b>64</b> filtrov Conv2 · 18 496 parametrov</li>
+          <li><b>4 928</b> flatten príznakov</li>
+          <li><b>256</b> neurónov FC · 1 265 152 parametrov</li>
+          <li><b>4 + 1</b> výstupy (policy + value) · 1 285 parametrov</li>
+        </ul>
+        <div class="vp-section">Checkpoint</div>
+        <div class="vp-stats">
+          ${statRow('avg loss', fmt(st.avg_loss))}
+          ${statRow('policy loss', fmt(st.avg_policy_loss))}
+          ${statRow('value loss', fmt(st.avg_value_loss))}
+          ${statRow('replay buffer', fmt(st.buffer_size, 0))}
+          ${statRow('vzorky spolu', fmt(st.generated_samples, 0))}
+          ${statRow('zariadenie', st.device || '—')}
+        </div>`;
+    }
+
+    function showNode(n) {
+      let html = '';
+      if (n.layer === 'board') {
+        const ch = Math.floor(n.idx / CELLS), r = Math.floor((n.idx % CELLS) / COLS), c = (n.idx % CELLS) % COLS;
+        html = `<span class="vp-layer">Vstup · kanál K${ch}</span>
+          <h2>${CH_NAMES[ch]} · políčko (${r}, ${c})</h2>
+          <p>Binárny vstup (0/1). Konvolučné váhy sú zdieľané pre všetky políčka kanála — dôležitosť kanála je daná normou jadier Conv1, ktoré ho čítajú.</p>
+          <div class="vp-stats">
+            ${statRow('kanál', 'K' + ch)}
+            ${statRow('pozícia', `(${r}, ${c})`)}
+            ${statRow('‖W kanála‖ v Conv1', fmt(chanNorm[ch]))}
+            ${statRow('poradie kanála', (1 + chanNorm.filter(v => v > chanNorm[ch]).length) + ' / 6')}
+          </div>
+          <div class="vp-section">Najsilnejšie filtre čítajúce K${ch}</div>
+          ${topTable(conv1Pair.map((row, f) => [`Conv1 f${f}`, row[ch]]).sort((a, b) => b[1] - a[1]).slice(0, 6), ['filter', '‖jadro‖'])}`;
+      } else if (n.layer === 'scalar') {
+        const j = 4928 + n.idx;
+        html = `<span class="vp-layer">Skalárny vstup · #${n.idx}</span>
+          <h2>${SCALAR_NAMES[n.idx]}</h2>
+          <p>Vstupuje priamo do FC vrstvy (stĺpec ${j} matice shared_fc). Dôležitosť = L2 norma jeho 256 odchádzajúcich váh.</p>
+          <div class="vp-stats">
+            ${statRow('‖w stĺpca‖', fmt(NET.fcColNorm[j]))}
+            ${statRow('poradie medzi skalármi', (1 + NET.fcColNorm.slice(4928).filter(v => v > NET.fcColNorm[j]).length) + ' / 13')}
+          </div>
+          <div class="vp-section">Najsilnejšie prepojenia do FC</div>
+          ${topTable(NET.fcColTop[j].map(([i, w]) => [`FC #${i}`, w]), ['neurón', 'váha'])}`;
+      } else if (n.layer === 'conv1') {
+        const f = n.idx;
+        html = `<span class="vp-layer">Conv1 · filter #${f}</span>
+          <h2>Conv2d 6 → 32 · jadro 3×3</h2>
+          <div class="vp-stats">
+            ${statRow('bias', fmtW(c1b[f]))}
+            ${statRow('‖W filtra‖', fmt(conv1Norm[f]))}
+            ${statRow('poradie', (1 + conv1Norm.filter(v => v > conv1Norm[f]).length) + ' / 32')}
+            ${statRow('parametre', '55')}
+          </div>
+          <div class="vp-section">Reálne jadrá 3×3 (6 vstupných kanálov)</div>
+          <div class="vp-kernels">${[0, 1, 2, 3, 4, 5].map(ch => kernelCanvas(f, ch, 1)).join('')}</div>`;
+      } else if (n.layer === 'conv2') {
+        const g = n.idx;
+        const tops = conv2Pair[g].map((nm, f) => [nm, f]).sort((a, b) => b[0] - a[0]).slice(0, 6);
+        html = `<span class="vp-layer">Conv2 · filter #${g}</span>
+          <h2>Conv2d 32 → 64 · jadro 3×3</h2>
+          <div class="vp-stats">
+            ${statRow('bias', fmtW(c2b[g]))}
+            ${statRow('‖W filtra‖', fmt(conv2Norm[g]))}
+            ${statRow('poradie', (1 + conv2Norm.filter(v => v > conv2Norm[g]).length) + ' / 64')}
+            ${statRow('parametre', '289')}
+          </div>
+          <div class="vp-section">Jadrá k najsilnejším vstupom (z Conv1)</div>
+          <div class="vp-kernels">${tops.map(([, f]) => `<div class="vp-kernel"><canvas width="62" height="62" data-k="2,${g},${f}"></canvas><span>← C1 f${f}</span></div>`).join('')}</div>
+          ${topTable(tops.map(([nm, f]) => [`Conv1 f${f}`, nm]), ['vstupný filter', '‖jadro‖'])}`;
+      } else if (n.layer === 'flatten') {
+        const f = Math.floor(n.idx / CELLS), r = Math.floor((n.idx % CELLS) / COLS), c = (n.idx % CELLS) % COLS;
+        html = `<span class="vp-layer">Flatten · index ${n.idx} / 4 928</span>
+          <h2>Filter f${f} · pozícia (${r}, ${c})</h2>
+          <p>Aktivácia filtra Conv2 #${f} na políčku (${r}, ${c}), preusporiadaná do vektora. Dôležitosť = L2 norma jeho 256 váh do FC vrstvy.</p>
+          <div class="vp-stats">
+            ${statRow('‖w stĺpca‖', fmt(NET.fcColNorm[n.idx]))}
+            ${statRow('poradie', (1 + NET.fcColNorm.slice(0, 4928).filter(v => v > NET.fcColNorm[n.idx]).length) + ' / 4 928')}
+          </div>
+          <div class="vp-section">Najsilnejšie prepojenia do FC</div>
+          ${topTable(NET.fcColTop[n.idx].map(([i, w]) => [`FC #${i}`, w]), ['neurón', 'váha'])}`;
+      } else if (n.layer === 'fc') {
+        const i = n.idx;
+        html = `<span class="vp-layer">Shared FC · neurón #${i}</span>
+          <h2>Linear 4 941 → 256 + ReLU</h2>
+          <div class="vp-stats">
+            ${statRow('bias', fmtW(NET.fc.b[i]))}
+            ${statRow('‖w vstupov‖', fmt(NET.fc.inNorm[i]))}
+            ${statRow('priemer w', fmtW(NET.fc.inMean[i]))}
+            ${statRow('std w', fmt(NET.fc.inStd[i]))}
+            ${statRow('min w', fmtW(NET.fc.inMin[i]))}
+            ${statRow('max w', fmtW(NET.fc.inMax[i]))}
+          </div>
+          <div class="vp-section">Top 8 vstupných váh (zo 4 941)</div>
+          ${topTable(NET.fc.top[i].map(([j, w]) => [colLabel(j), w]), ['zdroj', 'váha'])}
+          <div class="vp-section">Výstupy do hláv</div>
+          ${topTable([
+            ['→ P(N)', pw[0 * 256 + i]], ['→ P(S)', pw[1 * 256 + i]],
+            ['→ P(E)', pw[2 * 256 + i]], ['→ P(W)', pw[3 * 256 + i]],
+            ['→ Value', vw[i]]
+          ], ['hlava', 'váha'])}`;
+      } else if (n.layer === 'policy') {
+        const a = n.idx, row = pw.slice(a * 256, a * 256 + 256);
+        const tops = row.map((w, i) => [Math.abs(w), i, w]).sort((x, y) => y[0] - x[0]).slice(0, 10);
+        html = `<span class="vp-layer">Policy head · výstup #${a}</span>
+          <h2>${ACTION_NAMES[a]}</h2>
+          <p>Logit akcie — softmaxom sa mení na pravdepodobnosť. Trénovaný cross-entropy lossom voči počtom návštev MCTS.</p>
+          <div class="vp-stats">
+            ${statRow('bias', fmtW(pb[a]))}
+            ${statRow('‖w vstupov‖', fmt(policyNorm[a]))}
+          </div>
+          <div class="vp-section">Top 10 vstupov z FC (z 256)</div>
+          ${topTable(tops.map(([, i, w]) => [`FC #${i}`, w]), ['neurón', 'váha'])}`;
+      } else if (n.layer === 'value') {
+        const tops = vw.map((w, i) => [Math.abs(w), i, w]).sort((x, y) => y[0] - x[0]).slice(0, 10);
+        html = `<span class="vp-layer">Value head · výstup</span>
+          <h2>Hodnota pozície · tanh → [−1, 1]</h2>
+          <p>Odhad finálneho umiestnenia (−1 = prvý vypadnutý, +1 = víťaz). Trénovaný MSE lossom. V MCTS ohodnocuje listové uzly.</p>
+          <div class="vp-stats">
+            ${statRow('bias', fmtW(vb[0]))}
+            ${statRow('‖w vstupov‖', fmt(valueNorm))}
+          </div>
+          <div class="vp-section">Top 10 vstupov z FC (z 256)</div>
+          ${topTable(tops.map(([, i, w]) => [`FC #${i}`, w]), ['neurón', 'váha'])}`;
+      }
+      if (pinned) html += '<button class="vp-reset" id="vpReset">✕ Zrušiť výber</button>';
+      panel.innerHTML = html;
+      paintKernels();
+      const btn = document.getElementById('vpReset');
+      if (btn) btn.addEventListener('click', () => { pinned = null; hovered = null; defaultPanel(); render(); });
+    }
+
+    /* ── Interakcia ──────────────────────────────────────────────── */
+    function hitTest(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / scale;
+      const y = (e.clientY - rect.top) / scale;
+      let best = null, bestD = 81; // 9px polomer
+      for (const n of nodes) {
+        const dx = n.x - x, dy = n.y - y;
+        const d = dx * dx + dy * dy;
+        const lim = Math.max((n.r + 4) ** 2, n.layer === 'flatten' ? 9 : 81);
+        if (d < lim && d < bestD + (n.r > 3 ? 30 : 0)) { best = n; bestD = d; }
+      }
+      return best;
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      if (pinned) return;
+      const n = hitTest(e);
+      if (n !== hovered) {
+        hovered = n;
+        if (n) showNode(n); else defaultPanel();
+        render();
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (pinned) return;
+      hovered = null; defaultPanel(); render();
+    });
+
+    canvas.addEventListener('click', e => {
+      const n = hitTest(e);
+      if (n) { pinned = n; showNode(n); }
+      else { pinned = null; defaultPanel(); }
+      render();
+    });
+
+    document.getElementById('edgeToggle').addEventListener('change', e => {
+      showEdges = e.target.checked;
+      rebuildStatic();
+      render();
+    });
+
+    /* ── Hlavičkové chipy ────────────────────────────────────────── */
+    (function chips() {
+      const st = NET.meta.stats || {};
+      const items = [
+        ['iterácia', NET.meta.iteration],
+        ['parametre', fmt(NET.meta.totalParams, 0)],
+        ['uzly na schéme', fmt(462 + 13 + 32 + 64 + 4928 + 256 + 5, 0)],
+        ['avg loss', fmt(st.avg_loss)],
+        ['policy loss', fmt(st.avg_policy_loss)],
+        ['value loss', fmt(st.avg_value_loss)]
+      ];
+      chipsEl.innerHTML = items.map(([k, v]) => `<span class="viz-chip">${k}: <b>${v}</b></span>`).join('');
+    })();
+
+    /* ── Štart ───────────────────────────────────────────────────── */
+    defaultPanel();
+    rebuildStatic();
+
+    if (prefersReduced) {
+      intro = 1;
+      render();
+    } else {
+      const dur = 1600, t0 = performance.now();
+      (function tick(t) {
+        intro = Math.min((t - t0) / dur, 1);
+        render();
+        if (intro < 1) requestAnimationFrame(tick);
+        else { rebuildStatic(); render(); }
+      })(t0);
+    }
+
+    new ResizeObserver(() => { rebuildStatic(); render(); }).observe(canvas);
+  })();
+  </script>
+</body>
+</html>
