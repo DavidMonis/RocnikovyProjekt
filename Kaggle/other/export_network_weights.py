@@ -8,11 +8,15 @@ Usage (needs a Python env with torch, e.g. the Snake venv):
 
 import json
 import os
+import sys
 
 import torch
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-CKPT = os.path.join(ROOT, "Kaggle", "checkpoints", "latest.pt")
+ROOT = os.path.dirname(os.path.abspath(__file__))   # Kaggle/other
+KAGGLE = os.path.dirname(ROOT)                      # Kaggle
+sys.path.insert(0, KAGGLE)
+
+CKPT = os.path.join(KAGGLE, "checkpoints", "latest.pt")
 OUT = os.path.join(ROOT, "network_weights.js")
 
 FC_TOP_IN = 8     # strongest incoming weights kept per FC neuron
@@ -25,6 +29,70 @@ def rnd(x: float) -> float:
 
 def lst(t: torch.Tensor) -> list:
     return [rnd(v) for v in t.flatten().tolist()]
+
+
+def sample_forward(sd: dict) -> dict:
+    """
+    Run one real forward pass on an example mid-game state and capture the
+    activations of every layer, so the visualization page can show real
+    inputs/outputs per layer (zoom on the first node of each layer).
+    """
+    from core.encoder import StateEncoder
+    from core.state import GameState
+    from model.network import PolicyValueNet
+
+    # Example mid-game position (positions are r * 11 + c on a 7x11 board).
+    geese = [
+        [38, 37, 36, 25, 24],  # me, length 5, head (3,5)
+        [13, 14, 15, 26],      # enemy A, length 4
+        [63, 62, 61],          # enemy B, length 3
+        [9, 10],               # enemy C, length 2
+    ]
+    food = [44, 5]
+    state = GameState(
+        geese=geese,
+        food=food,
+        step=57,
+        last_actions=["EAST", "WEST", "EAST", "WEST"],
+    )
+
+    board_np, scalars_np = StateEncoder().encode(state, 0)
+    board = torch.from_numpy(board_np).unsqueeze(0)
+    scalars = torch.from_numpy(scalars_np).unsqueeze(0)
+
+    model = PolicyValueNet()
+    model.load_state_dict(sd)
+    model.eval()
+
+    with torch.no_grad():
+        c1_pre = model.cnn1(board)
+        c1 = torch.relu(c1_pre)
+        c2_pre = model.cnn2(c1)
+        c2 = torch.relu(c2_pre)
+        flat = model.flatten(c2)
+        x = torch.cat([flat, scalars], dim=1)
+        fc_pre = model.shared_fc(x)
+        fc = torch.relu(fc_pre)
+        logits = model.linear_policy_head(fc)
+        probs = torch.softmax(logits, dim=1)
+        val_pre = model.linear_value_head(fc)
+        val = torch.tanh(val_pre)
+
+    return {
+        "state": {"geese": geese, "food": food, "step": 57},
+        "board": lst(board),          # 6 x 7 x 11
+        "scalars": lst(scalars),      # 13
+        "conv1Pre": lst(c1_pre),      # 32 x 7 x 11
+        "conv1": lst(c1),
+        "conv2Pre": lst(c2_pre),      # 64 x 7 x 11
+        "conv2": lst(c2),
+        "fcPre": lst(fc_pre),         # 256
+        "fc": lst(fc),
+        "policyLogits": lst(logits),  # 4
+        "policyProbs": lst(probs),
+        "valuePre": lst(val_pre),
+        "value": lst(val),
+    }
 
 
 def main() -> None:
@@ -78,6 +146,7 @@ def main() -> None:
         "conv2": {"w": lst(sd["cnn2.weight"]), "b": lst(sd["cnn2.bias"]), "shape": [64, 32, 3, 3]},
         "fc": {
             "b": lst(sd["shared_fc.bias"]),
+            "row0": lst(fcw[0]),  # full incoming weights of FC neuron 0 (4941)
             "inNorm": lst(in_norm),
             "inMean": lst(in_mean),
             "inStd": lst(in_std),
@@ -89,6 +158,7 @@ def main() -> None:
         "fcColTop": col_top,
         "policy": {"w": lst(sd["linear_policy_head.weight"]), "b": lst(sd["linear_policy_head.bias"])},
         "value": {"w": lst(sd["linear_value_head.weight"]), "b": lst(sd["linear_value_head.bias"])},
+        "sample": sample_forward(sd),
     }
 
     with open(OUT, "w", encoding="utf-8") as f:

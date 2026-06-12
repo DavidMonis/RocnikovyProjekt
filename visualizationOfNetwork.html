@@ -284,6 +284,130 @@
       color: var(--muted);
     }
 
+    /* ── Zoom: prvý uzol každej vrstvy ── */
+    .zoom-section{ margin-top: 44px; }
+
+    .zoom-title{
+      font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+      margin: 10px 0 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .zoom-note{
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.65;
+      max-width: 980px;
+    }
+
+    .zoom-note b{ color: var(--text); }
+
+    .zoom-tabs{ display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+
+    .zoom-tab{
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(18, 21, 29, 0.7);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .zoom-tab:hover{ color: var(--text); border-color: var(--accent); }
+
+    .zoom-tab.active{
+      color: #fff;
+      background: rgba(106, 169, 255, 0.16);
+      border-color: var(--accent);
+    }
+
+    .zoom-card{
+      background: rgba(10, 12, 18, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+
+    .zoom-flex{ display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+
+    .zoom-controls{ display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
+
+    .zoom-btn{
+      padding: 7px 14px;
+      border-radius: 9px;
+      border: 1px solid rgba(106, 169, 255, 0.3);
+      background: rgba(106, 169, 255, 0.08);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .zoom-btn:hover{ background: rgba(106, 169, 255, 0.16); border-color: var(--accent); }
+
+    .zoom-calc{
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      background: rgba(106, 169, 255, 0.05);
+      border: 1px solid rgba(106, 169, 255, 0.16);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 12px;
+      overflow-x: auto;
+    }
+
+    .zoom-calc b{ font-weight: 600; }
+
+    .zoom-sub{
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin: 14px 0 6px;
+    }
+
+    .zoom-big{
+      font-family: var(--font-mono);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .prob-row{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin: 6px 0;
+    }
+
+    .prob-row .pl{ width: 96px; color: var(--muted); }
+    .prob-row .pv{ width: 76px; text-align: right; }
+
+    .prob-bar{
+      flex: 1;
+      height: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      overflow: hidden;
+      min-width: 80px;
+    }
+
+    .prob-fill{
+      height: 100%;
+      background: linear-gradient(90deg, #6aa9ff, #a26bff);
+      border-radius: 6px;
+    }
+
     @media (max-width: 1080px){
       .viz-layout{ grid-template-columns: 1fr; }
       .viz-panel{ position: static; max-height: none; }
@@ -345,6 +469,19 @@
 
       <aside class="viz-panel" id="vizPanel"></aside>
     </div>
+
+    <section class="zoom-section">
+      <span class="section-eyebrow">Zoom · reálny forward pass</span>
+      <h2 class="zoom-title">Prvý uzol každej vrstvy — <span class="grad-text">skutočný vstup a výstup</span></h2>
+      <p class="zoom-note">
+        Sieť sme spustili na ukážkovom stave hry (krok 57, moja hus dĺžky 5) a zachytili hodnoty v každej vrstve.
+        Kľúčová odpoveď na otázku <i>„prečo dá 3×3 filter výstup 7×11?“</i>: filter má naozaj len 3×3 váhy na kanál,
+        ale <b>posúva sa po všetkých 7 × 11 = 77 pozíciách mapy</b> (vďaka circular paddingu aj cez okraje)
+        a na každej pozícii vypočíta jedno číslo. Jeden filter teda nevráti jediné číslo, ale celú mapu 7×11.
+      </p>
+      <div class="zoom-tabs" id="zoomTabs"></div>
+      <div id="zoomBody"></div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -952,6 +1089,564 @@
     }
 
     new ResizeObserver(() => { rebuildStatic(); render(); }).observe(canvas);
+
+    /* ════ Zoom: prvý uzol každej vrstvy — reálny vstup a výstup ════ */
+    (function zoomInit() {
+      const SM = NET.sample;
+      const tabsEl = document.getElementById('zoomTabs');
+      const bodyEl = document.getElementById('zoomBody');
+      if (!tabsEl || !bodyEl) return;
+      if (!SM) {
+        bodyEl.innerHTML = '<div class="zoom-card"><p class="zoom-note">V <code>network_weights.js</code> chýba ukážkový forward pass (<code>NET.sample</code>). Vygenerujte súbor nanovo cez <code>export_network_weights.py</code>.</p></div>';
+        return;
+      }
+
+      const el = (tag, cls, html) => {
+        const d = document.createElement(tag);
+        if (cls) d.className = cls;
+        if (html !== undefined) d.innerHTML = html;
+        return d;
+      };
+
+      const mapOf = (flat, idx) => flat.slice(idx * CELLS, idx * CELLS + CELLS);
+      const boardCh = ch => mapOf(SM.board, ch);
+      const xVec = SM.conv2.concat(SM.scalars); // vstup FC vrstvy (4 941)
+      let activeAnim = null;
+
+      function fixedCanvas(W, H) {
+        const cv = document.createElement('canvas');
+        cv.width = W * 2; cv.height = H * 2;
+        cv.style.width = W + 'px';
+        cv.style.maxWidth = '100%';
+        cv.style.height = 'auto';
+        const g = cv.getContext('2d');
+        g.scale(2, 2);
+        return [cv, g];
+      }
+
+      /* jedna mapa 7×11; upTo = počet už vypočítaných políčok, cur = zvýraznené políčko */
+      function drawMap(g, x, y, cs, data, mode, upTo, cur) {
+        let mx = 0;
+        data.forEach(v => { const a = Math.abs(v); if (a > mx) mx = a; });
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+          const i = r * COLS + c, v = data[i];
+          let fill;
+          if (upTo !== undefined && i >= upTo) fill = 'rgba(148,163,200,0.07)';
+          else if (mode === 'bin') fill = v > 0.5 ? '#6aa9ff' : 'rgba(106,169,255,0.08)';
+          else if (mode === 'act') fill = ramp(mx ? v / mx : 0);
+          else fill = diverge(mx ? v / mx : 0);
+          g.fillStyle = fill;
+          g.fillRect(x + c * cs, y + r * cs, cs - 1, cs - 1);
+        }
+        if (cur) {
+          g.strokeStyle = '#fff'; g.lineWidth = 1.5;
+          g.strokeRect(x + cur[1] * cs - 0.5, y + cur[0] * cs - 0.5, cs, cs);
+        }
+      }
+
+      /* 3×3 okno s circular wrapom cez okraje */
+      function patchOutline(g, x, y, cs, r0, c0) {
+        g.strokeStyle = '#ffd166'; g.lineWidth = 1.2;
+        for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+          const r = (r0 + i + ROWS) % ROWS, c = (c0 + j + COLS) % COLS;
+          g.strokeRect(x + c * cs + 0.5, y + r * cs + 0.5, cs - 2, cs - 2);
+        }
+      }
+
+      function drawKernelSlice(g, x, y, cs, ker, mx) {
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+          g.fillStyle = diverge(mx ? ker(i, j) / mx : 0);
+          g.fillRect(x + j * cs, y + i * cs, cs - 1, cs - 1);
+        }
+      }
+
+      /* ── animovaný konvolučný prehrávač ── */
+      function convViewer(cfg) {
+        const card = el('div', 'zoom-card');
+        card.appendChild(el('p', 'zoom-note', cfg.note));
+
+        const controls = el('div', 'zoom-controls');
+        const playBtn = el('button', 'zoom-btn', prefersReduced ? '↻ Znova' : '⏸ Pauza');
+        const stepBtn = el('button', 'zoom-btn', 'Krok →');
+        const resetBtn = el('button', 'zoom-btn', '↺ Reset');
+        controls.append(playBtn, stepBtn, resetBtn);
+        card.appendChild(controls);
+
+        const scroll = el('div', 'viz-scroll');
+        const [cv, g] = fixedCanvas(cfg.W, cfg.H);
+        scroll.appendChild(cv);
+        card.appendChild(scroll);
+
+        const calcEl = el('div', 'zoom-calc');
+        card.appendChild(calcEl);
+        bodyEl.appendChild(card);
+
+        const IG = cfg.inGeom;
+
+        function liveSum(r0, c0) {
+          let s = cfg.bias;
+          for (let ch = 0; ch < cfg.nIn; ch++) {
+            const m = cfg.inMaps[ch];
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+              const r = (r0 + i + ROWS) % ROWS, c = (c0 + j + COLS) % COLS;
+              s += cfg.kern(ch, i + 1, j + 1) * m[r * COLS + c];
+            }
+          }
+          return s;
+        }
+
+        function draw(done) {
+          g.clearRect(0, 0, cfg.W, cfg.H);
+          const cur = Math.min(done, CELLS - 1);
+          const r0 = Math.floor(cur / COLS), c0 = cur % COLS;
+          const running = done < CELLS;
+
+          g.font = '600 10px "JetBrains Mono", monospace';
+          g.fillStyle = 'rgba(152,161,181,0.85)';
+          g.textAlign = 'left';
+          g.fillText(cfg.inTitle, IG.x0, 16);
+          g.fillText(cfg.kTitle, cfg.kx, 16);
+          g.fillText('VÝSTUP PRED ReLU · 7×11', cfg.ox1, 16);
+          g.fillText('PO ReLU', cfg.ox2, 16);
+
+          for (let ch = 0; ch < cfg.nIn; ch++) {
+            const x = IG.x0 + (ch % IG.cols) * IG.colPitch;
+            const y = IG.y0 + Math.floor(ch / IG.cols) * IG.rowPitch;
+            if (cfg.inLabels) {
+              g.fillStyle = 'rgba(152,161,181,0.65)';
+              g.font = '8px "JetBrains Mono", monospace';
+              g.fillText(cfg.inLabels[ch], x, y - 3);
+            }
+            drawMap(g, x, y, IG.cell, cfg.inMaps[ch], cfg.inMode);
+            if (running) patchOutline(g, x, y, IG.cell, r0, c0);
+          }
+
+          let kmx = 0;
+          cfg.kSlices.forEach(s => {
+            for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+              kmx = Math.max(kmx, Math.abs(cfg.kern(s, i, j)));
+          });
+          cfg.kSlices.forEach((s, n) => {
+            const x = cfg.kx + (n % 2) * cfg.kColPitch, y = cfg.ky + Math.floor(n / 2) * cfg.kRowPitch;
+            drawKernelSlice(g, x, y, cfg.kCell, (i, j) => cfg.kern(s, i, j), kmx);
+            g.fillStyle = 'rgba(152,161,181,0.65)';
+            g.font = '8px "JetBrains Mono", monospace';
+            g.fillText(cfg.kLabels[n], x, y + cfg.kCell * 3 + 9);
+          });
+          g.fillStyle = 'rgba(152,161,181,0.85)';
+          g.font = '9.5px "JetBrains Mono", monospace';
+          g.fillText('bias ' + fmtW(cfg.bias), cfg.kx, cfg.kBiasY);
+
+          g.strokeStyle = 'rgba(106,169,255,0.6)';
+          g.lineWidth = 1.5;
+          g.beginPath(); g.moveTo(cfg.ax1, cfg.ay); g.lineTo(cfg.ax2, cfg.ay); g.stroke();
+          g.fillStyle = 'rgba(106,169,255,0.6)';
+          g.beginPath();
+          g.moveTo(cfg.ax2, cfg.ay); g.lineTo(cfg.ax2 - 7, cfg.ay - 4); g.lineTo(cfg.ax2 - 7, cfg.ay + 4);
+          g.closePath(); g.fill();
+
+          const curCell = running ? [r0, c0] : null;
+          drawMap(g, cfg.ox1, cfg.oy, cfg.oCell, cfg.outPre, 'div', done, curCell);
+          drawMap(g, cfg.ox2, cfg.oy, cfg.oCell, cfg.outPost, 'act', done, curCell);
+
+          g.fillStyle = 'rgba(152,161,181,0.8)';
+          g.font = '9.5px "JetBrains Mono", monospace';
+          g.fillText(`vypočítané ${done} / 77 pozícií`, cfg.ox1, cfg.oy + cfg.oCell * ROWS + 16);
+        }
+
+        function calc() {
+          const cur = Math.min(done, CELLS - 1);
+          const r = Math.floor(cur / COLS), c = cur % COLS;
+          const z = liveSum(r, c), a = Math.max(0, z);
+          calcEl.innerHTML =
+            `výstup(${r},${c}) = Σ ${cfg.nIn * 9} súčinov (váha × vstup) + bias ${fmtW(cfg.bias)} = ` +
+            `<b class="${z >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(z)}</b> → ReLU → <b>${fmt(a, 4)}</b>` +
+            (done >= CELLS ? ' &nbsp;·&nbsp; hotovo — 1 filter ⇒ 77 reálnych hodnôt (7×11)' : '');
+        }
+
+        let done = prefersReduced ? CELLS : 0;
+        let playing = !prefersReduced, raf = 0, last = 0;
+
+        function tick(t) {
+          raf = requestAnimationFrame(tick);
+          if (!playing || t - last < 85) return;
+          last = t;
+          done = Math.min(done + 1, CELLS);
+          draw(done); calc();
+          if (done >= CELLS) { playing = false; playBtn.textContent = '↻ Znova'; }
+        }
+
+        playBtn.addEventListener('click', () => {
+          if (done >= CELLS) { done = 0; playing = true; }
+          else playing = !playing;
+          playBtn.textContent = playing ? '⏸ Pauza' : '▶ Prehrať';
+          draw(done); calc();
+        });
+        stepBtn.addEventListener('click', () => {
+          playing = false; playBtn.textContent = done + 1 >= CELLS ? '↻ Znova' : '▶ Prehrať';
+          done = Math.min(done + 1, CELLS);
+          draw(done); calc();
+        });
+        resetBtn.addEventListener('click', () => {
+          playing = false; playBtn.textContent = '▶ Prehrať';
+          done = 0; draw(done); calc();
+        });
+
+        draw(done); calc();
+        raf = requestAnimationFrame(tick);
+        activeAnim = { stop() { playing = false; cancelAnimationFrame(raf); } };
+      }
+
+      /* ── 1) vstup: stav hry + kanály + skaláre ── */
+      function viewBoard() {
+        const card = el('div', 'zoom-card');
+        card.appendChild(el('p', 'zoom-note',
+          'Ukážkový stav: <b>krok 57</b>, moja hus (zelená) má dĺžku 5, súperi dĺžky 4, 3 a 2, dve jedlá. ' +
+          'Encoder ho prekóduje do 6 binárnych kanálov 7×11 <b>centrovaných na moju hlavu</b> ' +
+          '(v tejto ukážke je hlava presne v strede, takže pozície sedia 1 : 1) a 13 skalárov.'));
+
+        const flex = el('div', 'zoom-flex');
+
+        const wrapA = el('div');
+        wrapA.appendChild(el('div', 'zoom-sub', 'Stav hry · 7×11'));
+        const cs = 27, [cvA, gA] = fixedCanvas(COLS * cs + 2, ROWS * cs + 2);
+        gA.fillStyle = 'rgba(106,169,255,0.06)';
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+          gA.fillRect(c * cs + 1, r * cs + 1, cs - 2, cs - 2);
+        const GOOSE_C = ['#34d399', '#f87171', '#fbbf24', '#a78bfa'];
+        SM.state.geese.forEach((goose, gi) => {
+          goose.forEach((p, seg) => {
+            const r = Math.floor(p / COLS), c = p % COLS;
+            gA.globalAlpha = seg === 0 ? 1 : 0.55;
+            gA.fillStyle = GOOSE_C[gi];
+            gA.fillRect(c * cs + 3, r * cs + 3, cs - 6, cs - 6);
+            if (seg === 0) {
+              gA.globalAlpha = 1;
+              gA.strokeStyle = '#fff'; gA.lineWidth = 1.5;
+              gA.strokeRect(c * cs + 3, r * cs + 3, cs - 6, cs - 6);
+            }
+          });
+          gA.globalAlpha = 1;
+        });
+        SM.state.food.forEach(p => {
+          const r = Math.floor(p / COLS), c = p % COLS;
+          gA.fillStyle = '#ffd166';
+          gA.beginPath();
+          gA.arc(c * cs + cs / 2 + 1, r * cs + cs / 2 + 1, cs * 0.26, 0, Math.PI * 2);
+          gA.fill();
+        });
+        wrapA.appendChild(cvA);
+        flex.appendChild(wrapA);
+
+        const wrapB = el('div');
+        wrapB.appendChild(el('div', 'zoom-sub', 'Vstupné kanály · reálne 0/1'));
+        const mc = 13, mw = COLS * mc, mh = ROWS * mc;
+        const [cvB, gB] = fixedCanvas(3 * (mw + 40) - 40, 2 * (mh + 32));
+        for (let ch = 0; ch < 6; ch++) {
+          const x = (ch % 3) * (mw + 40), y = Math.floor(ch / 3) * (mh + 32) + 14;
+          gB.fillStyle = 'rgba(152,161,181,0.8)';
+          gB.font = '9px "JetBrains Mono", monospace';
+          gB.fillText('K' + ch + ' · ' + CH_NAMES[ch], x, y - 4);
+          drawMap(gB, x, y, mc, boardCh(ch), 'bin');
+        }
+        wrapB.appendChild(cvB);
+        flex.appendChild(wrapB);
+        card.appendChild(flex);
+
+        let rows = '';
+        SM.scalars.forEach((v, i) => {
+          rows += `<tr><td>#${i} · ${SCALAR_NAMES[i]}</td><td class="${v > 0 ? 'w-pos' : ''}">${fmt(v, 4)}</td></tr>`;
+        });
+        const sc = el('div');
+        sc.appendChild(el('div', 'zoom-sub', '13 skalárnych vstupov · reálne hodnoty'));
+        sc.innerHTML += `<table class="vp-table" style="max-width:420px"><tr><th>skalár</th><th>hodnota</th></tr>${rows}</table>`;
+        card.appendChild(sc);
+        bodyEl.appendChild(card);
+      }
+
+      /* ── 2) Conv1 filter #0 ── */
+      function viewConv1() {
+        convViewer({
+          note: 'Filter #0 vrstvy Conv1 má <b>6 × 3 × 3 = 54 váh + 1 bias</b>. Žlté okno 3×3 sa posúva po všetkých ' +
+            '6 vstupných kanáloch naraz (cez okraje — circular padding) a na každej zo 77 pozícií vypočíta ' +
+            '<b>jedno číslo</b>: súčet 54 súčinov + bias. Preto je výstup jedného filtra celá mapa 7×11, nie jediné číslo.',
+          nIn: 6,
+          inMaps: [0, 1, 2, 3, 4, 5].map(boardCh),
+          inMode: 'bin',
+          inLabels: ['K0', 'K1', 'K2', 'K3', 'K4', 'K5'],
+          inTitle: 'VSTUP · 6 KANÁLOV 7×11',
+          inGeom: { x0: 8, y0: 40, cell: 9, cols: 2, colPitch: 126, rowPitch: 80 },
+          kern: (ch, i, j) => k1(0, ch, i, j),
+          kSlices: [0, 1, 2, 3, 4, 5],
+          kLabels: ['K0', 'K1', 'K2', 'K3', 'K4', 'K5'],
+          kTitle: 'JADRO 3×3×6 · 54 VÁH',
+          kx: 305, ky: 40, kCell: 13, kColPitch: 62, kRowPitch: 60, kBiasY: 232,
+          bias: c1b[0],
+          ax1: 462, ax2: 545, ay: 130,
+          outPre: mapOf(SM.conv1Pre, 0),
+          outPost: mapOf(SM.conv1, 0),
+          ox1: 562, ox2: 812, oy: 40, oCell: 17,
+          W: 1060, H: 280
+        });
+      }
+
+      /* ── 3) Conv2 filter #0 ── */
+      function viewConv2() {
+        const order = [];
+        for (let f = 0; f < 32; f++) order.push([kernelNorm2(0, f), f]);
+        order.sort((a, b) => b[0] - a[0]);
+        const top4 = order.slice(0, 4).map(o => o[1]);
+        convViewer({
+          note: 'Filter #0 vrstvy Conv2 číta naraz všetkých <b>32 máp z Conv1</b> — jadro má 32 × 3 × 3 = 288 váh + bias. ' +
+            'Mechanizmus je rovnaký: okno 3×3 sa posúva po 77 pozíciách a na každej dá jedno číslo. ' +
+            'Zo všetkých 32 rezov jadra sú zobrazené 4 s najväčšou normou.',
+          nIn: 32,
+          inMaps: Array.from({ length: 32 }, (_, f) => mapOf(SM.conv1, f)),
+          inMode: 'act',
+          inLabels: null,
+          inTitle: 'VSTUP · 32 MÁP Z CONV1 (PO ReLU)',
+          inGeom: { x0: 8, y0: 40, cell: 3.8, cols: 8, colPitch: 52, rowPitch: 37 },
+          kern: (f, i, j) => k2(0, f, i, j),
+          kSlices: top4,
+          kLabels: top4.map(f => '← f' + f),
+          kTitle: 'JADRO 3×3×32 · 288 VÁH',
+          kx: 448, ky: 40, kCell: 12, kColPitch: 58, kRowPitch: 58, kBiasY: 172,
+          bias: c2b[0],
+          ax1: 572, ax2: 625, ay: 105,
+          outPre: mapOf(SM.conv2Pre, 0),
+          outPost: mapOf(SM.conv2, 0),
+          ox1: 640, ox2: 858, oy: 40, oCell: 15,
+          W: 1060, H: 210
+        });
+      }
+
+      /* ── 4) flatten[0] ── */
+      function viewFlatten() {
+        const card = el('div', 'zoom-card');
+        card.appendChild(el('p', 'zoom-note',
+          'Flatten nemá žiadne váhy — len preusporiada 64 máp 7×11 do jedného vektora dĺžky 4 928. ' +
+          'Index = filter × 77 + riadok × 11 + stĺpec. Prvý prvok <b>flatten[0]</b> je teda aktivácia ' +
+          'filtra Conv2 #0 na políčku (0, 0).'));
+
+        const flex = el('div', 'zoom-flex');
+        const w1 = el('div');
+        w1.appendChild(el('div', 'zoom-sub', 'Výstup Conv2 · filter #0 (po ReLU)'));
+        const [cv, g] = fixedCanvas(COLS * 18 + 2, ROWS * 18 + 2);
+        drawMap(g, 1, 1, 18, mapOf(SM.conv2, 0), 'act', undefined, [0, 0]);
+        w1.appendChild(cv);
+        flex.appendChild(w1);
+
+        const w2 = el('div');
+        w2.appendChild(el('div', 'zoom-sub', 'Prvý uzol vektora'));
+        w2.appendChild(el('div', 'zoom-big', 'flatten[0] = ' + fmt(SM.conv2[0], 5)));
+        w2.appendChild(el('p', 'zoom-note',
+          'Hodnota políčka (0, 0) — žiadny výpočet, len zmena tvaru 64 × 7 × 11 → 4 928. ' +
+          'Ďalej: flatten[1] = políčko (0, 1), … flatten[77] = filter #1, políčko (0, 0).'));
+        flex.appendChild(w2);
+        card.appendChild(flex);
+
+        let rows = '';
+        for (let i = 0; i < 11; i++)
+          rows += `<tr><td>flatten[${i}] · f0 (0,${i})</td><td>${fmt(SM.conv2[i], 5)}</td></tr>`;
+        const tb = el('div');
+        tb.appendChild(el('div', 'zoom-sub', 'Prvých 11 reálnych hodnôt (riadok 0)'));
+        tb.innerHTML += `<table class="vp-table" style="max-width:380px"><tr><th>prvok</th><th>hodnota</th></tr>${rows}</table>`;
+        card.appendChild(tb);
+        bodyEl.appendChild(card);
+      }
+
+      /* ── pásik 4 941 hodnôt ── */
+      function stripCanvas(data, mode) {
+        const buckets = 989, per = Math.ceil(data.length / buckets);
+        const [cv, g] = fixedCanvas(buckets, 26);
+        let mx = 0;
+        data.forEach(v => { const a = Math.abs(v); if (a > mx) mx = a; });
+        for (let b = 0; b < buckets; b++) {
+          let v = 0;
+          for (let j = b * per; j < Math.min((b + 1) * per, data.length); j++)
+            if (Math.abs(data[j]) > Math.abs(v)) v = data[j];
+          g.fillStyle = mode === 'act' ? ramp(mx ? v / mx : 0) : diverge(mx ? v / mx : 0);
+          g.fillRect(b, 4, 1, 18);
+        }
+        cv.style.width = '100%';
+        cv.style.maxWidth = '989px';
+        return cv;
+      }
+
+      /* ── 5) FC neurón #0 ── */
+      function viewFC() {
+        const card = el('div', 'zoom-card');
+        const b0 = NET.fc.b[0], row0 = NET.fc.row0;
+        let z = b0, nz = 0;
+        for (let j = 0; j < xVec.length; j++) {
+          z += row0[j] * xVec[j];
+          if (xVec[j] !== 0) nz++;
+        }
+        const a = Math.max(0, z);
+
+        card.appendChild(el('p', 'zoom-note',
+          `Neurón #0 vrstvy shared_fc má <b>4 941 vstupných váh</b> (4 928 flatten + 13 skalárov) a 1 bias. ` +
+          `Na rozdiel od konvolúcie dá len <b>jedno číslo</b>: skalárny súčin celého vstupu s váhami. ` +
+          `V tomto stave je nenulových len ${fmt(nz, 0)} zo 4 941 vstupov (ostatné vynuloval ReLU po Conv2).`));
+
+        const s = el('div');
+        s.appendChild(el('div', 'zoom-sub', 'Vstup x · 4 941 reálnych hodnôt (flatten + skaláre)'));
+        s.appendChild(stripCanvas(xVec, 'act'));
+        s.appendChild(el('div', 'zoom-sub', 'Váhy w neurónu #0 · 4 941 (zelená +, červená −)'));
+        s.appendChild(stripCanvas(row0, 'div'));
+        card.appendChild(s);
+
+        const prods = [];
+        for (let j = 0; j < xVec.length; j++)
+          if (xVec[j] !== 0) prods.push([Math.abs(row0[j] * xVec[j]), j]);
+        prods.sort((p, q) => q[0] - p[0]);
+        let rows = '';
+        prods.slice(0, 6).forEach(([, j]) => {
+          const p = row0[j] * xVec[j];
+          rows += `<tr><td>${colLabel(j)}</td><td>${fmtW(row0[j])}</td><td>${fmt(xVec[j], 4)}</td><td class="${p >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(p)}</td></tr>`;
+        });
+        const tb = el('div');
+        tb.appendChild(el('div', 'zoom-sub', 'Najväčšie príspevky w · x'));
+        tb.innerHTML += `<table class="vp-table" style="max-width:560px"><tr><th>zdroj</th><th>váha w</th><th>vstup x</th><th>w · x</th></tr>${rows}</table>`;
+        card.appendChild(tb);
+
+        card.appendChild(el('div', 'zoom-calc',
+          `z₀ = Σ<sub>j=1…4941</sub> wⱼ·xⱼ + bias ${fmtW(b0)} = ` +
+          `<b class="${z >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(z)}</b> → ReLU → <b>${fmt(a, 4)}</b>` +
+          ` &nbsp;·&nbsp; export z checkpointu: ${fmt(SM.fcPre[0], 5)} ✓`));
+        bodyEl.appendChild(card);
+      }
+
+      /* mriežka 256 hodnôt (64×4) */
+      function grid256(data, mode) {
+        const cell = 13;
+        const [cv, g] = fixedCanvas(64 * cell, 4 * cell + 2);
+        let mx = 0;
+        data.forEach(v => { const a = Math.abs(v); if (a > mx) mx = a; });
+        for (let i = 0; i < 256; i++) {
+          const v = data[i];
+          g.fillStyle = mode === 'act' ? ramp(mx ? v / mx : 0) : diverge(mx ? v / mx : 0);
+          g.fillRect((i % 64) * cell, Math.floor(i / 64) * cell, cell - 1, cell - 1);
+        }
+        cv.style.width = '100%';
+        cv.style.maxWidth = (64 * cell) + 'px';
+        return cv;
+      }
+
+      /* ── 6) policy P(N) ── */
+      function viewPolicy() {
+        const card = el('div', 'zoom-card');
+        const h = SM.fc, w = pw.slice(0, 256), b = pb[0];
+        let z = b;
+        for (let i = 0; i < 256; i++) z += w[i] * h[i];
+
+        card.appendChild(el('p', 'zoom-note',
+          'Prvý výstup policy hlavy — logit akcie <b>N (sever)</b>. Je to obyčajný skalárny súčin 256 aktivácií ' +
+          'FC vrstvy s 256 váhami + bias. Štyri logity sa potom softmaxom zmenia na pravdepodobnosti.'));
+
+        const s = el('div');
+        s.appendChild(el('div', 'zoom-sub', 'Vstup h · 256 aktivácií FC (reálne)'));
+        s.appendChild(grid256(h, 'act'));
+        s.appendChild(el('div', 'zoom-sub', 'Váhy w pre P(N) · 256'));
+        s.appendChild(grid256(w, 'div'));
+        card.appendChild(s);
+
+        const prods = h.map((hv, i) => [Math.abs(w[i] * hv), i]).sort((p, q) => q[0] - p[0]).slice(0, 6);
+        let rows = '';
+        prods.forEach(([, i]) => {
+          const p = w[i] * h[i];
+          rows += `<tr><td>FC #${i}</td><td>${fmtW(w[i])}</td><td>${fmt(h[i], 4)}</td><td class="${p >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(p)}</td></tr>`;
+        });
+        const tb = el('div');
+        tb.appendChild(el('div', 'zoom-sub', 'Najväčšie príspevky w · h'));
+        tb.innerHTML += `<table class="vp-table" style="max-width:560px"><tr><th>neurón</th><th>váha w</th><th>aktivácia h</th><th>w · h</th></tr>${rows}</table>`;
+        card.appendChild(tb);
+
+        card.appendChild(el('div', 'zoom-calc',
+          `logit(N) = Σ<sub>i=1…256</sub> wᵢ·hᵢ + bias ${fmtW(b)} = ` +
+          `<b class="${z >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(z)}</b>` +
+          ` &nbsp;·&nbsp; export z checkpointu: ${fmt(SM.policyLogits[0], 5)} ✓`));
+
+        const sm = el('div');
+        sm.appendChild(el('div', 'zoom-sub', 'Softmax všetkých 4 logitov → reálna stratégia v tomto stave'));
+        let bars = '';
+        SM.policyProbs.forEach((p, a) => {
+          bars += `<div class="prob-row"><span class="pl">${ACTION_NAMES[a]}</span>` +
+            `<span class="pv">${fmt(SM.policyLogits[a], 3)}</span>` +
+            `<div class="prob-bar"><div class="prob-fill" style="width:${(p * 100).toFixed(1)}%"></div></div>` +
+            `<span class="pv">${(p * 100).toFixed(1)} %</span></div>`;
+        });
+        sm.innerHTML += bars;
+        card.appendChild(sm);
+        bodyEl.appendChild(card);
+      }
+
+      /* ── 7) value ── */
+      function viewValue() {
+        const card = el('div', 'zoom-card');
+        const h = SM.fc, b = vb[0];
+        let z = b;
+        for (let i = 0; i < 256; i++) z += vw[i] * h[i];
+        const v = Math.tanh(z);
+
+        card.appendChild(el('p', 'zoom-note',
+          'Value hlava má jediný neurón: 256 váh + bias, výsledok prejde cez tanh do intervalu [−1, 1]. ' +
+          '−1 ≈ prvý vypadnutý, +1 ≈ víťaz. V MCTS táto hodnota ohodnocuje listové uzly stromu.'));
+
+        const s = el('div');
+        s.appendChild(el('div', 'zoom-sub', 'Vstup h · 256 aktivácií FC (reálne)'));
+        s.appendChild(grid256(h, 'act'));
+        s.appendChild(el('div', 'zoom-sub', 'Váhy value neurónu · 256'));
+        s.appendChild(grid256(vw, 'div'));
+        card.appendChild(s);
+
+        card.appendChild(el('div', 'zoom-calc',
+          `z = Σ<sub>i=1…256</sub> wᵢ·hᵢ + bias ${fmtW(b)} = ` +
+          `<b class="${z >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(z)}</b> → tanh → ` +
+          `<b class="${v >= 0 ? 'w-pos' : 'w-neg'}">${fmtW(v)}</b>` +
+          ` &nbsp;·&nbsp; export z checkpointu: ${fmt(SM.value[0], 5)} ✓`));
+
+        const gauge = el('div');
+        gauge.appendChild(el('div', 'zoom-sub', 'Hodnotenie pozície'));
+        gauge.innerHTML += `
+          <div style="position:relative; height:14px; max-width:560px; border-radius:7px; background:linear-gradient(90deg,#f87171,#39414f 50%,#34d399); border:1px solid var(--border);">
+            <div style="position:absolute; top:-4px; left:${((v + 1) / 2 * 100).toFixed(1)}%; width:3px; height:22px; background:#fff; border-radius:2px; transform:translateX(-50%);"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; max-width:560px; font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); margin-top:5px;"><span>−1 · prehra</span><span>0</span><span>+1 · výhra</span></div>
+          <p class="zoom-note" style="margin-top:10px">${fmtW(v)} — sieť hodnotí ukážkovú pozíciu ako približne vyrovnanú.</p>`;
+        card.appendChild(gauge);
+        bodyEl.appendChild(card);
+      }
+
+      /* ── taby ── */
+      const VIEWS = {
+        board: viewBoard, conv1: viewConv1, conv2: viewConv2,
+        flatten: viewFlatten, fc: viewFC, policy: viewPolicy, value: viewValue
+      };
+      const TABS = [
+        ['board', 'Vstup · stav hry'],
+        ['conv1', 'Conv1 · filter #0'],
+        ['conv2', 'Conv2 · filter #0'],
+        ['flatten', 'Flatten · #0'],
+        ['fc', 'FC · neurón #0'],
+        ['policy', 'Policy · P(N)'],
+        ['value', 'Value']
+      ];
+
+      function activate(key) {
+        if (activeAnim) { activeAnim.stop(); activeAnim = null; }
+        tabsEl.querySelectorAll('.zoom-tab').forEach(b => b.classList.toggle('active', b.dataset.t === key));
+        bodyEl.innerHTML = '';
+        VIEWS[key]();
+      }
+
+      tabsEl.innerHTML = TABS.map(([k, l]) => `<button type="button" class="zoom-tab" data-t="${k}">${l}</button>`).join('');
+      tabsEl.addEventListener('click', e => {
+        const b = e.target.closest('.zoom-tab');
+        if (b) activate(b.dataset.t);
+      });
+      activate('conv1');
+    })();
   })();
   </script>
 </body>
