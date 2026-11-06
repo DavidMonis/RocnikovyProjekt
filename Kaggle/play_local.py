@@ -20,7 +20,6 @@ from projects_agents.rule_based import choose_rule_based_action
 
 
 MCTS_AGENT = "submission.py"
-GOOSE_LOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
 
 CLEVER_BOT = "bots/clever_bot.py"
 SMART_BOT = "bots/smart_bot.py"
@@ -197,8 +196,6 @@ def resolve_agent_token(token: str):
     aliases = {
         "mcts": MCTS_AGENT,
         "submission": MCTS_AGENT,
-        "goose": GOOSE_LOOSE_AGENT,
-        "goose_loose": GOOSE_LOOSE_AGENT,
         "clever": CLEVER_BOT,
         "smart": SMART_BOT,
         "stupid": STUPID_BOT,
@@ -255,14 +252,6 @@ def get_agents_for_mode(mode: str):
             STUPID_BOT,
         ]
 
-    if mode == "goose-loose":
-        return [
-            MCTS_AGENT,
-            GOOSE_LOOSE_AGENT,
-            CLEVER_BOT,
-            CLEVER_BOT,
-        ]
-
     raise ValueError(f"Unknown mode: {mode}")
 
 
@@ -280,7 +269,6 @@ def parse_args():
             "mcts-vs-mcts",
             "mcts-vs-nn",
             "nn-vs-bots",
-            "goose-loose",
             "custom",
         ],
         help="Preset match mode.",
@@ -292,7 +280,7 @@ def parse_args():
         default=None,
         help=(
             "Custom four-agent setup. "
-            "Allowed aliases: mcts, nn, goose, clever, smart, stupid. "
+            "Allowed aliases: mcts, nn, clever, smart, stupid. "
             "You can also pass a direct .py file path."
         ),
     )

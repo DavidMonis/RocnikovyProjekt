@@ -1,8 +1,13 @@
 """
 External agent evaluation for Kaggle Hungry Geese.
 
-This script compares your submission agent against the public Goose Loose agent
-in several match setups.
+This script compares your submission agent against an external Kaggle agent
+in several match setups. The external agent is not part of this repository;
+pass the path to its .py file on the command line:
+
+    PYTHONPATH=. python evaluate_external.py path/to/agent.py
+
+In the results, "goose" means the external agent.
 
 Main interpretation:
 
@@ -10,7 +15,7 @@ Main interpretation:
    - Lower is better.
    - 1.0 means average first place.
    - 4.0 means average last place.
-   - If your avg placement is lower than Goose Loose, your agent performed better.
+   - If your avg placement is lower than the external agent's, your agent performed better.
 
 2. fractional_win_rate_my / fractional_win_rate_goose
    - Counts wins with tie handling.
@@ -26,6 +31,8 @@ Main interpretation:
 """
 
 from __future__ import annotations
+import argparse
+import os
 import time
 import random
 from typing import Any
@@ -42,9 +49,6 @@ from kaggle_environments import make
 # It only runs submission.py. If submission.py loads checkpoints/latest.pt,
 # then this evaluation uses latest.pt.
 MY_AGENT = "submission.py"
-
-# Public strong external agent.
-GOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
 
 # handcrafted baseline bot.
 SMART_BOT = "bots/bot.py"
@@ -229,6 +233,7 @@ def run_one_game(agents: list[str],name, seed: int | None = None) -> dict:
 def evaluate_setup(
     name: str,
     base_agents: list[str],
+    external_agent: str,
     n_games: int = N_GAMES,
     rotate_seats: bool = ROTATE_SEATS,
 ) -> dict:
@@ -286,12 +291,12 @@ def evaluate_setup(
             flush=True,
         )
 
-        # Find all seats occupied by your agent and Goose Loose.
+        # Find all seats occupied by your agent and the external agent.
         my_seats = [i for i, agent_path in enumerate(agents) if agent_path == MY_AGENT]
-        goose_seats = [i for i, agent_path in enumerate(agents) if agent_path == GOOSE_AGENT]
+        goose_seats = [i for i, agent_path in enumerate(agents) if agent_path == external_agent]
 
         # Pairwise score is meaningful mainly when there is exactly
-        # one copy of your agent and one copy of Goose Loose.
+        # one copy of your agent and one copy of the external agent.
         # not using anymore
         if len(my_seats) == 1 and len(goose_seats) == 1:
             my_place = placements[my_seats[0]]
@@ -378,18 +383,32 @@ def print_summary(summary: dict) -> None:
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Compare submission.py against an external Kaggle Hungry Geese agent.",
+    )
+    parser.add_argument(
+        "external_agent",
+        help="Path to the external agent's .py file (not included in this repository).",
+    )
+    args = parser.parse_args()
+
+    if not os.path.isfile(args.external_agent):
+        parser.error(f"Agent file not found: {args.external_agent}")
+
+    external = args.external_agent
+
     setups = [
         (
             "direct_duel_with_smart_baseline",
-            [MY_AGENT, GOOSE_AGENT, SMART_BOT, SMART_BOT],
+            [MY_AGENT, external, SMART_BOT, SMART_BOT],
         ),
         (
             "balanced_2_my_2_goose",
-            [MY_AGENT, MY_AGENT, GOOSE_AGENT, GOOSE_AGENT],
+            [MY_AGENT, MY_AGENT, external, external],
         ),
         (
             "stress_1_my_3_goose",
-            [MY_AGENT, GOOSE_AGENT, GOOSE_AGENT, GOOSE_AGENT],
+            [MY_AGENT, external, external, external],
         ),
     ]
 
@@ -401,6 +420,7 @@ def main():
         summary = evaluate_setup(
             name=name,
             base_agents=agents,
+            external_agent=external,
             n_games=N_GAMES,
             rotate_seats=ROTATE_SEATS,
         )

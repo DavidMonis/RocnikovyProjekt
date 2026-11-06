@@ -220,22 +220,6 @@ python -m pip install --upgrade pip setuptools wheel
 python -m pip install torch pygame numpy matplotlib pytest kaggle-environments
 ```
 
-### 6. Voliteľné závislosti pre Goose Loose agenta
-
-Ak chceš hrať proti verejnému Goose Loose agentovi v priečinku `winning_agent/`, môžu byť potrebné aj:
-
-```bash
-python -m pip install onnxruntime scikit-learn
-```
-
-Ak by Goose Loose agent padal na chybe typu `np.Inf was removed`, najjednoduchšie riešenie je použiť NumPy 1.x:
-
-```bash
-python -m pip install "numpy<2"
-```
-
-Alebo upraviť Goose Loose kód tak, aby používal `np.inf` namiesto `np.Inf`.
-
 ---
 
 ## Overenie inštalácie
@@ -305,7 +289,7 @@ python --version
 config.py                         # centrálne nastavenia projektu
 submission.py                     # finálny Kaggle agent
 play_local.py                     # lokálne hranie a vizualizácia hry
-evaluate_external.py              # externé porovnanie proti Goose Loose
+evaluate_external.py              # hromadné porovnanie s externým agentom
 other/replay_viewer.py            # interaktívny prehrávač uložených JSON replay súborov
 ```
 
@@ -353,7 +337,6 @@ projects_agents/nn_policy.py          # lacná NN policy
 bots/clever_bot.py                    # jednoduchší externý bot
 bots/smart_bot.py                     # silnejší handcrafted bot
 bots/stupid_bot.py                    # slabý testovací bot
-winning_agent/kaggle_public_agent.py  # Goose Loose agent
 ```
 
 ## Checkpointy
@@ -608,23 +591,6 @@ stupid_bot.py
 
 Tento mód je vhodný na rýchle porovnanie, či samotná neurónová sieť dáva zmysluplné akcie aj bez MCTS.
 
-### MCTS proti Goose Loose
-
-```bash
-PYTHONPATH=. python play_local.py --mode goose-loose
-```
-
-Zostava:
-
-```text
-submission.py
-winning_agent/kaggle_public_agent.py
-clever_bot.py
-clever_bot.py
-```
-
-Toto je základný lokálny spôsob, ako si zahrať proti verejnému Goose Loose agentovi.
-
 ---
 
 ## Renderovanie hry
@@ -692,7 +658,7 @@ PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/i
 Použi mód `custom` a zadaj štyroch agentov:
 
 ```bash
-PYTHONPATH=. python play_local.py --mode custom --agents mcts goose clever clever
+PYTHONPATH=. python play_local.py --mode custom --agents mcts clever smart stupid
 ```
 
 Podporované aliasy:
@@ -701,8 +667,6 @@ Podporované aliasy:
 mcts        -> submission.py
 submission  -> submission.py
 nn          -> lokálny NN-only agent
-goose       -> winning_agent/kaggle_public_agent.py
-goose_loose -> winning_agent/kaggle_public_agent.py
 clever      -> bots/clever_bot.py
 smart       -> bots/smart_bot.py
 stupid      -> bots/stupid_bot.py
@@ -718,34 +682,30 @@ PYTHONPATH=. python play_local.py --mode custom --agents mcts nn clever smart
 PYTHONPATH=. python play_local.py --mode custom --agents mcts mcts nn nn
 ```
 
+Namiesto aliasu môžeš zadať aj cestu k `.py` súboru agenta:
+
 ```bash
-PYTHONPATH=. python play_local.py --mode custom --agents mcts goose smart clever
+PYTHONPATH=. python play_local.py --mode custom --agents mcts cesta/k/agentovi.py smart clever
 ```
 
 ---
 
-# 7. Externé vyhodnotenie proti Goose Loose
+# 7. Externé vyhodnotenie
 
-Na väčšie porovnanie slúži:
+Na väčšie porovnanie s iným Kaggle agentom slúži `evaluate_external.py`. Externý agent nie je súčasťou repozitára, cestu k jeho `.py` súboru zadáš ako argument:
 
 ```bash
-PYTHONPATH=. python evaluate_external.py
+PYTHONPATH=. python evaluate_external.py cesta/k/agentovi.py
 ```
 
 Tento skript je vhodnejší než jedna lokálna hra, pretože spustí veľa hier a počíta štatistiky.
 
-Typicky porovnáva:
+Porovnáva tri zostavy, v každej sa miesta agentov striedajú:
 
 ```text
-submission.py
-winning_agent/kaggle_public_agent.py
-clever/smart baseline botov
-```
-
-Príklad:
-
-```bash
-PYTHONPATH=. python evaluate_external.py
+direct_duel_with_smart_baseline   submission.py, externý agent, 2× bots/bot.py
+balanced_2_my_2_goose             2× submission.py, 2× externý agent
+stress_1_my_3_goose               submission.py, 3× externý agent
 ```
 
 Ak chceš zvýšiť presnosť výsledku, zvýš počet hier v `evaluate_external.py`, napríklad:
@@ -754,7 +714,7 @@ Ak chceš zvýšiť presnosť výsledku, zvýš počet hier v `evaluate_external
 N_GAMES = 1000
 ```
 
-Pozor: veľký počet hier môže trvať dlho, najmä ak Goose Loose agent používa ONNX modely.
+Pozor: veľký počet hier môže trvať dlho, najmä ak je externý agent pomalý.
 
 ---
 
@@ -892,36 +852,6 @@ alebo skopíruj existujúci checkpoint do:
 checkpoints/latest.pt
 ```
 
-## Goose Loose chýbajú závislosti
-
-Ak Goose Loose padá na:
-
-```text
-ModuleNotFoundError: No module named 'onnxruntime'
-```
-
-nainštaluj:
-
-```bash
-python -m pip install onnxruntime scikit-learn
-```
-
-## Goose Loose a NumPy 2.x
-
-Ak Goose Loose padá na:
-
-```text
-np.Inf was removed in the NumPy 2.0 release
-```
-
-použi:
-
-```bash
-python -m pip install "numpy<2"
-```
-
-alebo uprav Goose Loose kód na `np.inf`.
-
 ---
 
 # 12. Užitočné príkazy
@@ -948,12 +878,6 @@ Tréning:
 
 ```bash
 PYTHONPATH=. python training/train.py
-```
-
-Lokálna hra proti Goose Loose:
-
-```bash
-PYTHONPATH=. python play_local.py --mode goose-loose
 ```
 
 MCTS proti botom:
@@ -984,7 +908,7 @@ PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/i
 Externé vyhodnotenie:
 
 ```bash
-PYTHONPATH=. python evaluate_external.py
+PYTHONPATH=. python evaluate_external.py cesta/k/agentovi.py
 ```
 
 Replay Viewer:
@@ -1002,18 +926,9 @@ PYTHONPATH=. pytest
 
 # Licencia
 
-Časti projektu vytvorené autorom Dávidom Monišom sú licencované pod licenciou MIT.  
+Projekt je licencovaný pod licenciou MIT.  
 Kód je možné používať, upravovať a šíriť za podmienky, že zostane zachované pôvodné copyright oznámenie a text licencie.
 
 Projekt alebo jeho významné časti nie je vhodné prezentovať ako vlastné pôvodné dielo bez uvedenia autora.
 
 Pozri súbor `LICENSE`.
-
-## Externý kód a tretie strany
-
-Tento repozitár môže obsahovať aj externý kód použitý iba na porovnanie, testovanie alebo lokálne vyhodnocovanie agentov.
-
-Súbor:
-
-```text
-winning_agent/kaggle_public_agent.py

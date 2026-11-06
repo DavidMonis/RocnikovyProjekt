@@ -33,7 +33,6 @@ Kaggle/
 ├── search/               # MCTS implementation and tree node structure
 ├── tests/                # Unit and integration tests
 ├── training/             # Self-play, training, evaluation, replay buffer, trainer loop
-├── winning_agent/        # External public Goose Loose agent for comparison
 ├── config.py             # Central configuration constants
 ├── evaluate_external.py  # External Kaggle-env evaluation script
 ├── play_local.py         # Local game runner
@@ -987,13 +986,13 @@ A very weak baseline bot, usually used for quick environment tests or sanity che
 
 ### `evaluate_external.py`
 
-This script evaluates the local submission against external Kaggle-compatible agents, especially the public Goose Loose agent.
+This script evaluates the local submission against an external Kaggle-compatible agent. The external agent is not part of this repository; pass the path to its `.py` file as an argument.
 
 Typical agents:
 
 ```python
 MY_AGENT = "submission.py"
-GOOSE_AGENT = "winning_agent/kaggle_public_agent.py"
+# the external agent comes from the command line
 SMART_BOT = "bots/clever_bot.py"
 ```
 
@@ -1002,19 +1001,19 @@ Important setups:
 * direct duel with smart baselines:
 
 ```text
-[MY_AGENT, GOOSE_AGENT, SMART_BOT, SMART_BOT]
+[MY_AGENT, external, SMART_BOT, SMART_BOT]
 ```
 
 * balanced two-vs-two:
 
 ```text
-[MY_AGENT, MY_AGENT, GOOSE_AGENT, GOOSE_AGENT]
+[MY_AGENT, MY_AGENT, external, external]
 ```
 
 * stress setup:
 
 ```text
-[MY_AGENT, GOOSE_AGENT, GOOSE_AGENT, GOOSE_AGENT]
+[MY_AGENT, external, external, external]
 ```
 
 Important metrics:
@@ -1317,10 +1316,10 @@ PYTHONPATH=. python play_local.py --mode mcts-vs-bots --checkpoint checkpoints/i
 ### 15.3 Run External Evaluation
 
 ```bash
-PYTHONPATH=. python evaluate_external.py
+PYTHONPATH=. python evaluate_external.py path/to/agent.py
 ```
 
-Use this to compare `submission.py` against Goose Loose or handcrafted baselines.
+Use this to compare `submission.py` against an external agent or handcrafted baselines.
 
 ---
 
@@ -1449,7 +1448,7 @@ This is a strong late-training setup because it focuses mainly on MCTS-quality p
 * `best.pt` is useful, but the submission currently loads `latest.pt`.
 * If you want to submit the best evaluated model, copy or rename `best.pt` to `latest.pt`, or change `CHECKPOINT_PATH` in `submission.py`.
 * If tests fail after intentional behavior changes, check whether the test is still testing the intended behavior.
-* External evaluation against Goose Loose is more realistic but much slower than internal evaluation.
+* External evaluation against a strong external agent is more realistic but much slower than internal evaluation.
 * Internal evaluation is useful for fast iteration but should not be treated as final proof of leaderboard strength.
 
 ---
@@ -1477,7 +1476,7 @@ PYTHONPATH=. python play_local.py
 Run external evaluation:
 
 ```bash
-PYTHONPATH=. python evaluate_external.py
+PYTHONPATH=. python evaluate_external.py path/to/agent.py
 ```
 
 Replay a saved game:
